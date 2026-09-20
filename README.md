@@ -15,11 +15,18 @@ Mục tiêu: từ **phác thảo cảnh + câu mô tả**, sinh ảnh có **đú
 Colab ngắt kết nối hoặc hết giờ: chỉ cần **Run all lại**; ảnh và độ đo đã có trên Drive được bỏ qua.
 Không cần khóa Hugging Face: mọi mô hình dùng đều công khai.
 
-| Tier | QuickDraw-Scenes | COCO-Sketch | Seed | Ghi chú |
-|---|---|---|---|---|
-| `pilot` | 36 cảnh (3/ô) | 12 | 1 | kiểm tra toàn bộ luồng, đo thời gian thật (ước tính 1–2 giờ L4) |
-| `paper` | 180 cảnh (15/ô) | 96 | 3 | số liệu cho khóa luận |
-| `full` | 300 cảnh (25/ô) | 180 | 3 | cho bài báo, cần thêm GPU |
+Thiết kế cho **Google Colab Pro** (khoảng 100 compute unit/tháng; T4 ≈ 1,8 unit/giờ, L4 ≈ 4,8 unit/giờ).
+Mọi phương pháp dùng cùng siêu tham số của tier nên so sánh vẫn công bằng.
+
+| Tier | QuickDraw-Scenes | Học định danh (OCSD, Zhang) | COCO-Sketch | Seed | DDIM / K / M3 | Ước tính |
+|---|---|---|---|---|---|---|
+| `pilot` | 24 cảnh | 8 | 8 (4) | 1 | 30 / 2 / 100+100 | ~1 giờ L4, ~5 unit |
+| `paper` | 96 cảnh (8/ô) | 48 | 48 (24) | 2 | 30 / 2 / 150+150 | ~12 giờ L4 (~60 unit) hoặc ~30 giờ T4 (~55 unit) |
+| `full` | 300 cảnh | 180 | 200 (100) | 3 | 50 / 4 / 200+200 | cần GPU ngoài Colab Pro |
+
+Ước tính trên là tính tay, chưa đo. Sau mỗi lượt chạy, notebook ghi `results/budget_estimate.json`
+với số giờ GPU dự kiến của từng tier, tính từ thời gian đo thật trên GPU đang dùng.
+Colab Pro không chạy nền: giữ tab trình duyệt mở; khi phiên hết giờ, mở lại và Run all để chạy tiếp.
 
 Các notebook khác: `01_demo_modules.ipynb` (hình minh họa từng mô-đun cho Chương 3–4), `02_app_gradio.ipynb` (ứng dụng minh họa).
 

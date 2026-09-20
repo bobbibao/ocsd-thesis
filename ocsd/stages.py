@@ -73,29 +73,40 @@ def preview_benchmark(P: Paths):
 
 # ============================================================================ 2. generate
 def experiment_plan(P: Paths, E: ExperimentConfig) -> List[Dict]:
-    """Danh sách công việc. Thứ tự: E3 QuickDraw -> E3 COCO -> E4 -> alpha (kết quả quan trọng nhất có trước)."""
+    """Danh sách công việc (E3 QuickDraw, E3 COCO, E4 cắt bỏ, alpha). Tập cảnh của E4/alpha nằm trong tập cảnh đã
+    học định danh để dùng lại M2/M3 (tiết kiệm GPU)."""
     t = TIERS[E.tier]
-    main = [m for m in MAIN if not (m == "gligen" and E.backbone != "sd15")]
-    main = [m for m in main if not (m == "t2i_adapter" and E.backbone != "sd15")]
+    main = [m for m in MAIN if not (m in ("gligen", "t2i_adapter") and E.backbone != "sd15")]
+    free = [m for m in main if m not in ("ocsd", "zhang2025")]
     qd_all = list_scenes(P.benchmarks, "quickdraw")
-    coco_sub = list_scenes(P.benchmarks, "coco", limit=t["full_identity_n"], seed=1)
-    ocsd_full_qd = list_scenes(P.benchmarks, "quickdraw", limit=t["full_identity_n"], seed=1)
+    qd_tr = list_scenes(P.benchmarks, "quickdraw", limit=t["trained_n"], seed=1)
+    coco_all = list_scenes(P.benchmarks, "coco", limit=t["coco_n"], seed=1)
+    coco_tr = list_scenes(P.benchmarks, "coco", limit=t["coco_trained_n"], seed=1)
+    coco_tr = [d for d in coco_tr if d in coco_all] or coco_all[: t["coco_trained_n"]]
+    mid = [d for d in qd_tr if os.path.basename(d).split("_")[1] in ("3", "5")]
     plan = [
-        # OCSD đầy đủ (có học định danh, tốn thời gian nhất) chạy trên tập con phân tầng; mọi phương pháp khác
-        # chạy trên toàn bộ tập. Bảng E3 so sánh trên giao các cảnh chung (report.build_all tự xử lý).
-        dict(name="E3_quickdraw_all", split="quickdraw", scenes=qd_all, seeds=E.seeds,
-             methods=[m for m in main if m not in ("ocsd", "zhang2025")]),
-        dict(name="E3_quickdraw_trained", split="quickdraw", scenes=ocsd_full_qd, seeds=E.seeds,
-             methods=["ocsd", "zhang2025"]),
-        dict(name="E3_coco", split="coco", scenes=coco_sub, seeds=E.seeds[:2], methods=main),
-        dict(name="E4_ablation", split="quickdraw",
-             scenes=list_scenes(P.benchmarks, "quickdraw", count_bins=["3", "5"], limit=t["ablation_n"], seed=2),
-             seeds=E.seeds[:2], methods=[m for m in ABLATION if m in OCSD_VARIANTS]),
-        dict(name="alpha", split="quickdraw",
-             scenes=list_scenes(P.benchmarks, "quickdraw", count_bins=["3", "5"], limit=t["alpha_n"], seed=3),
-             seeds=E.seeds[:1], methods=ALPHAS),
+        dict(name="E3_quickdraw_free", split="quickdraw", scenes=qd_all, seeds=E.seeds, methods=free),
+        dict(name="E3_quickdraw_trained", split="quickdraw", scenes=qd_tr, seeds=E.seeds, methods=["ocsd", "zhang2025"]),
+        dict(name="E3_coco_free", split="coco", scenes=coco_all, seeds=E.seeds[:1], methods=free),
+        dict(name="E3_coco_trained", split="coco", scenes=coco_tr, seeds=E.seeds[:1], methods=["ocsd", "zhang2025"]),
+        dict(name="E4_ablation", split="quickdraw", scenes=mid[: t["ablation_n"]], seeds=E.seeds[:1],
+             methods=[m for m in ABLATION if m in OCSD_VARIANTS and m not in ("ocsd", "zhang2025", "ocsd_lite")]),
+        dict(name="alpha", split="quickdraw", scenes=mid[: t["alpha_n"]], seeds=E.seeds[:1], methods=ALPHAS),
     ]
     return [p for p in plan if p["scenes"]]
+
+
+def tier_variants(E: ExperimentConfig):
+    """Áp siêu tham số của tier cho mọi phương pháp (Zhang et al. giữ K = 1)."""
+    from .config import OCSDConfig
+    ov = TIERS[E.tier].get("cfg", {})
+    var = {}
+    for k, v in OCSD_VARIANTS.items():
+        o = dict(ov)
+        if v.K == 1:
+            o.pop("K", None)
+        var[k] = v.replace(**o)
+    return var, OCSDConfig().replace(**ov)
 
 
 def _count_todo(P, job):
@@ -109,33 +120,94 @@ def _count_todo(P, job):
     return n
 
 
-def generate(P: Paths, E: ExperimentConfig, only: Optional[List[str]] = None, max_minutes: Optional[float] = None,
-             eng=None, vis=None):
-    import torch
+def work_items(P: Paths, E: ExperimentConfig):
+    """Gộp mọi công việc theo cảnh: mỗi cảnh được xử lý một lần với mọi phương pháp/seed của nó, nên M2/M3 chỉ làm
+    một lần cho mỗi cảnh. Thứ tự: cảnh có học định danh trước (bảng E3/E4 đầy đủ sớm nhất), rồi phần còn lại."""
+    items: Dict[tuple, List] = {}
+    order: List[tuple] = []
+    plan = experiment_plan(P, E)
+    trained = {d for j in plan if "trained" in j["name"] for d in j["scenes"]}
+    for j in plan:
+        for d in j["scenes"]:
+            key = (j["split"], d)
+            if key not in items:
+                items[key] = []
+                order.append(key)
+            for m in j["methods"]:
+                for s in j["seeds"]:
+                    if (m, s) not in items[key]:
+                        items[key].append((m, s))
+    order.sort(key=lambda k: (k[0] != "quickdraw", k[1] not in trained))
+    return [(split, d, items[(split, d)]) for split, d in order]
+
+
+def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None, eng=None, vis=None):
     from .engine import Engine
     from .runner import Runner
     from .vision import Vision
-    os.environ.setdefault("HF_HOME", P.cache)
     if eng is None:
-        eng = Engine.from_pretrained(E.backbone, "cuda", E.fp16, cache_dir=None)
+        eng = Engine.from_pretrained(E.backbone, "cuda", E.fp16)
     if vis is None:
         vis = Vision("cuda")
-    runner = Runner(eng, vis, P.outputs, E.backbone)
-    t0 = time.time()
-    for job in experiment_plan(P, E):
-        if only and job["name"] not in only:
-            continue
-        todo = _count_todo(P, job)
-        print(f"\n===== {job['name']}: {len(job['scenes'])} cảnh x {len(job['methods'])} phương pháp x "
-              f"{len(job['seeds'])} seed, còn {todo} ảnh")
-        if todo == 0:
-            continue
-        left = None if max_minutes is None else max_minutes - (time.time() - t0) / 60
-        if left is not None and left <= 0:
-            break
-        runner.run(job["scenes"], job["methods"], job["seeds"], job["split"], max_minutes=left)
+    variants, base = tier_variants(E)
+    runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base)
+    items = work_items(P, E)
+    todo = [(sp, d, [(m, s) for m, s in ms if not os.path.exists(runner.img_path(sp, m, os.path.basename(d), s))])
+            for sp, d, ms in items]
+    todo = [x for x in todo if x[2]]
+    print(f"Còn {sum(len(x[2]) for x in todo)} ảnh trên {len(todo)} cảnh")
+    runner.run_items(todo, max_minutes=max_minutes)
     log_progress(P, E)
+    estimate(P, E)
     return eng, vis
+
+
+def estimate(P: Paths, E: ExperimentConfig, tiers=("pilot", "paper", "full")) -> Dict:
+    """Ước tính giờ GPU từ thời gian ĐO THỰC của các ảnh đã sinh (nhật ký .json), cho từng tier."""
+    import numpy as np
+    per_img: Dict[str, List[float]] = {}
+    m2, m3 = [], []
+    for f in glob.glob(os.path.join(P.outputs, "*", "*", "*.json")):
+        if "/_objects/" in f:
+            continue
+        try:
+            r = json.load(open(f))
+        except Exception:
+            continue
+        per_img.setdefault(r["method"], []).append(r.get("scene_time") or 0)
+        pt = r.get("prep_times") or {}
+        if pt.get("m3"):
+            m3.append(pt["m3"])
+    for f in glob.glob(os.path.join(P.outputs, "*", "_objects", "*", "*", "objects.json")):
+        m2.append(json.load(open(f)).get("m2_time") or 0)
+    if not per_img:
+        print("Chưa có ảnh nào để ước tính.")
+        return {}
+    t_img = {k: float(np.median(v)) for k, v in per_img.items()}
+    t_m2 = float(np.median(m2)) if m2 else 60.0
+    t_m3 = float(np.median(m3)) if m3 else 120.0
+    default = float(np.median(list(t_img.values())))
+    out = dict(sec_per_image=t_img, m2_sec_per_scene=t_m2, m3_sec_per_scene=t_m3, tiers={})
+    main = [m for m in MAIN if not (m in ("gligen", "t2i_adapter") and E.backbone != "sd15")]
+    free = [m for m in main if m not in ("ocsd", "zhang2025")]
+    abl = [m for m in ABLATION if m in OCSD_VARIANTS and m not in ("ocsd", "zhang2025", "ocsd_lite")]
+    T = lambda m: t_img.get(m, default)
+    for tier in tiers:
+        t = TIERS[tier]
+        S = len(t["seeds"])
+        n_qd = 12 * t["qd_per_cell"]
+        sec = n_qd * S * sum(map(T, free)) + t["trained_n"] * S * (T("ocsd") + T("zhang2025"))
+        sec += t["coco_n"] * sum(map(T, free)) + t["coco_trained_n"] * (T("ocsd") + T("zhang2025"))
+        sec += t["ablation_n"] * sum(map(T, abl)) + t["alpha_n"] * sum(map(T, ALPHAS))
+        # M2: 1 lần/cảnh (khóa cụm từ) + cảnh có học định danh thêm khóa tên lớp (Zhang) + ablation K=1
+        sec += t_m2 * (n_qd + t["coco_n"] + 0.5 * (t["trained_n"] + t["coco_trained_n"]) + 0.5 * t["ablation_n"])
+        # M3: OCSD + Zhang trên cảnh học định danh, + 2 khóa cắt bỏ (không L_att, K=1)
+        sec += t_m3 * (2 * (t["trained_n"] + t["coco_trained_n"]) + 2 * t["ablation_n"])
+        out["tiers"][tier] = dict(gpu_hours=round(sec / 3600, 1))
+    json.dump(out, open(os.path.join(P.results, "budget_estimate.json"), "w"), indent=1)
+    print("Ước tính giờ GPU (theo thời gian đo trên GPU hiện tại, chưa gồm đánh giá ~10-15%):",
+          {k: v["gpu_hours"] for k, v in out["tiers"].items()})
+    return out
 
 
 def log_progress(P: Paths, E: ExperimentConfig):

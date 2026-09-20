@@ -165,10 +165,15 @@ class ExperimentConfig:
 
 
 TIERS = {
-    # qd_per_cell: số cảnh mỗi ô (số đối tượng x độ phức tạp) của QuickDraw-Scenes (12 ô)
-    # coco_n: số cảnh COCO-Sketch; full_identity_n: số cảnh chạy các phương pháp cần học định danh (OCSD, Zhang)
-    # "pilot" ~1-2 giờ GPU để kiểm tra; "paper" ~ vừa ngân sách Colab Plus; "full" cho bài báo nếu có thêm GPU
-    "pilot": dict(qd_per_cell=3, coco_n=16, ablation_n=8, alpha_n=6, full_identity_n=12, seeds=[0]),
-    "paper": dict(qd_per_cell=15, coco_n=100, ablation_n=40, alpha_n=30, full_identity_n=96, seeds=[0, 1, 2]),
-    "full": dict(qd_per_cell=25, coco_n=200, ablation_n=60, alpha_n=40, full_identity_n=180, seeds=[0, 1, 2]),
+    # Quy mô thực nghiệm, thiết kế cho Google Colab Pro (~100 compute unit/tháng: T4 ~1,8 unit/giờ, L4 ~4,8 unit/giờ).
+    # qd_per_cell: số cảnh / ô của QuickDraw-Scenes (12 ô); trained_n: số cảnh chạy phương pháp cần học định danh
+    # (OCSD, Zhang et al.) - ablation và alpha lấy trong chính các cảnh này để dùng lại M2/M3 đã học.
+    # coco_n: số cảnh COCO-Sketch cho mọi phương pháp không huấn luyện; coco_trained_n: cho OCSD/Zhang.
+    # cfg: ghi đè siêu tham số cho MỌI phương pháp (giống nhau -> vẫn công bằng).
+    "pilot": dict(qd_per_cell=2, trained_n=8, coco_n=8, coco_trained_n=4, ablation_n=4, alpha_n=4, seeds=[0],
+                  cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
+    "paper": dict(qd_per_cell=8, trained_n=48, coco_n=48, coco_trained_n=24, ablation_n=24, alpha_n=16, seeds=[0, 1],
+                  cfg=dict(steps=30, obj_steps=20, K=2, S1=150, S2=150)),
+    "full": dict(qd_per_cell=25, trained_n=180, coco_n=200, coco_trained_n=100, ablation_n=60, alpha_n=40,
+                 seeds=[0, 1, 2], cfg=dict()),
 }
