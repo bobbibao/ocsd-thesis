@@ -85,20 +85,25 @@ class Runner:
     # ------------------------------------------------------------------ main loop
     def run(self, scene_dirs: Sequence[str], methods: Sequence[str], seeds: Sequence[int], split: str,
             max_minutes: Optional[float] = None, verbose: bool = True):
+        items = [(split, d, [(m, s) for m in methods for s in seeds]) for d in scene_dirs]
+        return self.run_items(items, max_minutes, verbose)
+
+    def run_items(self, items, max_minutes: Optional[float] = None, verbose: bool = True):
+        """items: [(split, scene_dir, [(method, seed), ...])]. Mỗi cảnh xử lý một lần cho mọi (method, seed)."""
         t_start = time.time()
         stats = dict(done=0, skipped=0, failed=0)
-        for si, sdir in enumerate(scene_dirs):
+        for si, (split, sdir, pairs) in enumerate(items):
             if max_minutes and (time.time() - t_start) / 60 > max_minutes:
                 print(f"Dừng do hết ngân sách thời gian ({max_minutes} phút). Chạy lại ô này để tiếp tục.")
                 break
             scene = load_scene(sdir)
-            todo = [(m, s) for m in methods for s in seeds
-                    if not os.path.exists(self.img_path(split, m, scene.sid, s))]
-            stats["skipped"] += len(methods) * len(seeds) - len(todo)
+            todo = [(m, s) for m, s in pairs if not os.path.exists(self.img_path(split, m, scene.sid, s))]
+            stats["skipped"] += len(pairs) - len(todo)
             if not todo:
                 continue
             if verbose:
-                print(f"[{si + 1}/{len(scene_dirs)}] {scene.sid} (n={scene.n}): {len(todo)} ảnh cần sinh")
+                el = (time.time() - t_start) / 60
+                print(f"[{si + 1}/{len(items)}] {split}/{scene.sid} (n={scene.n}): {len(todo)} ảnh | {el:.0f} phút")
             try:
                 self._run_scene(scene, todo, split, stats)
             except Exception:
