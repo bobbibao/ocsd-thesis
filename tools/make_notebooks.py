@@ -38,15 +38,21 @@ os.environ["HF_HOME"] = os.path.join(DRIVE_ROOT, "hf_cache")   # lưu mô hình 
 if HF_TOKEN:
     os.environ["HF_TOKEN"] = HF_TOKEN'''
 
-INSTALL = r'''#@title 3. Cài thư viện (giữ nguyên PyTorch của Colab)
-!pip install -q -r {CODE}/requirements-colab.txt
+INSTALL = r'''#@title 3. Install libraries (keeps Colab's PyTorch), start the Drive run log
+LOGS = os.path.join(DRIVE_ROOT, "results", "logs"); os.makedirs(LOGS, exist_ok=True)
+r = subprocess.run(f"pip install -q -r {CODE}/requirements-colab.txt", shell=True, capture_output=True, text=True)
+open(os.path.join(LOGS, "pip_install.log"), "w").write(r.stdout + "\n" + r.stderr)
+print(r.stdout[-2000:], r.stderr[-3000:])
+if r.returncode != 0:
+    raise RuntimeError(f"pip install failed; see {LOGS}/pip_install.log")
 import importlib, ocsd; importlib.reload(ocsd)
+from ocsd import runlog
+runlog.start(os.path.join(DRIVE_ROOT, "results"), CODE)   # every print below also goes to results/logs/run_*.log
 from ocsd.config import Paths, ExperimentConfig, TIERS
 P = Paths(DRIVE_ROOT); P.makedirs()
 E = ExperimentConfig(backbone=BACKBONE, tier=TIER)
 E.save(os.path.join(P.results, "experiment_config.json"))
 print(E)'''
-
 
 def nb(cells, name):
     n = nbf.v4.new_notebook()
@@ -72,35 +78,43 @@ nb([
     SETUP, MOUNT, INSTALL,
     "MD:## A. Bộ dữ liệu\nQuickDraw-Scenes (tổng hợp, 12 ô: số đối tượng 1/3/5/8+ × độ phức tạp đơn giản/trung bình/phức tạp) "
     "và COCO-Sketch (ảnh thật COCO val2017, phác thảo PiDiNet, mặt nạ thật). Lần đầu mất ~10–20 phút (tải COCO 1 GB).",
-    r'''#@title A. Dựng bộ dữ liệu (bỏ qua nếu đã có)
+    r'''#@title A. Build benchmarks (skipped if already built for this tier)
 from ocsd import stages
-stages.setup_data(P, TIER, with_coco=True)
+with runlog.stage("A_data"):
+    stages.setup_data(P, TIER, with_coco=True)
 from IPython.display import Image, display
-display(Image(os.path.join(P.results, "figures", "benchmark_examples.png"), width=900))''',
+f = os.path.join(P.results, "figures", "benchmark_examples.png")
+if os.path.exists(f): display(Image(f, width=900))''',
     "MD:## B. Sinh ảnh\nThứ tự: E3 QuickDraw (mọi baseline + OCSD-lite trên toàn bộ tập) → OCSD và Zhang et al. "
     "(cần học định danh, trên tập con phân tầng) → E3 COCO → E4 cắt bỏ → khảo sát α. "
     "`MAX_MINUTES` giới hạn thời gian của ô này; chạy lại để tiếp tục.",
-    r'''#@title B1. Kế hoạch và số ảnh còn lại
-plan = stages.experiment_plan(P, E)
-for j in plan:
-    print(f"{j['name']:22s} {len(j['scenes']):4d} cảnh x {len(j['methods']):2d} phương pháp x {len(j['seeds'])} seed = còn {stages._count_todo(P, j)} ảnh")''',
-    r'''#@title B2. Sinh ảnh (có thể chạy lại để tiếp tục)
-import time, torch
-t0 = time.time()
-eng, vis = stages.generate(P, E, max_minutes=MAX_MINUTES)
-print(f"Xong phiên sinh ảnh sau {(time.time()-t0)/60:.1f} phút")''',
+    r'''#@title B1. Plan and remaining images
+for j in stages.experiment_plan(P, E):
+    print(f"{j['name']:22s} {len(j['scenes']):4d} scenes x {len(j['methods']):2d} methods x {len(j['seeds'])} seeds -> {stages._count_todo(P, j)} images left")''',
+    r'''#@title B2. Generate images (resumable: finished images are skipped)
+import torch
+eng = vis = None
+with runlog.stage("B_generate"):
+    eng, vis = stages.generate(P, E, max_minutes=MAX_MINUTES)''',
     "MD:## C. Đánh giá\nOPR, OCE, độ chính xác đếm, mIoU, RA bằng bộ phát hiện **OWLv2** (khác Grounding DINO mà phương pháp "
     "dùng bên trong, để tránh tối ưu hóa theo chính độ đo); CLIP score toàn ảnh và cấp đối tượng; ID-Sim (DINOv2); FID/KID; LPIPS.",
-    r'''#@title C. Tính độ đo
-del eng; torch.cuda.empty_cache()
-vis = stages.evaluate(P, E, vis=vis, fid=True)''',
+    r'''#@title C. Metrics (only new images are evaluated; FID reused when unchanged)
+if eng is not None:
+    del eng; torch.cuda.empty_cache()
+with runlog.stage("C_evaluate"):
+    vis = stages.evaluate(P, E, vis=vis, fid=True)''',
     "MD:## D. Báo cáo",
-    r'''#@title D. Bảng, hình, kiểm định thống kê, tóm tắt
-summary = stages.report(P, E)
-from IPython.display import Markdown, display
-display(Markdown(open(os.path.join(P.results, "summary.md")).read()))
-for f in summary["figures"]:
-    display(Image(f, width=900))''',
+    r'''#@title D. Tables, figures, statistics, summary
+with runlog.stage("D_report"):
+    summary = stages.report(P, E)
+    from IPython.display import Markdown, display
+    display(Markdown(open(os.path.join(P.results, "summary.md")).read()))
+    for f in summary["figures"]:
+        display(Image(f, width=900))''',
+    r'''#@title E. Run status (also saved to results/logs/status.json; errors in results/logs/errors/)
+runlog.summary()
+if os.path.exists(os.path.join(LOGS, "LATEST_ERROR.txt")):
+    print("\nMost recent error:\n" + open(os.path.join(LOGS, "LATEST_ERROR.txt")).read()[-3000:])''',
 ], "RUN_ALL.ipynb")
 
 # ============================================================================ demo từng mô-đun

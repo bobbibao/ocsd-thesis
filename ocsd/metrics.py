@@ -49,6 +49,7 @@ def evaluate_images(out_root: str, bench_dir: str, split: str, methods: Sequence
         old = pd.read_csv(csv) if os.path.exists(csv) else pd.DataFrame()
         done = set(zip(old["sid"], old["seed"])) if len(old) else set()
         rows = []
+        n_err = 0
         for sid, sdir in scenes.items():
             for s in (seeds if m != "real" else [0]):
                 if (sid, s) in done:
@@ -56,30 +57,15 @@ def evaluate_images(out_root: str, bench_dir: str, split: str, methods: Sequence
                 p = os.path.join(sdir, "real.png") if m == "real" else os.path.join(out_root, split, m, f"{sid}_s{s}.png")
                 if not os.path.exists(p):
                     continue
-                scene = load_scene(sdir)
-                if hasattr(vis, "set_scene"):
-                    vis.set_scene(scene)
-                img = _read(p)
-                dets = det_fn(img, [o.cls for o in scene.objects], thr=det_thr)
-                c = consistency(scene, dets, iou_thr)
-                row = dict(method=m, sid=sid, seed=s, split=split, n_obj=scene.n,
-                           count_bin=scene.meta["count_bin"], complexity=scene.meta["complexity"],
-                           opr=c["opr"], oce=c["oce"], oce_c=c["oce_c"], count_acc=c["count_acc"], miou=c["miou"],
-                           ra=c["ra"], n_gen=c["n_gen"], n_preserved=c["n_preserved"],
-                           missing="|".join(c["missing"]))
-                row["clip"] = float(vis.clip.score([img], [scene.caption])[0])
-                crops = [_crop(img, o.box) for o in scene.objects]
-                row["obj_clip"] = float(np.mean(vis.clip.score(crops, [f"a photo of a {o.phrase}" for o in scene.objects])))
-                row["id_sim"] = _id_sim(out_root, split, m, scene, img, vis)
-                lp = os.path.join(out_root, split, m, f"{sid}_s{s}.json")
-                if os.path.exists(lp):
-                    lg = json.load(open(lp))
-                    row["time_s"] = lg.get("scene_time")
-                    pt = lg.get("prep_times") or {}
-                    row["m2_s"] = pt.get("m2")
-                    row["m3_s"] = pt.get("m3")
-                    row["tries"] = lg.get("tries", 1)
-                    row["peak_gb"] = lg.get("peak_gb")
+                try:
+                    row = _eval_one(m, sid, s, sdir, p, split, vis, det_fn, det_thr, iou_thr, out_root)
+                except Exception as e:
+                    from .runlog import log_exception
+                    log_exception("evaluate_image", e, context=f"{split}/{m}/{sid}_s{s}")
+                    n_err += 1
+                    if n_err >= 5 and not rows:
+                        raise
+                    continue
                 rows.append(row)
         new = pd.DataFrame(rows)
         df = pd.concat([old, new], ignore_index=True) if len(old) else new
@@ -88,6 +74,34 @@ def evaluate_images(out_root: str, bench_dir: str, split: str, methods: Sequence
         all_rows.append(df)
         print(f"{split}/{m}: {len(df)} ảnh đã đánh giá (+{len(new)})")
     return pd.concat(all_rows, ignore_index=True) if all_rows else pd.DataFrame()
+
+
+def _eval_one(m, sid, s, sdir, p, split, vis, det_fn, det_thr, iou_thr, out_root):
+    scene = load_scene(sdir)
+    if hasattr(vis, "set_scene"):
+        vis.set_scene(scene)
+    img = _read(p)
+    dets = det_fn(img, [o.cls for o in scene.objects], thr=det_thr)
+    c = consistency(scene, dets, iou_thr)
+    row = dict(method=m, sid=sid, seed=s, split=split, n_obj=scene.n,
+               count_bin=scene.meta["count_bin"], complexity=scene.meta["complexity"],
+               opr=c["opr"], oce=c["oce"], oce_c=c["oce_c"], count_acc=c["count_acc"], miou=c["miou"],
+               ra=c["ra"], n_gen=c["n_gen"], n_preserved=c["n_preserved"],
+               missing="|".join(c["missing"]))
+    row["clip"] = float(vis.clip.score([img], [scene.caption])[0])
+    crops = [_crop(img, o.box) for o in scene.objects]
+    row["obj_clip"] = float(np.mean(vis.clip.score(crops, [f"a photo of a {o.phrase}" for o in scene.objects])))
+    row["id_sim"] = _id_sim(out_root, split, m, scene, img, vis)
+    lp = os.path.join(out_root, split, m, f"{sid}_s{s}.json")
+    if os.path.exists(lp):
+        lg = json.load(open(lp))
+        row["time_s"] = lg.get("scene_time")
+        pt = lg.get("prep_times") or {}
+        row["m2_s"] = pt.get("m2")
+        row["m3_s"] = pt.get("m3")
+        row["tries"] = lg.get("tries", 1)
+        row["peak_gb"] = lg.get("peak_gb")
+    return row
 
 
 def _id_sim(out_root, split, method, scene, img, vis) -> float:
@@ -165,9 +179,14 @@ def lpips_diversity(out_root, split, method, sids, seeds, device="cuda") -> floa
 def image_level_quality(out_root, bench_dir, split, methods, seeds, ref_paths, results_dir, device="cuda",
                         with_lpips=True) -> pd.DataFrame:
     rows = []
+    prev_p = os.path.join(results_dir, split, "quality_fid_kid.csv")
+    prev = pd.read_csv(prev_p).set_index("method") if os.path.exists(prev_p) else pd.DataFrame()
     for m in methods:
         gen = sorted(glob.glob(os.path.join(out_root, split, m, "*.png")))
         if not gen:
+            continue
+        if m in prev.index and int(prev.loc[m, "n_gen"]) == len(gen):   # no new images -> reuse
+            rows.append(dict(prev.loc[m].to_dict(), method=m))
             continue
         r = dict(method=m, split=split, **fid_kid(gen, ref_paths, device))
         if with_lpips and len(seeds) > 1:

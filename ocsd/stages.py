@@ -27,9 +27,15 @@ def _sh(cmd):
 
 
 # ============================================================================ 1. data
-def setup_data(P: Paths, tier: str = "paper", with_coco: bool = True):
+def setup_data(P: Paths, tier: str = "paper", with_coco: bool = True, force: bool = False):
+    """Build benchmarks for `tier`. Skipped entirely when benchmarks/.done_<tier>.json exists (use force=True to redo)."""
+    from .runlog import mark_skipped
     P.makedirs()
     t = TIERS[tier]
+    marker = os.path.join(P.benchmarks, f".done_{tier}.json")
+    if os.path.exists(marker) and not force:
+        mark_skipped("A_data", f"benchmarks for tier '{tier}' already built ({marker})")
+        return json.load(open(marker))
     download_quickdraw(P.quickdraw_raw, per_class=3000)
     build_quickdraw_scenes(P.quickdraw_raw, os.path.join(P.benchmarks, "quickdraw"), per_cell=t["qd_per_cell"])
     if with_coco:
@@ -41,7 +47,9 @@ def setup_data(P: Paths, tier: str = "paper", with_coco: bool = True):
             _sh(f"wget -q -c {COCO_URLS['val']} -O {local}/val.zip && unzip -q -o {local}/val.zip -d {local}")
         build_coco_sketch(local, os.path.join(P.benchmarks, "coco"), n_scenes=t["coco_n"],
                           ref_dir=os.path.join(P.data, "coco_ref"), n_ref=2000)
-    preview_benchmark(P)
+    counts = preview_benchmark(P)
+    json.dump(dict(tier=tier, counts=counts, time=time.strftime("%Y-%m-%d %H:%M:%S")), open(marker, "w"), indent=1)
+    return counts
 
 
 def preview_benchmark(P: Paths):
@@ -69,6 +77,7 @@ def preview_benchmark(P: Paths):
         counts[k] = counts.get(k, 0) + 1
     json.dump(counts, open(os.path.join(P.results, "benchmark_counts.json"), "w"), indent=1, sort_keys=True)
     print(json.dumps(counts, indent=1, sort_keys=True))
+    return counts
 
 
 # ============================================================================ 2. generate
