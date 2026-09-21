@@ -115,7 +115,32 @@ with runlog.stage("D_report"):
 runlog.summary()
 if os.path.exists(os.path.join(LOGS, "LATEST_ERROR.txt")):
     print("\nMost recent error:\n" + open(os.path.join(LOGS, "LATEST_ERROR.txt")).read()[-3000:])''',
+    r'''#@title F. Send logs and results to GitHub (branch colab-results) so Claude can read them
+from ocsd import sync
+try:
+    sync.push_results(P.results, sync.colab_token())
+except Exception as e:
+    print("[sync] failed:", e)''',
 ], "RUN_ALL.ipynb")
+
+# ============================================================================ push logs only
+nb([
+    "MD:# Send the latest logs/results from Drive to GitHub (no GPU needed)\n\n"
+    "Use this when a run already finished (or crashed) and Claude needs to read the logs. "
+    "Requires the Colab secret `GH_TOKEN` (key icon on the left).",
+    SETUP,
+    r'''import os, subprocess, sys
+from google.colab import drive
+drive.mount("/content/drive")
+CODE = "/content/KLTN_OCSD"
+if os.path.exists(CODE):
+    subprocess.run(f"git -C {CODE} fetch -q origin {BRANCH} && git -C {CODE} reset -q --hard origin/{BRANCH}", shell=True, check=True)
+else:
+    subprocess.run(f"git clone -q -b {BRANCH} {REPO_URL} {CODE}", shell=True, check=True)
+sys.path.insert(0, CODE)
+from ocsd import sync
+sync.push_results(os.path.join(DRIVE_ROOT, "results"), sync.colab_token())''',
+], "00_push_logs.ipynb")
 
 # ============================================================================ demo từng mô-đun
 nb([
