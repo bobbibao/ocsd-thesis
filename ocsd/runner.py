@@ -106,9 +106,14 @@ class Runner:
                 print(f"[{si + 1}/{len(items)}] {split}/{scene.sid} (n={scene.n}): {len(todo)} ảnh | {el:.0f} phút")
             try:
                 self._run_scene(scene, todo, split, stats)
-            except Exception:
+            except Exception as e:
                 stats["failed"] += 1
                 traceback.print_exc()
+                from .runlog import log_exception
+                log_exception("generate_scene", e, context=f"{split}/{scene.sid} todo={todo}")
+                if stats["failed"] >= 3 and stats["done"] == 0:
+                    raise RuntimeError("The first 3 scenes all failed; stopping so the error can be fixed "
+                                       "(see results/logs/LATEST_ERROR.txt)") from e
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
         print("Tổng kết:", stats, f"- {(time.time() - t_start) / 60:.1f} phút")
