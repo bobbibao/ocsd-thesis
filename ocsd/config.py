@@ -41,8 +41,8 @@ class Paths:
 
     @property
     def cache(self):
-        # cache mô hình HuggingFace trên Drive để lần sau không phải tải lại
-        return os.path.join(self.root, "hf_cache")
+        # HuggingFace cache on local disk (Drive breaks the cache's symlinks), see ocsd/hfcache.py
+        return os.environ.get("HF_HOME", "/content/hf_cache")
 
     def makedirs(self):
         for p in [self.data, self.quickdraw_raw, self.coco_raw, self.benchmarks,
