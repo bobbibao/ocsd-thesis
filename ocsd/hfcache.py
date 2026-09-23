@@ -65,3 +65,32 @@ def _looks_safetensors(p: str) -> bool:
         return len(h) == 9 and h[8:9] == b"{"
     except OSError:
         return False
+
+
+def cache_roots(cache_dir=None) -> list:
+    """Every cache location a model could have been loaded from."""
+    roots = [cache_dir, os.environ.get("HF_HOME"), os.environ.get("HF_HUB_CACHE"), os.path.expanduser("~/.cache/huggingface")]
+    try:
+        from huggingface_hub import constants
+        roots.append(constants.HF_HUB_CACHE)  # fixed at import time; may differ from HF_HOME set later
+    except Exception:
+        pass
+    out = []
+    for r in roots:
+        if r and os.path.isdir(r) and os.path.realpath(r) not in [os.path.realpath(o) for o in out]:
+            out.append(r)
+    return out
+
+
+def retry_broken(load, cache_dir=None):
+    """Run `load()`; if it fails on a broken safetensors file, delete broken files in every cache and retry once."""
+    try:
+        return load()
+    except Exception as e:
+        if "SafetensorError" not in type(e).__name__ and "header too large" not in str(e) \
+                and "deserializing header" not in str(e):
+            raise
+        print(f"[hf-cache] {type(e).__name__}: {e} -> repairing caches and retrying")
+        for r in cache_roots(cache_dir):
+            repair(r)
+        return load()

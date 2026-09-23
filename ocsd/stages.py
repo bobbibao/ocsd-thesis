@@ -155,11 +155,11 @@ def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None,
     from .runner import Runner
     from .vision import Vision
     if eng is None:
-        eng = Engine.from_pretrained(E.backbone, "cuda", E.fp16)
+        eng = Engine.from_pretrained(E.backbone, "cuda", E.fp16, cache_dir=P.cache)
     if vis is None:
-        vis = Vision("cuda")
+        vis = Vision("cuda", cache_dir=P.cache)
     variants, base = tier_variants(E)
-    runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base)
+    runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base, cache_dir=P.cache)
     items = work_items(P, E)
     todo = [(sp, d, [(m, s) for m, s in ms if not os.path.exists(runner.img_path(sp, m, os.path.basename(d), s))])
             for sp, d, ms in items]
@@ -233,7 +233,7 @@ def evaluate(P: Paths, E: ExperimentConfig, vis=None, fid: bool = True):
     import torch
     from .metrics import evaluate_images, image_level_quality
     from .vision import Vision
-    vis = vis or Vision("cuda")
+    vis = vis or Vision("cuda", cache_dir=P.cache)
     plan = experiment_plan(P, E)
     for split in ("quickdraw", "coco"):
         jobs = [j for j in plan if j["split"] == split]
