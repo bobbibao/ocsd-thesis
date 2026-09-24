@@ -44,6 +44,8 @@ if HF_TOKEN:
 
 INSTALL = r'''#@title 3. Install libraries (keeps Colab's PyTorch), start the Drive run log
 LOGS = os.path.join(DRIVE_ROOT, "results", "logs"); os.makedirs(LOGS, exist_ok=True)
+# Colab ships torchao 0.10, which peft rejects when adding LoRA ("incompatible version of torchao"); OCSD does not use it
+subprocess.run("pip uninstall -y -q torchao", shell=True)
 r = subprocess.run(f"pip install -q -r {CODE}/requirements-colab.txt", shell=True, capture_output=True, text=True)
 open(os.path.join(LOGS, "pip_install.log"), "w").write(r.stdout + "\n" + r.stderr)
 print(r.stdout[-2000:], r.stderr[-3000:])

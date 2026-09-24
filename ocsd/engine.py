@@ -182,7 +182,13 @@ class Engine:
         from peft import LoraConfig
         cfg = LoraConfig(r=rank, lora_alpha=rank, init_lora_weights="gaussian",
                          target_modules=["to_k", "to_q", "to_v", "to_out.0"])
-        self.unet.add_adapter(cfg, adapter_name="ocsd")
+        try:
+            self.unet.add_adapter(cfg, adapter_name="ocsd")
+        except Exception:
+            # undo the half-done injection so the next call reports the real error again
+            self.unet._hf_peft_config_loaded = False
+            self.unet.__dict__.pop("peft_config", None)
+            raise
         for n, p in self.unet.named_parameters():
             if "lora" in n:
                 p.data = p.data.float()
