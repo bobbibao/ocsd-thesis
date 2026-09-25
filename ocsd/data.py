@@ -440,7 +440,7 @@ def load_scene(sdir: str) -> Scene:
 
 def list_scenes(bench_dir: str, split: Optional[str] = None, count_bins: Optional[Sequence[str]] = None,
                 complexities: Optional[Sequence[str]] = None, limit: Optional[int] = None,
-                seed: int = 0) -> List[str]:
+                seed: int = 0, exclude: Optional[Sequence[str]] = None) -> List[str]:
     """Liệt kê thư mục cảnh có lọc. Khi có limit, lấy mẫu phân tầng đều theo (count_bin, complexity)."""
     out = []
     for d in sorted(glob.glob(os.path.join(bench_dir, "*", "*", "scene.json"))):
@@ -450,6 +450,8 @@ def list_scenes(bench_dir: str, split: Optional[str] = None, count_bins: Optiona
         if count_bins and m["count_bin"] not in count_bins:
             continue
         if complexities and m["complexity"] not in complexities:
+            continue
+        if exclude and os.path.basename(os.path.dirname(d)) in exclude:
             continue
         out.append((m["count_bin"], m["complexity"], os.path.dirname(d)))
     if limit is not None and limit < len(out):

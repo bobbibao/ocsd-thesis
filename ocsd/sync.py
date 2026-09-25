@@ -10,7 +10,8 @@ import subprocess
 import time
 
 INCLUDE = ["logs", "tables", "figures", "summary.md", "summary.json", "progress.json", "budget_estimate.json",
-           "benchmark_counts.json", "experiment_config.json", "*/per_image_*.csv", "*/quality_fid_kid.csv"]
+           "benchmark_counts.json", "experiment_config.json", "*/per_image_*.csv", "*/quality_fid_kid.csv",
+           "tuning", "pilot/tables", "pilot/summary.md"]
 MAX_FILE_MB = 20
 
 

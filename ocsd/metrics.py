@@ -177,12 +177,16 @@ def lpips_diversity(out_root, split, method, sids, seeds, device="cuda") -> floa
 
 
 def image_level_quality(out_root, bench_dir, split, methods, seeds, ref_paths, results_dir, device="cuda",
-                        with_lpips=True) -> pd.DataFrame:
+                        with_lpips=True, scene_ids=None) -> pd.DataFrame:
+    """FID/KID (+ LPIPS diversity) per method over its images of `scene_ids` (all scenes if None) and `seeds`."""
     rows = []
     prev_p = os.path.join(results_dir, split, "quality_fid_kid.csv")
     prev = pd.read_csv(prev_p).set_index("method") if os.path.exists(prev_p) else pd.DataFrame()
     for m in methods:
         gen = sorted(glob.glob(os.path.join(out_root, split, m, "*.png")))
+        keep = {f"_s{s}.png" for s in seeds}
+        gen = [p for p in gen if any(p.endswith(k) for k in keep)
+               and (scene_ids is None or os.path.basename(p).rsplit("_s", 1)[0] in scene_ids)]
         if not gen:
             continue
         if m in prev.index and int(prev.loc[m, "n_gen"]) == len(gen):   # no new images -> reuse

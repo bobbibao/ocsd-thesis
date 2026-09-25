@@ -340,6 +340,8 @@ def build_scene(eng: Engine, scene: Scene, objs: Optional[List[ObjectResult]], c
         z_bg = eng.randn(seed, 1, H, H)
     z = eng.randn(seed, 1, H, H)
     energy_E = []
+    if use_id and cfg.lora_scale != 1.0:
+        eng.set_lora_scale(cfg.lora_scale)
     with torch.no_grad():
         eng.ctrl.set_regions(om, obj_tok, bg_tok)
         try:
@@ -371,6 +373,8 @@ def build_scene(eng: Engine, scene: Scene, objs: Optional[List[ObjectResult]], c
                 z = eng.step(eps, t, z)
         finally:
             eng.ctrl.clear_regions()
+            if use_id and cfg.lora_scale != 1.0:
+                eng.set_lora_scale(1.0)
             eng.lora(False)
     if log is not None:
         log.setdefault("energy", []).append(energy_E[:1] + energy_E[-1:])
