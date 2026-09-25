@@ -96,14 +96,19 @@ if os.path.exists(f): display(Image(f, width=900))''',
     "MD:## B. Sinh ảnh\nThứ tự: E3 QuickDraw (mọi baseline + OCSD-lite trên toàn bộ tập) → OCSD và Zhang et al. "
     "(cần học định danh, trên tập con phân tầng) → E3 COCO → E4 cắt bỏ → khảo sát α. "
     "`MAX_MINUTES` giới hạn thời gian của ô này; chạy lại để tiếp tục.",
+    "MD:## T. Tuning\nPaper/full tiers only: choose α and the LoRA strength on the pilot scenes, which are then left out "
+    "of the evaluation. Runs once (about 1 A100 hour) and writes `results/tuning/tuned.json`; skipped afterwards.",
+    r'''#@title T. Tune alpha and LoRA strength on the pilot scenes (skipped when done)
+import torch
+eng = vis = None
+with runlog.stage("T_tune"):
+    eng, vis = stages.tune(P, E, max_minutes=MAX_MINUTES)''',
     r'''#@title B1. Plan and remaining images
 for j in stages.experiment_plan(P, E):
     print(f"{j['name']:22s} {len(j['scenes']):4d} scenes x {len(j['methods']):2d} methods x {len(j['seeds'])} seeds -> {stages._count_todo(P, j)} images left")''',
     r'''#@title B2. Generate images (resumable: finished images are skipped)
-import torch
-eng = vis = None
 with runlog.stage("B_generate"):
-    eng, vis = stages.generate(P, E, max_minutes=MAX_MINUTES)''',
+    eng, vis = stages.generate(P, E, max_minutes=MAX_MINUTES, eng=eng, vis=vis)''',
     "MD:## C. Đánh giá\nOPR, OCE, độ chính xác đếm, mIoU, RA bằng bộ phát hiện **OWLv2** (khác Grounding DINO mà phương pháp "
     "dùng bên trong, để tránh tối ưu hóa theo chính độ đo); CLIP score toàn ảnh và cấp đối tượng; ID-Sim (DINOv2); FID/KID; LPIPS.",
     r'''#@title C. Metrics (only new images are evaluated; FID reused when unchanged)

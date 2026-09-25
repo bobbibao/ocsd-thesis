@@ -50,3 +50,10 @@ Tệp này dành cho người viết khóa luận: mỗi mục nêu bản thảo
 6. **Bảng/hình sinh tự động** (trong `results/tables` và `results/figures`): `E3_*` (Bảng so sánh), `E3all_*`, `E1_*`, `E2_*`
    (Bảng E1–E2), `E4_*` (cắt bỏ), `alpha_*`, `runtime_*`, `detector_ceiling_coco`, `opr_curves_quickdraw.png`,
    `alpha_quickdraw.png`, `qualitative_*.png`, `benchmark_examples.png`; bộ khảo sát người dùng ẩn danh trong `results/user_study`.
+7. **Tinh chỉnh sau pilot (28/09/2026).** Pilot cho thấy α = 0,5 quá cao (α càng nhỏ OPR càng tăng) và OCSD đầy đủ
+   kém OCSD-lite về OPR trên QuickDraw. Tier `paper` thêm giai đoạn T: lưới α ∈ {0; 0,1; 0,2; 0,3; 0,5} × cường độ LoRA
+   ∈ {0,5; 1,0}, 2 seed, trên 12 cảnh QuickDraw + 4 cảnh COCO của pilot; chọn cấu hình có OPR + mIoU + RA lớn nhất
+   với CLIP không giảm quá 1 điểm so với mặc định. Các cảnh pilot bị loại khỏi tập đánh giá (tập tinh chỉnh tách
+   biệt tập kiểm tra). Mục 3.x (siêu tham số) và 4.x (thiết lập) cần ghi rõ quy trình này và giá trị được chọn
+   (`results/tuning/tuned.json`). Quy mô `paper` mới: 72 cảnh QuickDraw (6/ô), 36 cảnh học định danh, 32 cảnh COCO
+   (16 học định danh), cắt bỏ 18 cảnh, α 12 cảnh; M3 100 + 100 bước; seed thứ 2 chạy trên tập học định danh.

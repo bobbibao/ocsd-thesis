@@ -21,10 +21,12 @@ Mọi phương pháp dùng cùng siêu tham số của tier nên so sánh vẫn 
 | Tier | QuickDraw-Scenes | Học định danh (OCSD, Zhang) | COCO-Sketch | Seed | DDIM / K / M3 | Ước tính |
 |---|---|---|---|---|---|---|
 | `pilot` | 24 cảnh | 8 | 8 (4) | 1 | 30 / 2 / 100+100 | ~1 giờ L4, ~5 unit |
-| `paper` | 96 cảnh (8/ô) | 48 | 48 (24) | 2 | 30 / 2 / 150+150 | ~12 giờ L4 (~60 unit) hoặc ~30 giờ T4 (~55 unit) |
+| `paper` | 72 cảnh (6/ô, seed thứ 2 trên tập học định danh) | 36 | 32 (16) | 2 | 30 / 2 / 100+100 | ~8,4 giờ A100 đo thực + ~0,9 giờ tinh chỉnh |
 | `full` | 300 cảnh | 180 | 200 (100) | 3 | 50 / 4 / 200+200 | cần GPU ngoài Colab Pro |
 
-Ước tính trên là tính tay, chưa đo. Sau mỗi lượt chạy, notebook ghi `results/budget_estimate.json`
+Tier `paper`/`full` chạy thêm giai đoạn **T (tinh chỉnh)**: chọn α và cường độ LoRA trên các cảnh của pilot (`results/tuning/tuned.json`), rồi loại các cảnh này khỏi tập đánh giá; kết quả pilot được chuyển vào `results/pilot/`.
+
+Ước tính của `paper` lấy từ thời gian đo trên A100 trong lượt pilot. Sau mỗi lượt chạy, notebook ghi `results/budget_estimate.json`
 với số giờ GPU dự kiến của từng tier, tính từ thời gian đo thật trên GPU đang dùng.
 Colab Pro không chạy nền: giữ tab trình duyệt mở; khi phiên hết giờ, mở lại và Run all để chạy tiếp.
 

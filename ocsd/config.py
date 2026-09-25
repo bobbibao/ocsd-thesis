@@ -102,6 +102,7 @@ class OCSDConfig:
     use_identity: bool = True
     S1: int = 200                     # bước học vector nhúng
     S2: int = 200                     # bước học kết hợp (vector nhúng + LoRA)
+    lora_scale: float = 1.0           # LoRA strength at inference (training always uses 1.0)
     lr_emb1: float = 5e-3
     lr_emb2: float = 5e-5
     lr_lora: float = 1e-4
@@ -170,10 +171,18 @@ TIERS = {
     # (OCSD, Zhang et al.) - ablation và alpha lấy trong chính các cảnh này để dùng lại M2/M3 đã học.
     # coco_n: số cảnh COCO-Sketch cho mọi phương pháp không huấn luyện; coco_trained_n: cho OCSD/Zhang.
     # cfg: ghi đè siêu tham số cho MỌI phương pháp (giống nhau -> vẫn công bằng).
+    # seeds_all: how many of `seeds` run on EVERY QuickDraw scene; the rest run only on the trained subset.
+    # tune: tune alpha and lora_scale on the pilot scenes first (stages.tune), and leave those scenes out.
     "pilot": dict(qd_per_cell=2, trained_n=8, coco_n=8, coco_trained_n=4, ablation_n=4, alpha_n=4, seeds=[0],
-                  cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
-    "paper": dict(qd_per_cell=8, trained_n=48, coco_n=48, coco_trained_n=24, ablation_n=24, alpha_n=16, seeds=[0, 1],
-                  cfg=dict(steps=30, obj_steps=20, K=2, S1=150, S2=150)),
+                  seeds_all=1, tune=False, cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
+    "paper": dict(qd_per_cell=6, trained_n=36, coco_n=32, coco_trained_n=16, ablation_n=18, alpha_n=12, seeds=[0, 1],
+                  seeds_all=1, tune=True, cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
     "full": dict(qd_per_cell=25, trained_n=180, coco_n=200, coco_trained_n=100, ablation_n=60, alpha_n=40,
-                 seeds=[0, 1, 2], cfg=dict()),
+                 seeds=[0, 1, 2], seeds_all=3, tune=True, cfg=dict()),
 }
+
+
+# Tuning grid (stages.tune): run on the pilot scenes, which are then excluded from the paper/full evaluation.
+TUNE_GRID = dict(alpha=[0.0, 0.1, 0.2, 0.3, 0.5], lora_scale=[0.5, 1.0])
+TUNE_SEEDS = [0, 1]
+TUNE_CLIP_TOL = 1.0   # a setting may lose at most this much global CLIP score vs. the default (alpha 0.5, scale 1.0)
