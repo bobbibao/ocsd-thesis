@@ -21,6 +21,7 @@ config.TIERS["tiny_paper"] = dict(qd_per_cell=1, trained_n=2, coco_n=0, coco_tra
                                   seeds=[0, 1], seeds_all=1, tune=True, cfg=small)
 config.TUNE_GRID = dict(alpha=[0.0, 0.5], lora_scale=[0.5, 1.0])
 config.TUNE_SEEDS = [0]
+config.TUNE_ENERGY = {k: v for k, v in config.TUNE_ENERGY.items() if k in ('e_off', 'e_id20', 'e_ph20')}
 stages.MAIN[:] = [m for m in stages.MAIN if m != "gligen"]   # GLIGEN weights cannot be downloaded offline
 qd = os.path.join(P.benchmarks, "quickdraw")
 
@@ -53,8 +54,11 @@ stages.tune(P, E, eng=eng, vis=vis)
 tuned = json.load(open(os.path.join(P.results, "tuning", "tuned.json")))
 print("tuned:", tuned)
 var, _ = stages.tier_variants(E, P=P)
+assert "use_energy" in tuned["chosen"] and os.path.exists(os.path.join(P.results, "tuning", "tuning_energy_table.md"))
 for k in ("ocsd", "ocsd_lite", "abl_no_region"):
-    assert var[k].alpha == tuned["chosen"]["alpha"] and var[k].lora_scale == tuned["chosen"]["lora_scale"], k
+    for f, v in tuned["chosen"].items():
+        assert getattr(var[k], f) == v, (k, f)
+assert var["abl_no_energy"].use_energy is False
 assert var["alpha_1.0"].alpha == 1.0 and var["abl_alpha0"].alpha == 0.0
 assert var["zhang2025"].alpha == 0.5 and var["zhang2025"].lora_scale == 1.0
 
@@ -66,6 +70,15 @@ assert names["E3_quickdraw_free"]["seeds"] == [0] and names["E3_quickdraw_free_s
 stages.generate(P, E, eng=eng, vis=vis)
 stages.evaluate(P, E, vis=vis, fid=False)
 stages.report(P, E)
+# changed tuned settings -> OCSD-family images are archived and generated again, baselines are kept
+n_cn = len(os.listdir(os.path.join(P.outputs, "quickdraw", "controlnet")))
+tp = os.path.join(P.results, "tuning", "tuned.json"); tj = json.load(open(tp))
+tj["chosen"]["eta"] = 7.0; json.dump(tj, open(tp, "w"))
+stages.generate(P, E, eng=eng, vis=vis)
+assert glob.glob(os.path.join(P.outputs, "_stale", "*", "quickdraw", "ocsd"))
+assert len(os.listdir(os.path.join(P.outputs, "quickdraw", "controlnet"))) == n_cn
+assert stages._count_todo(P, [j for j in stages.experiment_plan(P, E) if j["name"] == "E3_quickdraw_trained"][0]) == 0
+stages.evaluate(P, E, vis=vis, fid=False)
 rows = [l for f in glob.glob(os.path.join(P.results, "quickdraw", "per_image_*.csv")) for l in open(f).readlines()[1:]]
 assert rows and not any(s in l for l in rows for s in pilot_sids)
 print("TUNE TEST OK")
