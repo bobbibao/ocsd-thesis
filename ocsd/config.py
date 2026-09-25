@@ -124,6 +124,7 @@ class OCSDConfig:
     beta: float = 1.0
     eta: float = 20.0
     tau: int = 10                     # số bước đầu của giai đoạn tùy biến có dẫn hướng năng lượng
+    energy_tokens: str = "id"          # tokens whose attention the energy steers: "id" (<o_i>) or "phrase" (object words)
     use_scene_cn: bool = True         # (c)
     omega: float = 0.4
     use_verify: bool = True           # (d)
@@ -186,3 +187,11 @@ TIERS = {
 TUNE_GRID = dict(alpha=[0.0, 0.1, 0.2, 0.3, 0.5], lora_scale=[0.5, 1.0])
 TUNE_SEEDS = [0, 1]
 TUNE_CLIP_TOL = 1.0   # a setting may lose at most this much global CLIP score vs. the default (alpha 0.5, scale 1.0)
+# Phase 2 of the tuning (after alpha / lora_scale are fixed): how M5(b) energy guidance is applied.
+TUNE_ENERGY = {
+    "e_off": dict(use_energy=False),
+    "e_id20": dict(use_energy=True, energy_tokens="id", eta=20.0),        # the original setting (reference)
+    "e_id10": dict(use_energy=True, energy_tokens="id", eta=10.0),
+    "e_ph20": dict(use_energy=True, energy_tokens="phrase", eta=20.0),
+    "e_ph10": dict(use_energy=True, energy_tokens="phrase", eta=10.0),
+}
