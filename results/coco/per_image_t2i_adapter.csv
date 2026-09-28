@@ -1,0 +1,4 @@
+method,sid,seed,split,n_obj,count_bin,complexity,opr,oce,oce_c,count_acc,miou,ra,n_gen,n_preserved,missing,clip,obj_clip,id_sim,time_s,m2_s,m3_s,tries,peak_gb
+t2i_adapter,coco_000000002685,0,coco,5,4-5,real,0.0,5,5,0.0,0.0,0.0,0,0,person|person|person|person|person,19.879535675048828,15.826759338378906,,8.515547752380371,,,1,10.947216510772705
+t2i_adapter,coco_000000055002,0,coco,1,1,real,1.0,0,0,1.0,0.924486110909969,,1,1,,28.47069549560547,20.993450164794922,,8.302609205245972,,,1,10.947216510772705
+t2i_adapter,coco_000000190756,0,coco,2,2-3,real,0.0,2,2,0.0,0.0,0.0,0,0,person|motorcycle,25.91192054748535,19.508264541625977,,8.297975778579712,,,1,10.947216510772705

@@ -1,0 +1,15 @@
+\begin{table}
+\caption{Thời gian và bộ nhớ trung bình mỗi ảnh}
+\begin{tabular}{lrrrrr}
+\toprule
+Phương pháp & Thời gian (s) & M2 (s) & M3 (s) & VRAM (GB) & Số lần sinh \\
+\midrule
+SD + ControlNet (mô hình nền) & 11.380000 & NaN & NaN & 10.940000 & 1.000000 \\
+SD + T2I-Adapter & 8.370000 & NaN & NaN & 10.950000 & 1.000000 \\
+GLIGEN (hộp + văn bản) & 9.240000 & NaN & NaN & 10.940000 & 1.000000 \\
+ControlNet + chú ý vùng (kiểu DenseDiffusion) & 11.460000 & NaN & NaN & 10.940000 & 1.000000 \\
+ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E) & 13.570000 & NaN & NaN & 11.100000 & 1.000000 \\
+ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) & 19.710000 & NaN & NaN & 11.140000 & 1.670000 \\
+\bottomrule
+\end{tabular}
+\end{table}

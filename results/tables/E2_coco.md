@@ -1,0 +1,10 @@
+**OPR (%) / OCE-lớp theo complexity trên coco**
+
+| Phương pháp                                           | real        |
+|:------------------------------------------------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 33.3 / 2.33 |
+| SD + T2I-Adapter                                      | 33.3 / 2.33 |
+| GLIGEN (hộp + văn bản)                                | 50.0 / 2.00 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 50.0 / 2.33 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 50.0 / 2.00 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 33.3 / 2.33 |

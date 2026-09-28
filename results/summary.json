@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-28 19:44:34",
+ "generated_at": "2026-09-28 20:12:59",
  "tier": "pilot",
  "backbone": "sd15",
  "seeds": [
@@ -42,6 +42,18 @@
    "todo": 24
   }
  },
- "tables": [],
- "figures": []
+ "tables": [
+  "E1_coco",
+  "E1_quickdraw",
+  "E2_coco",
+  "E2_quickdraw",
+  "E3_coco",
+  "E3_quickdraw",
+  "detector_ceiling_coco",
+  "runtime_coco",
+  "runtime_quickdraw"
+ ],
+ "figures": [
+  "/content/drive/MyDrive/KLTN_OCSD/results/figures/opr_curves_quickdraw.png"
+ ]
 }

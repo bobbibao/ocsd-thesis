@@ -1,0 +1,4 @@
+method,sid,seed,split,n_obj,count_bin,complexity,opr,oce,oce_c,count_acc,miou,ra,n_gen,n_preserved,missing,clip,obj_clip,id_sim,time_s,m2_s,m3_s,tries,peak_gb
+controlnet,coco_000000002685,0,coco,5,4-5,real,0.0,5,5,0.0,0.0,0.0,0,0,person|person|person|person|person,20.911487579345703,17.872501373291016,,11.451540470123291,,,1,10.94425630569458
+controlnet,coco_000000055002,0,coco,1,1,real,1.0,0,0,1.0,0.9641024296698416,,1,1,,24.504985809326172,23.237863540649414,,11.344209671020508,,,1,10.94425630569458
+controlnet,coco_000000190756,0,coco,2,2-3,real,0.0,2,2,0.0,0.0,0.0,0,0,person|motorcycle,26.23256492614746,19.684036254882812,,11.3464674949646,,,1,10.94425630569458

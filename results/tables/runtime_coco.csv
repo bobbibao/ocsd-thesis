@@ -1,0 +1,7 @@
+Phương pháp,Thời gian (s),M2 (s),M3 (s),VRAM (GB),Số lần sinh
+SD + ControlNet (mô hình nền),11.38,,,10.94,1.0
+SD + T2I-Adapter,8.37,,,10.95,1.0
+GLIGEN (hộp + văn bản),9.24,,,10.94,1.0
+ControlNet + chú ý vùng (kiểu DenseDiffusion),11.46,,,10.94,1.0
+ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E),13.57,,,11.1,1.0
+ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra),19.71,,,11.14,1.67

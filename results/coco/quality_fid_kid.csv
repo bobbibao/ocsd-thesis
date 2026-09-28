@@ -1,0 +1,7 @@
+method,split,fid,kid,kid_std,n_gen
+cn_energy,coco,,,,5
+cn_region,coco,,,,6
+controlnet,coco,,,,6
+controlnet_bo3,coco,,,,5
+gligen,coco,,,,6
+t2i_adapter,coco,,,,6

@@ -1,6 +1,6 @@
-stage: B_generate
-context: 
-time: 20260928_195254
+stage: generate_scene
+context: quickdraw/qd_1_medium_002 todo=[('ocsd', 0), ('zhang2025', 0)]
+time: 20260928_195250
 log: /content/drive/MyDrive/KLTN_OCSD/results/logs/run_20260928_195017.log
 
 Traceback (most recent call last):
@@ -27,21 +27,7 @@ Traceback (most recent call last):
     )
 AttributeError: 'UNet2DConditionModel' object has no attribute 'peft_config'. Did you mean: 'from_config'?
 
-The above exception was the direct cause of the following exception:
 
-Traceback (most recent call last):
-  File "/content/KLTN_OCSD/ocsd/runlog.py", line 132, in stage
-    yield
-  File "/tmp/ipykernel_3720/256484334.py", line 5, in <cell line: 0>
-    eng, vis = stages.generate(P, E, max_minutes=MAX_MINUTES)
-               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/content/KLTN_OCSD/ocsd/stages.py", line 168, in generate
-    runner.run_items(todo, max_minutes=max_minutes)
-    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/content/KLTN_OCSD/ocsd/runner.py", line 115, in run_items
-    raise RuntimeError("The first 3 scenes all failed; stopping so the error can be fixed "
-                       "(see results/logs/LATEST_ERROR.txt)") from e
-RuntimeError: The first 3 scenes all failed; stopping so the error can be fixed (see results/logs/LATEST_ERROR.txt)
+env: {"time": "2026-09-28 19:52:50", "python": "3.13.15", "torch": "2.11.0+cu128", "torchvision": "0.26.0+cu128", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA A100-SXM4-80GB", "vram_gb": 79.3}
 
-
-env: {"time": "2026-09-28 19:52:54", "python": "3.13.15", "torch": "2.11.0+cu128", "torchvision": "0.26.0+cu128", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA A100-SXM4-80GB", "vram_gb": 79.3}
+================================================================================

@@ -1,0 +1,11 @@
+**OPR (%) / OCE-lớp theo complexity trên quickdraw**
+
+| Phương pháp                                           | simple      | medium      | complex     |
+|:------------------------------------------------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 68.4 / 1.75 | 59.8 / 2.92 | 57.5 / 2.50 |
+| SD + T2I-Adapter                                      | 63.3 / 2.58 | 67.9 / 2.92 | 58.6 / 2.75 |
+| GLIGEN (hộp + văn bản)                                | 61.4 / 2.83 | 56.1 / 2.83 | 69.2 / 2.58 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 69.6 / 1.83 | 58.4 / 2.58 | 52.8 / 3.00 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 73.3 / 2.17 | 61.7 / 2.42 | 71.1 / 2.42 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 73.1 / 1.42 | 65.1 / 3.00 | 66.1 / 2.17 |
+| OCSD-lite (không học định danh)                       | 78.8 / 1.67 | 73.1 / 2.00 | 80.6 / 1.83 |
