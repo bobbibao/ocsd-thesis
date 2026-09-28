@@ -1,32 +1,32 @@
 {
  "A_data": {
   "state": "ok",
-  "started": "2026-09-28 19:16:36",
-  "updated": "2026-09-28 19:16:37",
+  "started": "2026-09-28 19:44:30",
+  "updated": "2026-09-28 19:44:30",
   "reason": "benchmarks for tier 'pilot' already built (/content/drive/MyDrive/KLTN_OCSD/data/benchmarks/.done_pilot.json)",
   "minutes": 0.0,
   "error": null
  },
  "B_generate": {
   "state": "failed",
-  "started": "2026-09-28 19:17:20",
-  "updated": "2026-09-28 19:17:47",
-  "minutes": 0.5,
+  "started": "2026-09-28 19:44:30",
+  "updated": "2026-09-28 19:44:31",
+  "minutes": 0.0,
   "error": "SafetensorError: Error while deserializing header: header too large",
-  "traceback_file": "/content/drive/MyDrive/KLTN_OCSD/results/logs/errors/B_generate_20260928_191747.txt"
+  "traceback_file": "/content/drive/MyDrive/KLTN_OCSD/results/logs/errors/B_generate_20260928_194431.txt"
  },
  "C_evaluate": {
   "state": "failed",
-  "started": "2026-09-28 19:17:47",
-  "updated": "2026-09-28 19:18:40",
-  "minutes": 0.9,
+  "started": "2026-09-28 19:44:31",
+  "updated": "2026-09-28 19:44:34",
+  "minutes": 0.0,
   "error": "SafetensorError: Error while deserializing header: header too large",
-  "traceback_file": "/content/drive/MyDrive/KLTN_OCSD/results/logs/errors/C_evaluate_20260928_191840.txt"
+  "traceback_file": "/content/drive/MyDrive/KLTN_OCSD/results/logs/errors/C_evaluate_20260928_194434.txt"
  },
  "D_report": {
   "state": "ok",
-  "started": "2026-09-28 19:18:40",
-  "updated": "2026-09-28 19:18:41",
+  "started": "2026-09-28 19:44:34",
+  "updated": "2026-09-28 19:44:34",
   "minutes": 0.0,
   "error": null
  }
