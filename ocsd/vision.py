@@ -148,7 +148,8 @@ class Vision:
 
     def _get(self, key, cls):
         if key not in self._m:
-            self._m[key] = cls(self.device, cache_dir=self.cache_dir)
+            from .hfcache import retry_broken
+            self._m[key] = retry_broken(lambda: cls(self.device, cache_dir=self.cache_dir), self.cache_dir)
         return self._m[key]
 
     @property

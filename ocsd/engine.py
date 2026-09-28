@@ -33,6 +33,11 @@ class Engine:
     @classmethod
     def from_pretrained(cls, backbone: str = "sd15", device: str = "cuda", fp16: bool = True,
                         load_controlnet: bool = True, load_adapter: bool = True, cache_dir: Optional[str] = None):
+        from .hfcache import retry_broken
+        return retry_broken(lambda: cls._load(backbone, device, fp16, load_controlnet, load_adapter, cache_dir), cache_dir)
+
+    @classmethod
+    def _load(cls, backbone, device, fp16, load_controlnet, load_adapter, cache_dir):
         from diffusers import (AutoencoderKL, ControlNetModel, DDIMScheduler, T2IAdapter, UNet2DConditionModel)
         from transformers import CLIPTextModel, CLIPTokenizer
         b = BACKBONES[backbone]
