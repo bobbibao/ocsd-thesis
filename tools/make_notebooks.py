@@ -34,7 +34,9 @@ else:
     subprocess.run(f"git clone -q -b {BRANCH} {REPO_URL} {CODE}", shell=True, check=True)
 print("Mã nguồn:", CODE, subprocess.run(f"git -C {CODE} log -1 --format='%h %s' 2>/dev/null", shell=True, capture_output=True, text=True).stdout)
 sys.path.insert(0, CODE)
-os.environ["HF_HOME"] = os.path.join(DRIVE_ROOT, "hf_cache")   # lưu mô hình trên Drive: lần sau không tải lại
+# HF cache on LOCAL disk: Drive cannot store the cache's symlinks (broken files -> "SafetensorError: header too large").
+# Models re-download each new session (~2-4 min on Colab).
+os.environ["HF_HOME"] = "/content/hf_cache"
 if HF_TOKEN:
     os.environ["HF_TOKEN"] = HF_TOKEN'''
 
@@ -46,6 +48,8 @@ print(r.stdout[-2000:], r.stderr[-3000:])
 if r.returncode != 0:
     raise RuntimeError(f"pip install failed; see {LOGS}/pip_install.log")
 import importlib, ocsd; importlib.reload(ocsd)
+from ocsd import hfcache
+hfcache.repair(os.environ["HF_HOME"])   # delete broken model files so they download again
 from ocsd import runlog
 runlog.start(os.path.join(DRIVE_ROOT, "results"), CODE)   # every print below also goes to results/logs/run_*.log
 from ocsd.config import Paths, ExperimentConfig, TIERS
