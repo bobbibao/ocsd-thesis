@@ -1,11 +1,13 @@
 **OPR (%) / OCE-lớp theo complexity trên quickdraw**
 
-| Phương pháp                                           | simple      | medium      | complex     |
-|:------------------------------------------------------|:------------|:------------|:------------|
-| SD + ControlNet (mô hình nền)                         | 68.4 / 1.75 | 59.8 / 2.92 | 57.5 / 2.50 |
-| SD + T2I-Adapter                                      | 63.3 / 2.58 | 67.9 / 2.92 | 58.6 / 2.75 |
-| GLIGEN (hộp + văn bản)                                | 61.4 / 2.83 | 56.1 / 2.83 | 69.2 / 2.58 |
-| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 69.6 / 1.83 | 58.4 / 2.58 | 52.8 / 3.00 |
-| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 73.3 / 2.17 | 61.7 / 2.42 | 71.1 / 2.42 |
-| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 73.1 / 1.42 | 65.1 / 3.00 | 66.1 / 2.17 |
-| OCSD-lite (không học định danh)                       | 78.8 / 1.67 | 73.1 / 2.00 | 80.6 / 1.83 |
+| Phương pháp                                           | simple       | medium      | complex     |
+|:------------------------------------------------------|:-------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 83.3 / 0.00  | 68.9 / 1.67 | 53.3 / 0.67 |
+| SD + T2I-Adapter                                      | 100.0 / 0.00 | 68.9 / 2.67 | 57.8 / 2.33 |
+| GLIGEN (hộp + văn bản)                                | 100.0 / 0.00 | 68.9 / 1.67 | 75.6 / 1.00 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 66.7 / 1.00  | 62.2 / 1.33 | 42.2 / 2.33 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 100.0 / 0.00 | 68.9 / 1.67 | 86.7 / 1.33 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 100.0 / 0.00 | 68.9 / 1.67 | 53.3 / 0.67 |
+| Zhang et al. (2025) - cài đặt lại                     | 83.3 / 0.00  | 28.9 / 2.00 | 46.7 / 1.00 |
+| OCSD-lite (không học định danh)                       | 83.3 / 0.50  | 82.2 / 1.00 | 93.3 / 0.33 |
+| OCSD (đề xuất)                                        | 50.0 / 0.50  | 68.9 / 1.33 | 80.0 / 1.00 |

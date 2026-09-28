@@ -1,0 +1,275 @@
+[log] writing to /content/drive/MyDrive/KLTN_OCSD/results/logs/run_20260928_203003.log
+[env] {"time": "2026-09-28 20:30:03", "python": "3.13.15", "torch": "2.11.0+cu128", "torchvision": "0.26.0+cu128", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA L4", "vram_gb": 22.0, "git": "78439f3 Remove Colab's old torchao before install; clean up after a failed LoRA injection"}
+ExperimentConfig(backbone='sd15', seeds=[0], tier='pilot', eval_detector='owlv2', det_thr=0.3, match_iou=0.1, rel_delta=0.05, fp16=True)
+
+==================== STAGE A_data ====================
+[skip] A_data: benchmarks for tier 'pilot' already built (/content/drive/MyDrive/KLTN_OCSD/data/benchmarks/.done_pilot.json)
+==================== STAGE A_data OK (0.0 min) ====================
+E3_quickdraw_free        36 scenes x  7 methods x 1 seeds -> 0 images left
+E3_quickdraw_trained      8 scenes x  2 methods x 1 seeds -> 16 images left
+E3_coco_free              8 scenes x  7 methods x 1 seeds -> 38 images left
+E3_coco_trained           4 scenes x  2 methods x 1 seeds -> 8 images left
+E4_ablation               4 scenes x 11 methods x 1 seeds -> 44 images left
+alpha                     4 scenes x  6 methods x 1 seeds -> 24 images left
+
+==================== STAGE B_generate ====================
+/usr/local/lib/python3.13/dist-packages/huggingface_hub/utils/_validators.py:206: UserWarning: The `local_dir_use_symlinks` argument is deprecated and ignored in `hf_hub_download`. Downloading to a local directory does not use symlinks anymore.
+  warnings.warn(
+An error occurred while trying to fetch TencentARC/t2iadapter_sketch_sd15v2: TencentARC/t2iadapter_sketch_sd15v2 does not appear to have a file named diffusion_pytorch_model.safetensors.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+[transformers] The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+Còn 130 ảnh trên 16 cảnh
+[1/16] quickdraw/qd_1_complex_001 (n=1): 2 ảnh | 0 phút
+[2/16] quickdraw/qd_1_medium_002 (n=1): 2 ảnh | 2 phút
+[3/16] quickdraw/qd_1_simple_000 (n=1): 2 ảnh | 4 phút
+[4/16] quickdraw/qd_3_complex_000 (n=3): 19 ảnh | 5 phút
+[5/16] quickdraw/qd_3_medium_001 (n=3): 19 ảnh | 11 phút
+[6/16] quickdraw/qd_3_simple_002 (n=3): 19 ảnh | 17 phút
+[7/16] quickdraw/qd_5_complex_000 (n=5): 19 ảnh | 21 phút
+[8/16] quickdraw/qd_5_medium_001 (n=5): 2 ảnh | 28 phút
+[9/16] coco/coco_000000190756 (n=2): 3 ảnh | 30 phút
+[10/16] coco/coco_000000315492 (n=4): 9 ảnh | 32 phút
+/usr/local/lib/python3.13/dist-packages/diffusers/utils/deprecation_utils.py:23: FutureWarning: `torch_dtype` is deprecated and will be removed in version 1.0.0. Please use `dtype` instead.
+  deprecate("torch_dtype", "1.0.0", _TORCH_DTYPE_DEPRECATION_MESSAGE)
+An error occurred while trying to fetch /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/vae: Error no file named diffusion_pytorch_model.safetensors found in directory /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/vae.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+An error occurred while trying to fetch /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/unet: Error no file named diffusion_pytorch_model.safetensors found in directory /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/unet.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+CLIPFeatureExtractor appears to have been deprecated in transformers. Using CLIPImageProcessor instead.
+The StableDiffusionGLIGENPipeline has been deprecated and will not receive bug fixes or feature updates after Diffusers version 0.33.1. 
+[11/16] coco/coco_000000386210 (n=6): 9 ảnh | 36 phút
+[12/16] coco/coco_000000478721 (n=1): 9 ảnh | 39 phút
+[13/16] coco/coco_000000002685 (n=5): 1 ảnh | 41 phút
+[14/16] coco/coco_000000055002 (n=1): 1 ảnh | 42 phút
+[15/16] coco/coco_000000356427 (n=2): 7 ảnh | 42 phút
+[16/16] coco/coco_000000541634 (n=6): 7 ảnh | 43 phút
+Tổng kết: {'done': 130, 'skipped': 0, 'failed': 0} - 43.9 phút
+E3_quickdraw_free           252/252 ảnh
+E3_quickdraw_trained         16/16 ảnh
+E3_coco_free                 56/56 ảnh
+E3_coco_trained               8/8 ảnh
+E4_ablation                  44/44 ảnh
+alpha                        24/24 ảnh
+Ước tính giờ GPU (theo thời gian đo trên GPU hiện tại, chưa gồm đánh giá ~10-15%): {'pilot': 2.0, 'paper': 12.9, 'full': 53.7}
+==================== STAGE B_generate OK (49.6 min) ====================
+
+==================== STAGE C_evaluate ====================
+quickdraw/abl_alpha0: 4 ảnh đã đánh giá (+4)
+quickdraw/abl_bg_only: 4 ảnh đã đánh giá (+4)
+quickdraw/abl_global_only: 4 ảnh đã đánh giá (+4)
+quickdraw/abl_k1: 4 ảnh đã đánh giá (+4)
+quickdraw/abl_no_attsep: 4 ảnh đã đánh giá (+4)
+quickdraw/abl_no_blend: 4 ảnh đã đánh giá (+4)
+quickdraw/abl_no_energy: 4 ảnh đã đánh giá (+4)
+quickdraw/abl_no_m5: 4 ảnh đã đánh giá (+4)
+quickdraw/abl_no_region: 4 ảnh đã đánh giá (+4)
+quickdraw/abl_no_scenecn: 4 ảnh đã đánh giá (+4)
+quickdraw/abl_no_verify: 4 ảnh đã đánh giá (+4)
+quickdraw/alpha_0.4: 4 ảnh đã đánh giá (+4)
+quickdraw/alpha_0.5: 4 ảnh đã đánh giá (+4)
+quickdraw/alpha_0.6: 4 ảnh đã đánh giá (+4)
+quickdraw/alpha_0.7: 4 ảnh đã đánh giá (+4)
+quickdraw/alpha_0.8: 4 ảnh đã đánh giá (+4)
+quickdraw/alpha_1.0: 4 ảnh đã đánh giá (+4)
+quickdraw/cn_energy: 36 ảnh đã đánh giá (+0)
+quickdraw/cn_region: 36 ảnh đã đánh giá (+0)
+quickdraw/controlnet: 36 ảnh đã đánh giá (+0)
+quickdraw/controlnet_bo3: 36 ảnh đã đánh giá (+0)
+quickdraw/gligen: 36 ảnh đã đánh giá (+0)
+quickdraw/ocsd: 8 ảnh đã đánh giá (+8)
+quickdraw/ocsd_lite: 36 ảnh đã đánh giá (+0)
+quickdraw/t2i_adapter: 36 ảnh đã đánh giá (+0)
+quickdraw/zhang2025: 8 ảnh đã đánh giá (+8)
+{'method': 'abl_alpha0', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'abl_bg_only', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'abl_global_only', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'abl_k1', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'abl_no_attsep', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'abl_no_blend', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'abl_no_energy', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'abl_no_m5', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'abl_no_region', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'abl_no_scenecn', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'abl_no_verify', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'alpha_0.4', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'alpha_0.5', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'alpha_0.6', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'alpha_0.7', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'alpha_0.8', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'alpha_1.0', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'ocsd', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 8}
+{'method': 'zhang2025', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 8}
+coco/cn_energy: 8 ảnh đã đánh giá (+5)
+coco/cn_region: 8 ảnh đã đánh giá (+5)
+coco/controlnet: 8 ảnh đã đánh giá (+5)
+coco/controlnet_bo3: 8 ảnh đã đánh giá (+5)
+coco/gligen: 8 ảnh đã đánh giá (+5)
+coco/ocsd: 4 ảnh đã đánh giá (+4)
+coco/ocsd_lite: 8 ảnh đã đánh giá (+8)
+coco/t2i_adapter: 8 ảnh đã đánh giá (+5)
+coco/zhang2025: 4 ảnh đã đánh giá (+4)
+coco/real: 8 ảnh đã đánh giá (+0)
+/content/KLTN_OCSD/ocsd/metrics.py:76: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  return pd.concat(all_rows, ignore_index=True) if all_rows else pd.DataFrame()
+Downloading: "https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-inception-2015-12-05-6726825d.pth" to /root/.cache/torch/hub/checkpoints/weights-inception-2015-12-05-6726825d.pth
+
+
+  0%|          | 0.00/91.2M [00:00<?, ?B/s][A[A
+
+ 71%|███████▏  | 65.1M/91.2M [00:00<00:00, 682MB/s][A[A100%|██████████| 91.2M/91.2M [00:00<00:00, 687MB/s]
+/usr/local/lib/python3.13/dist-packages/torchmetrics/utilities/prints.py:43: UserWarning: Metric `Kernel Inception Distance` will save all extracted features in buffer. For large datasets this may lead to large memory footprint.
+  warnings.warn(*args, **kwargs)
+{'method': 'cn_energy', 'split': 'coco', 'fid': 347.32080078125, 'kid': 15.083854086697102, 'kid_std': 8.876414969563484, 'n_gen': 10}
+{'method': 'cn_region', 'split': 'coco', 'fid': 341.0381164550781, 'kid': 16.49291068315506, 'kid_std': 11.609230190515518, 'n_gen': 11}
+{'method': 'controlnet', 'split': 'coco', 'fid': 325.1694030761719, 'kid': 3.932525869458914, 'kid_std': 9.119945578277111, 'n_gen': 11}
+{'method': 'controlnet_bo3', 'split': 'coco', 'fid': 326.0887145996094, 'kid': 5.4518175311386585, 'kid_std': 10.319179855287075, 'n_gen': 10}
+{'method': 'gligen', 'split': 'coco', 'fid': 307.993896484375, 'kid': -2.8147625271230936, 'kid_std': 7.386793382465839, 'n_gen': 11}
+{'method': 'ocsd', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+{'method': 'ocsd_lite', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 8}
+{'method': 't2i_adapter', 'split': 'coco', 'fid': 299.336669921875, 'kid': 1.4266847865656018, 'kid_std': 7.138848304748535, 'n_gen': 11}
+{'method': 'zhang2025', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 4}
+==================== STAGE C_evaluate OK (5.4 min) ====================
+
+==================== STAGE D_report ====================
+E3_quickdraw_free           252/252 ảnh
+E3_quickdraw_trained         16/16 ảnh
+E3_coco_free                 56/56 ảnh
+E3_coco_trained               8/8 ảnh
+E4_ablation                  44/44 ảnh
+alpha                        24/24 ảnh
+# Kết quả thực nghiệm OCSD (2026-09-28 21:27:21)
+
+Tier: pilot; backbone: sd15; seeds: [0]; bộ phát hiện đánh giá: owlv2
+
+Phần cứng: {"python": "3.13.15", "torch": "2.11.0+cu128", "gpu": "NVIDIA L4", "vram_gb": 22.0, "diffusers": "0.40.0", "transformers": "5.17.0", "cpu": "Intel(R) Xeon(R) CPU @ 2.20GHz", "ram_gb": 53.0}
+
+## E1_coco
+
+**OPR (%) / OCE-lớp theo count_bin trên coco**
+
+| Phương pháp                                           | 1            | 2-3         | 4-5         | 6-8         |
+|:------------------------------------------------------|:-------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 100.0 / 0.00 | 0.0 / 2.00  | 50.0 / 2.00 | 0.0 / 6.00  |
+| SD + T2I-Adapter                                      | 100.0 / 1.00 | 0.0 / 2.00  | 25.0 / 2.00 | 0.0 / 5.00  |
+| GLIGEN (hộp + văn bản)                                | 100.0 / 1.00 | 50.0 / 1.00 | 75.0 / 1.00 | 33.3 / 4.00 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 0.0 / 1.00   | 50.0 / 1.00 | 50.0 / 1.00 | 16.7 / 5.00 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 100.0 / 6.00 | 50.0 / 1.00 | 50.0 / 2.00 | 33.3 / 5.00 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 100.0 / 0.00 | 0.0 / 2.00  | 50.0 / 2.00 | 0.0 / 6.00  |
+| Zhang et al. (2025) - cài đặt lại                     | 100.0 / 0.00 | 50.0 / 2.00 | 0.0 / 1.00  | 33.3 / 3.00 |
+| OCSD-lite (không học định danh)                       | 100.0 / 0.00 | 50.0 / 1.00 | 50.0 / 3.00 | 66.7 / 1.00 |
+| OCSD (đề xuất)                                        | 100.0 / 0.00 | 50.0 / 1.00 | 50.0 / 3.00 | 83.3 / 1.00 |
+
+## E1_quickdraw
+
+**OPR (%) / OCE-lớp theo count_bin trên quickdraw**
+
+| Phương pháp                                           | 1            | 3           | 5           |
+|:------------------------------------------------------|:-------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 66.7 / 0.33  | 77.8 / 0.67 | 50.0 / 2.00 |
+| SD + T2I-Adapter                                      | 100.0 / 0.00 | 66.7 / 2.33 | 40.0 / 4.00 |
+| GLIGEN (hộp + văn bản)                                | 100.0 / 0.00 | 77.8 / 1.00 | 50.0 / 2.50 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 66.7 / 0.33  | 55.6 / 3.00 | 40.0 / 1.50 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 100.0 / 0.00 | 88.9 / 0.67 | 50.0 / 3.50 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 66.7 / 0.33  | 88.9 / 0.67 | 50.0 / 2.00 |
+| Zhang et al. (2025) - cài đặt lại                     | 66.7 / 0.33  | 44.4 / 1.00 | 30.0 / 2.50 |
+| OCSD-lite (không học định danh)                       | 100.0 / 0.00 | 77.8 / 0.67 | 80.0 / 1.50 |
+| OCSD (đề xuất)                                        | 66.7 / 0.33  | 88.9 / 0.33 | 40.0 / 3.00 |
+
+## E2_coco
+
+**OPR (%) / OCE-lớp theo complexity trên coco**
+
+| Phương pháp                                           | real        |
+|:------------------------------------------------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 37.5 / 2.50 |
+| SD + T2I-Adapter                                      | 31.2 / 2.50 |
+| GLIGEN (hộp + văn bản)                                | 64.6 / 1.75 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 29.2 / 2.00 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 58.3 / 3.50 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 37.5 / 2.50 |
+| Zhang et al. (2025) - cài đặt lại                     | 45.8 / 1.50 |
+| OCSD-lite (không học định danh)                       | 66.7 / 1.25 |
+| OCSD (đề xuất)                                        | 70.8 / 1.25 |
+
+## E2_quickdraw
+
+**OPR (%) / OCE-lớp theo complexity trên quickdraw**
+
+| Phương pháp                                           | simple       | medium      | complex     |
+|:------------------------------------------------------|:-------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 83.3 / 0.00  | 68.9 / 1.67 | 53.3 / 0.67 |
+| SD + T2I-Adapter                                      | 100.0 / 0.00 | 68.9 / 2.67 | 57.8 / 2.33 |
+| GLIGEN (hộp + văn bản)                                | 100.0 / 0.00 | 68.9 / 1.67 | 75.6 / 1.00 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 66.7 / 1.00  | 62.2 / 1.33 | 42.2 / 2.33 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 100.0 / 0.00 | 68.9 / 1.67 | 86.7 / 1.33 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 100.0 / 0.00 | 68.9 / 1.67 | 53.3 / 0.67 |
+| Zhang et al. (2025) - cài đặt lại                     | 83.3 / 0.00  | 28.9 / 2.00 | 46.7 / 1.00 |
+| OCSD-lite (không học định danh)                       | 83.3 / 0.50  | 82.2 / 1.00 | 93.3 / 0.33 |
+| OCSD (đề xuất)                                        | 50.0 / 0.50  | 68.9 / 1.33 | 80.0 / 1.00 |
+
+## E3_coco
+
+**So sánh định lượng trên coco (4 cảnh, trung bình ± nửa KTC 95%)**
+
+| Phương pháp                                           | OPR (%) ↑       | OCE-lớp ↓       | Đếm đúng (%) ↑   | mIoU ↑            | RA (%) ↑        | CLIP ↑           | CLIP-đt ↑        | ID-Sim ↑          | FID ↓      | KID×10³ ↓   |
+|:------------------------------------------------------|:----------------|:----------------|:-----------------|:------------------|:----------------|:-----------------|:-----------------|:------------------|:-----------|:------------|
+| SD + ControlNet (mô hình nền)                         | 37.5 ± 37.5     | 2.50 ± 2.25     | **25.0 ± 37.5**  | 0.246 ± 0.264     | 2.8 ± 4.2       | 26.77 ± 1.10     | 20.57 ± 3.80     | –                 | 325.17     | 3.93        |
+| SD + T2I-Adapter                                      | 31.2 ± 37.5     | 2.50 ± 1.50     | 0.0 ± 0.0        | 0.073 ± 0.073     | 0.0 ± 0.0       | 26.49 ± 1.89     | 18.00 ± 1.45     | –                 | **299.34** | 1.43        |
+| GLIGEN (hộp + văn bản)                                | 64.6 ± 22.9     | 1.75 ± 1.12     | 0.0 ± 0.0    
+==================== STAGE D_report OK (1.3 min) ====================
+
+Stage status:
+  A_data                   ok              0.0 min  benchmarks for tier 'pilot' already built (/content/drive/MyDrive/KLTN_OCSD/data/benchmarks/.done_pilot.json)
+  B_generate               ok             49.6 min  
+  C_evaluate               ok              5.4 min  
+  D_report                 ok              1.3 min  
+
+Most recent error:
+stage: B_generate
+context: 
+time: 20260928_195254
+log: /content/drive/MyDrive/KLTN_OCSD/results/logs/run_20260928_195017.log
+
+Traceback (most recent call last):
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 108, in run_items
+    self._run_scene(scene, todo, split, stats)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 174, in _run_scene
+    id_tokens = learn_identity(eng, scene, objs, c3, seed=0, log=prep_log)
+  File "/content/KLTN_OCSD/ocsd/method.py", line 202, in learn_identity
+    eng.add_lora(cfg.lora_rank)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/engine.py", line 185, in add_lora
+    self.unet.add_adapter(cfg, adapter_name="ocsd")
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/diffusers/loaders/peft.py", line 517, in add_adapter
+    elif adapter_name in self.peft_config:
+                         ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/diffusers/models/modeling_utils.py", line 286, in __getattr__
+    return super().__getattr__(name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/torch/nn/modules/module.py", line 1968, in __getattr__
+    raise AttributeError(
+        f"'{type(self).__name__}' object has no attribute '{name}'"
+    )
+AttributeError: 'UNet2DConditionModel' object has no attribute 'peft_config'. Did you mean: 'from_config'?
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/content/KLTN_OCSD/ocsd/runlog.py", line 132, in stage
+    yield
+  File "/tmp/ipykernel_3720/256484334.py", line 5, in <cell line: 0>
+    eng, vis = stages.generate(P, E, max_minutes=MAX_MINUTES)
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/stages.py", line 168, in generate
+    runner.run_items(todo, max_minutes=max_minutes)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 115, in run_items
+    raise RuntimeError("The first 3 scenes all failed; stopping so the error can be fixed "
+                       "(see results/logs/LATEST_ERROR.txt)") from e
+RuntimeError: The first 3 scenes all failed; stopping so the error can be fixed (see results/logs/LATEST_ERROR.txt)
+
+
+env: {"time": "2026-09-28 19:52:54", "python": "3.13.15", "torch": "2.11.0+cu128", "torchvision": "0.26.0+cu128", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA A100-SXM4-80GB", "vram_gb": 79.3}
+
