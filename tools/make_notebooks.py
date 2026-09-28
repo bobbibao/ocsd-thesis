@@ -34,6 +34,8 @@ else:
     subprocess.run(f"git clone -q -b {BRANCH} {REPO_URL} {CODE}", shell=True, check=True)
 print("Mã nguồn:", CODE, subprocess.run(f"git -C {CODE} log -1 --format='%h %s' 2>/dev/null", shell=True, capture_output=True, text=True).stdout)
 sys.path.insert(0, CODE)
+# drop modules imported by an earlier run in this kernel, so the code just pulled is what runs
+for _m in [m for m in sys.modules if m == "ocsd" or m.startswith("ocsd.")]: del sys.modules[_m]
 # HF cache on LOCAL disk: Drive cannot store the cache's symlinks (broken files -> "SafetensorError: header too large").
 # Models re-download each new session (~2-4 min on Colab).
 os.environ["HF_HOME"] = "/content/hf_cache"
