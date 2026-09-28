@@ -197,6 +197,11 @@ class Engine:
         self.has_lora = True
         self.lora(False)
 
+    def set_lora_scale(self, scale: float):
+        if self.has_lora:
+            self.unet.set_adapters(["ocsd"], weights=[float(scale)])
+            self.lora(False)
+
     def lora_params(self):
         return [p for n, p in self.unet.named_parameters() if "lora" in n]
 

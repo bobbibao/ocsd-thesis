@@ -41,7 +41,7 @@ OCSD_VARIANTS: Dict[str, OCSDConfig] = {
     "abl_global_only": BASE.replace(prompt_mode="global_only"),
 }
 # ---- khảo sát alpha (không kiểm tra hậu sinh để thấy rõ tác động của riêng alpha)
-for _a in (0.4, 0.5, 0.6, 0.7, 0.8, 1.0):
+for _a in (0.0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0):
     OCSD_VARIANTS[f"alpha_{_a:.1f}"] = BASE.replace(alpha=_a, use_verify=False)
 
 BASELINES = ["controlnet", "t2i_adapter", "gligen", "cn_region", "cn_energy", "controlnet_bo3"]
@@ -69,7 +69,7 @@ LABELS = {
     "abl_global_only": "- chỉ câu lệnh toàn cục",
     "real": "Ảnh thật (trần bộ phát hiện)",
 }
-LABELS.update({f"alpha_{a:.1f}": f"α = {a:.1f}" for a in (0.4, 0.5, 0.6, 0.7, 0.8, 1.0)})
+LABELS.update({f"alpha_{a:.1f}": f"α = {a:.1f}" for a in (0.0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0)})
 
 
 def m2_key(c: OCSDConfig) -> str:

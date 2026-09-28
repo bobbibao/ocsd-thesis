@@ -157,7 +157,7 @@ MAIN = ["controlnet", "t2i_adapter", "gligen", "cn_region", "cn_energy", "contro
 ABLATION = ["ocsd", "abl_no_blend", "abl_alpha0", "ocsd_lite", "abl_no_region", "abl_no_energy",
             "abl_no_scenecn", "abl_no_verify", "abl_no_m5", "abl_no_attsep", "abl_k1", "abl_bg_only",
             "abl_global_only", "zhang2025"]
-ALPHAS = [f"alpha_{a:.1f}" for a in (0.4, 0.5, 0.6, 0.7, 0.8, 1.0)]
+ALPHAS = [f"alpha_{a:.1f}" for a in (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)]
 
 
 def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[Dict[str, pd.DataFrame]] = None):
