@@ -1,0 +1,26 @@
+{
+ "E3_quickdraw_free": {
+  "total": 252,
+  "todo": 0
+ },
+ "E3_quickdraw_trained": {
+  "total": 16,
+  "todo": 16
+ },
+ "E3_coco_free": {
+  "total": 56,
+  "todo": 38
+ },
+ "E3_coco_trained": {
+  "total": 8,
+  "todo": 8
+ },
+ "E4_ablation": {
+  "total": 44,
+  "todo": 44
+ },
+ "alpha": {
+  "total": 24,
+  "todo": 24
+ }
+}

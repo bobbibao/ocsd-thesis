@@ -1,0 +1,31 @@
+stage: evaluate_image
+context: quickdraw/cn_energy/qd_1_medium_001_s0
+time: 20260928_191840
+log: /content/drive/MyDrive/KLTN_OCSD/results/logs/run_20260928_191630.log
+
+Traceback (most recent call last):
+  File "/content/KLTN_OCSD/ocsd/metrics.py", line 61, in evaluate_images
+    row = _eval_one(m, sid, s, sdir, p, split, vis, det_fn, det_thr, iou_thr, out_root)
+  File "/content/KLTN_OCSD/ocsd/metrics.py", line 91, in _eval_one
+    row["clip"] = float(vis.clip.score([img], [scene.caption])[0])
+                        ^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/vision.py", line 168, in clip
+    return self._get("clip", CLIPScorer)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/vision.py", line 151, in _get
+    self._m[key] = cls(self.device, cache_dir=self.cache_dir)
+                   ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/vision.py", line 105, in __init__
+    self.model = CLIPModel.from_pretrained(model_id, cache_dir=cache_dir).to(device).eval()
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/transformers/modeling_utils.py", line 4313, in from_pretrained
+    loading_info, disk_offload_index = cls._load_pretrained_model(model, state_dict, checkpoint_files, load_config)
+                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/transformers/modeling_utils.py", line 4444, in _load_pretrained_model
+    file_pointer = safe_open(file, framework="pt", device=device, backend=backend)
+safetensors._safetensors_rust.SafetensorError: Error while deserializing header: header too large
+
+
+env: {"time": "2026-09-28 19:18:40", "python": "3.13.15", "torch": "2.11.0+cu128", "torchvision": "0.26.0+cu128", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA A100-SXM4-80GB", "vram_gb": 79.3}
+
+================================================================================
