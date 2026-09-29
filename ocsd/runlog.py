@@ -127,7 +127,8 @@ def stage(name: str, raise_errors: bool = False):
     t0 = time.time()
     print(f"\n{'=' * 20} STAGE {name} {'=' * 20}")
     if _STATE["log_dir"]:
-        _write_status(name, state="running", started=time.strftime("%Y-%m-%d %H:%M:%S"))
+        _write_status(name, state="running", started=time.strftime("%Y-%m-%d %H:%M:%S"), minutes=None,
+                      error=None, traceback_file=None, reason=None)
     try:
         yield
     except KeyboardInterrupt:
