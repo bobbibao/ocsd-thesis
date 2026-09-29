@@ -18,9 +18,20 @@ PCT = {"opr", "count_acc", "ra"}
 
 
 def load_per_image(results_dir: str, split: str) -> pd.DataFrame:
+    """All per-image rows of `split`, limited to the (scene, seed) pairs of the current experiment plan when
+    results/<split>/plan.json exists (rows left over from another tier, e.g. pilot scenes, are ignored)."""
     import glob
+    import json
     fs = glob.glob(os.path.join(results_dir, split, "per_image_*.csv"))
-    return pd.concat([pd.read_csv(f) for f in fs], ignore_index=True) if fs else pd.DataFrame()
+    if not fs:
+        return pd.DataFrame()
+    df = pd.concat([pd.read_csv(f) for f in fs], ignore_index=True)
+    pp = os.path.join(results_dir, split, "plan.json")
+    if os.path.exists(pp):
+        plan = json.load(open(pp))
+        ok = {(m, sid, int(seed)) for m, pairs in plan.items() for sid, seed in pairs}
+        df = df[[(m, sid, int(seed)) in ok for m, sid, seed in zip(df.method, df.sid, df.seed)]]
+    return df.reset_index(drop=True)
 
 
 def per_scene(df: pd.DataFrame) -> pd.DataFrame:
@@ -232,7 +243,7 @@ def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[
         # ---- thời gian
         tcols = [c for c in ("time_s", "m2_s", "m3_s", "peak_gb", "tries") if c in ps]
         if tcols:
-            rt = ps[ps.method.isin(main)].groupby("method")[tcols].mean().reindex(main).reset_index()
+            rt = ps[ps.method.isin(main) & ps.sid.isin(common)].groupby("method")[tcols].mean().reindex(main).reset_index()
             rt["method"] = rt["method"].map(lambda m: LABELS.get(m, m))
             out[f"runtime_{split}"] = save_table(rt.round(2).rename(columns={"method": "Phương pháp"}),
                                                  os.path.join(tdir, f"runtime_{split}"), "Thời gian và bộ nhớ trung bình mỗi ảnh")
@@ -251,10 +262,13 @@ def _order(vals):
 
 
 # ----------------------------------------------------------------------------- figures
-def plot_curves(results_dir: str, split: str = "quickdraw", methods=("controlnet", "zhang2025", "ocsd_lite", "ocsd"),
+def plot_curves(results_dir: str, split: str = "quickdraw", methods=("controlnet", "gligen", "zhang2025", "ocsd_lite", "ocsd"),
                 out: Optional[str] = None):
     import matplotlib.pyplot as plt
     ps = per_scene(load_per_image(results_dir, split))
+    present = [m for m in methods if m in set(ps.method)]
+    if present:   # same scenes for every curve
+        ps = ps[ps.sid.isin(set.intersection(*[set(ps[ps.method == m].sid) for m in present]))]
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))
     for ax, dim, title in ((axes[0], "count_bin", "Số lượng đối tượng"), (axes[1], "complexity", "Độ phức tạp phác thảo")):
         s = summarize(ps[ps.method.isin(methods)], by=("method", dim), metrics=["opr"])

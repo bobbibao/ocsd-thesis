@@ -472,6 +472,17 @@ def evaluate(P: Paths, E: ExperimentConfig, vis=None, fid: bool = True):
         scenes = sorted({d for j in jobs for d in j["scenes"]})
         evaluate_images(P.outputs, P.benchmarks, split, methods, seeds, vis, P.results, detector=E.eval_detector,
                         det_thr=E.det_thr, iou_thr=E.match_iou, scene_dirs=scenes)
+        # (scene, seed) pairs of this plan per method: the report ignores per-image rows outside it
+        # (e.g. pilot-tier rows of the tuning scenes)
+        plan_pairs = {}
+        for j in jobs:
+            for m in j["methods"] + (["real"] if split == "coco" and j["name"].endswith("_free") else []):
+                for d in j["scenes"]:
+                    for s in (j["seeds"] if m != "real" else [0]):
+                        plan_pairs.setdefault(m, set()).add((os.path.basename(d), int(s)))
+        os.makedirs(os.path.join(P.results, split), exist_ok=True)
+        json.dump({m: sorted(v) for m, v in plan_pairs.items()},
+                  open(os.path.join(P.results, split, "plan.json"), "w"), indent=0)
         if fid:
             if split == "coco":
                 ref = sorted(glob.glob(os.path.join(P.benchmarks, "coco", "*", "real.png")))
@@ -480,8 +491,14 @@ def evaluate(P: Paths, E: ExperimentConfig, vis=None, fid: bool = True):
                 ref = sorted(glob.glob(os.path.join(P.data, "coco_ref", "*.jpg")))
             if ref:
                 vis.unload()
+                # main comparison (E3): every method scored on the same images (trained scenes x their seeds),
+                # since FID depends on the number of images; ablation / alpha variants on their own job
+                tr = [j for j in jobs if j["name"] == f"E3_{split}_trained"]
+                e3 = {(os.path.basename(d), int(s)) for j in tr for d in j["scenes"] for s in j["seeds"]}
+                main = {m for j in jobs if j["name"].startswith("E3_") for m in j["methods"]}
+                fid_pairs = {m: (e3 if m in main and e3 else plan_pairs.get(m, set())) for m in methods}
                 image_level_quality(P.outputs, P.benchmarks, split, methods, seeds, ref, P.results,
-                                    scene_ids={os.path.basename(d) for d in scenes})
+                                    scene_ids={os.path.basename(d) for d in scenes}, pairs=fid_pairs)
     return vis
 
 

@@ -81,4 +81,38 @@ assert stages._count_todo(P, [j for j in stages.experiment_plan(P, E) if j["name
 stages.evaluate(P, E, vis=vis, fid=False)
 rows = [l for f in glob.glob(os.path.join(P.results, "quickdraw", "per_image_*.csv")) for l in open(f).readlines()[1:]]
 assert rows and not any(s in l for l in rows for s in pilot_sids)
+
+# rows left by a later pilot-tier run (tuning scenes) must not reach the paper tables
+import pandas as pd
+from ocsd import metrics, report as R
+cf = os.path.join(P.results, "quickdraw", "per_image_controlnet.csv")
+d = pd.read_csv(cf); extra = d.iloc[:1].copy(); extra["sid"] = pilot_sids[0]
+pd.concat([d, extra]).to_csv(cf, index=False)
+assert os.path.exists(os.path.join(P.results, "quickdraw", "plan.json"))
+assert pilot_sids[0] not in set(R.load_per_image(P.results, "quickdraw").sid)
+
+# FID/KID: `pairs` picks exactly those images per method, and a changed selection is not reused from the cache
+seen = []
+
+
+def fake_fid_kid(gen, ref, dev):
+    seen.append(len(gen))
+    return dict(fid=float(len(gen)), kid=0.0, kid_std=0.0, n_gen=len(gen))
+
+
+metrics.fid_kid = fake_fid_kid
+plan = stages.experiment_plan(P, E)
+tr = [j for j in plan if j["name"] == "E3_quickdraw_trained"][0]
+pairs = {(os.path.basename(x), s) for x in tr["scenes"] for s in tr["seeds"]}
+ref = glob.glob(os.path.join(P.outputs, "quickdraw", "controlnet", "*.png"))
+q = metrics.image_level_quality(P.outputs, P.benchmarks, "quickdraw", ["controlnet", "ocsd"], [0, 1], ref, P.results,
+                                with_lpips=False, pairs={"controlnet": pairs, "ocsd": pairs})
+assert list(q.n_gen) == [len(pairs), len(pairs)], q
+q2 = metrics.image_level_quality(P.outputs, P.benchmarks, "quickdraw", ["controlnet"], [0], ref, P.results,
+                                 with_lpips=False)
+assert len(seen) == 3 and int(q2.n_gen.iloc[0]) != len(pairs), (seen, q2)
+q3 = metrics.image_level_quality(P.outputs, P.benchmarks, "quickdraw", ["controlnet"], [0], ref, P.results,
+                                 with_lpips=False)
+assert len(seen) == 3 and int(q3.n_gen.iloc[0]) == int(q2.n_gen.iloc[0])   # same selection -> cached
+print("PLAN FILTER + FID PAIRS OK")
 print("TUNE TEST OK")
