@@ -57,3 +57,8 @@ Tệp này dành cho người viết khóa luận: mỗi mục nêu bản thảo
    biệt tập kiểm tra). Mục 3.x (siêu tham số) và 4.x (thiết lập) cần ghi rõ quy trình này và giá trị được chọn
    (`results/tuning/tuned.json`). Quy mô `paper` mới: 72 cảnh QuickDraw (6/ô), 36 cảnh học định danh, 32 cảnh COCO
    (16 học định danh), cắt bỏ 18 cảnh, α 12 cảnh; M3 100 + 100 bước; seed thứ 2 chạy trên tập học định danh.
+8. **Tinh chỉnh dẫn hướng năng lượng M5(b) (29/09/2026).** Ở lượt `paper` đầu, bảng cắt bỏ cho thấy M5(b) áp lên token
+   định danh `<o_i>` làm giảm mạnh OPR (59,6% → 78,1% khi bỏ). Giai đoạn T có thêm pha 2 trên cùng tập tinh chỉnh:
+   {tắt; token định danh η = 20 (cũ), η = 10; token cụm từ đối tượng η = 20, η = 10}, cùng quy tắc chọn. Chỉ các
+   dòng họ OCSD (OCSD, OCSD-lite, cắt bỏ, α) được sinh lại; baseline giữ nguyên. Tham số `energy_tokens` mới
+   ("id" | "phrase") cần mô tả ở mục M5(b); giá trị chọn nằm trong `results/tuning/tuned.json`.

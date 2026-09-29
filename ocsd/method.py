@@ -326,6 +326,7 @@ def build_scene(eng: Engine, scene: Scene, objs: Optional[List[ObjectResult]], c
     obj_tok = [custom.groups.get(f"obj{i}", []) for i in range(scene.n)]
     id_groups = [custom.groups.get(f"id{i}", []) for i in range(scene.n)]
     bg_tok = custom.groups.get("bg", [])
+    en_groups = obj_tok if cfg.energy_tokens == "phrase" else id_groups
     om = torch.stack([_lat_mask(m, lh, lh, eng.device) for m in region_masks])
     masks_lr = torch.stack([_lat_mask(m, ar, ar, eng.device, thr=0.3) for m in region_masks])
 
@@ -364,9 +365,9 @@ def build_scene(eng: Engine, scene: Scene, objs: Optional[List[ObjectResult]], c
                 eng.ctrl.bias_enabled = cfg.use_region_attn
                 eng.ctrl.lambda_t = lambda0 * frac ** cfg.gamma
                 j = idx - k
-                if cfg.use_energy and j < cfg.tau and any(id_groups):
+                if cfg.use_energy and j < cfg.tau and any(en_groups):
                     eta_j = cfg.eta * (1 - 0.5 * j / max(cfg.tau, 1))
-                    z, E = eng.energy_update(z, t, emb_g, id_groups, masks_lr, eot, cfg.beta, eta_j,
+                    z, E = eng.energy_update(z, t, emb_g, en_groups, masks_lr, eot, cfg.beta, eta_j,
                                              control, cfg.omega if cfg.use_scene_cn else 0.0)
                     energy_E.append(E)
                 eps = eng.cfg_eps(z, t, emb_g, emb_u, cfg.guidance, control, cfg.omega if cfg.use_scene_cn else 0.0)
