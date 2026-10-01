@@ -1,10 +1,9 @@
 {
- "generated_at": "2026-09-29 07:01:13",
- "tier": "paper",
+ "generated_at": "2026-10-01 04:42:37",
+ "tier": "pilot",
  "backbone": "sd15",
  "seeds": [
-  0,
-  1
+  0
  ],
  "eval_detector": "owlv2",
  "hardware": {
@@ -19,31 +18,27 @@
  },
  "progress": {
   "E3_quickdraw_free": {
-   "total": 504,
-   "todo": 0
-  },
-  "E3_quickdraw_free_seeds": {
-   "total": 252,
+   "total": 168,
    "todo": 0
   },
   "E3_quickdraw_trained": {
-   "total": 144,
+   "total": 8,
    "todo": 0
   },
   "E3_coco_free": {
-   "total": 224,
+   "total": 56,
    "todo": 0
   },
   "E3_coco_trained": {
-   "total": 32,
+   "total": 8,
    "todo": 0
   },
   "E4_ablation": {
-   "total": 198,
+   "total": 22,
    "todo": 0
   },
   "alpha": {
-   "total": 72,
+   "total": 12,
    "todo": 0
   }
  },

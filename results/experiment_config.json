@@ -1,0 +1,12 @@
+{
+  "backbone": "sd15",
+  "seeds": [
+    0
+  ],
+  "tier": "pilot",
+  "eval_detector": "owlv2",
+  "det_thr": 0.3,
+  "match_iou": 0.1,
+  "rel_delta": 0.05,
+  "fp16": true
+}

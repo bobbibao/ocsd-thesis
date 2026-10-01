@@ -1,10 +1,10 @@
 Phương pháp,Thời gian (s),M2 (s),M3 (s),VRAM (GB),Số lần sinh
-SD + ControlNet (mô hình nền),2.17,,,12.01,1.0
-SD + T2I-Adapter,1.54,,,12.01,1.0
-GLIGEN (hộp + văn bản),1.72,,,12.02,1.0
-ControlNet + chú ý vùng (kiểu DenseDiffusion),2.25,,,12.02,1.0
-ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E),3.24,,,12.19,1.0
-ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra),5.47,,,12.23,2.37
-Zhang et al. (2025) - cài đặt lại,2.2,9.04,36.95,12.02,1.0
-OCSD-lite (không học định danh),5.11,12.57,0.0,12.23,2.17
-OCSD (đề xuất),5.7,12.41,36.97,12.49,2.18
+SD + ControlNet (mô hình nền),3.29,,,11.88,1.0
+SD + T2I-Adapter,2.37,,,11.88,1.0
+GLIGEN (hộp + văn bản),2.63,,,11.89,1.0
+ControlNet + chú ý vùng (kiểu DenseDiffusion),3.37,,,11.89,1.0
+ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E),4.5,,,12.06,1.0
+ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra),7.84,,,12.1,2.34
+Zhang et al. (2025) - cài đặt lại,2.22,8.65,36.86,11.48,1.0
+OCSD-lite (không học định danh),7.12,27.51,0.0,12.09,2.12
+OCSD (đề xuất),5.95,12.95,36.92,11.94,2.11

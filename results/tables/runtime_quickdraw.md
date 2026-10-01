@@ -2,12 +2,12 @@
 
 | Phương pháp                                           |   Thời gian (s) |   M2 (s) |   M3 (s) |   VRAM (GB) |   Số lần sinh |
 |:------------------------------------------------------|----------------:|---------:|---------:|------------:|--------------:|
-| SD + ControlNet (mô hình nền)                         |            2.17 |   nan    |   nan    |       12.01 |          1    |
-| SD + T2I-Adapter                                      |            1.54 |   nan    |   nan    |       12.01 |          1    |
-| GLIGEN (hộp + văn bản)                                |            1.72 |   nan    |   nan    |       12.02 |          1    |
-| ControlNet + chú ý vùng (kiểu DenseDiffusion)         |            2.25 |   nan    |   nan    |       12.02 |          1    |
-| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      |            3.24 |   nan    |   nan    |       12.19 |          1    |
-| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) |            5.47 |   nan    |   nan    |       12.23 |          2.37 |
-| Zhang et al. (2025) - cài đặt lại                     |            2.2  |     9.04 |    36.95 |       12.02 |          1    |
-| OCSD-lite (không học định danh)                       |            5.11 |    12.57 |     0    |       12.23 |          2.17 |
-| OCSD (đề xuất)                                        |            5.7  |    12.41 |    36.97 |       12.49 |          2.18 |
+| SD + ControlNet (mô hình nền)                         |            3.29 |   nan    |   nan    |       11.88 |          1    |
+| SD + T2I-Adapter                                      |            2.37 |   nan    |   nan    |       11.88 |          1    |
+| GLIGEN (hộp + văn bản)                                |            2.63 |   nan    |   nan    |       11.89 |          1    |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         |            3.37 |   nan    |   nan    |       11.89 |          1    |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      |            4.5  |   nan    |   nan    |       12.06 |          1    |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) |            7.84 |   nan    |   nan    |       12.1  |          2.34 |
+| Zhang et al. (2025) - cài đặt lại                     |            2.22 |     8.65 |    36.86 |       11.48 |          1    |
+| OCSD-lite (không học định danh)                       |            7.12 |    27.51 |     0    |       12.09 |          2.12 |
+| OCSD (đề xuất)                                        |            5.95 |    12.95 |    36.92 |       11.94 |          2.11 |

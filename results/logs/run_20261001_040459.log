@@ -1,0 +1,273 @@
+[log] writing to /content/drive/MyDrive/KLTN_OCSD/results/logs/run_20261001_040459.log
+[env] {"time": "2026-10-01 04:04:59", "python": "3.13.15", "torch": "2.11.0+cu128", "torchvision": "0.26.0+cu128", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA A100-SXM4-40GB", "vram_gb": 39.5, "git": "c430513 Merge pull request #1 from bobbibao/claude/project-thread-qvlbw2"}
+ExperimentConfig(backbone='sd15', seeds=[0], tier='pilot', eval_detector='owlv2', det_thr=0.3, match_iou=0.1, rel_delta=0.05, fp16=True)
+
+==================== STAGE A_data ====================
+[skip] A_data: benchmarks for tier 'pilot' already built (/content/drive/MyDrive/KLTN_OCSD/data/benchmarks/.done_pilot.json)
+==================== STAGE A_data OK (0.0 min) ====================
+
+==================== STAGE T_tune ====================
+[skip] T_tune: tier 'pilot' does not tune
+==================== STAGE T_tune OK (0.0 min) ====================
+E3_quickdraw_free        24 scenes x  7 methods x 1 seeds -> 0 images left
+E3_quickdraw_trained      4 scenes x  2 methods x 1 seeds -> 4 images left
+E3_coco_free              8 scenes x  7 methods x 1 seeds -> 10 images left
+E3_coco_trained           4 scenes x  2 methods x 1 seeds -> 6 images left
+E4_ablation               2 scenes x 11 methods x 1 seeds -> 11 images left
+alpha                     2 scenes x  6 methods x 1 seeds -> 6 images left
+
+==================== STAGE B_generate ====================
+/usr/local/lib/python3.13/dist-packages/huggingface_hub/utils/_validators.py:206: UserWarning: The `local_dir_use_symlinks` argument is deprecated and ignored in `hf_hub_download`. Downloading to a local directory does not use symlinks anymore.
+  warnings.warn(
+An error occurred while trying to fetch TencentARC/t2iadapter_sketch_sd15v2: TencentARC/t2iadapter_sketch_sd15v2 does not appear to have a file named diffusion_pytorch_model.safetensors.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+[transformers] The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+Còn 37 ảnh trên 5 cảnh
+[1/5] quickdraw/qd_1_simple_002 (n=1): 2 ảnh | 0 phút
+[2/5] quickdraw/qd_5_complex_003 (n=5): 19 ảnh | 2 phút
+[3/5] coco/coco_000000242724 (n=4): 5 ảnh | 7 phút
+[4/5] coco/coco_000000359540 (n=3): 9 ảnh | 9 phút
+/usr/local/lib/python3.13/dist-packages/diffusers/utils/deprecation_utils.py:23: FutureWarning: `torch_dtype` is deprecated and will be removed in version 1.0.0. Please use `dtype` instead.
+  deprecate("torch_dtype", "1.0.0", _TORCH_DTYPE_DEPRECATION_MESSAGE)
+CLIPFeatureExtractor appears to have been deprecated in transformers. Using CLIPImageProcessor instead.
+An error occurred while trying to fetch /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/vae: Error no file named diffusion_pytorch_model.safetensors found in directory /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/vae.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+An error occurred while trying to fetch /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/unet: Error no file named diffusion_pytorch_model.safetensors found in directory /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/unet.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+The StableDiffusionGLIGENPipeline has been deprecated and will not receive bug fixes or feature updates after Diffusers version 0.33.1. 
+[5/5] coco/coco_000000380203 (n=1): 2 ảnh | 13 phút
+Tổng kết: {'done': 37, 'skipped': 0, 'failed': 0} - 14.0 phút
+E3_quickdraw_free           168/168 ảnh
+E3_quickdraw_trained          8/8 ảnh
+E3_coco_free                 56/56 ảnh
+E3_coco_trained               8/8 ảnh
+E4_ablation                  22/22 ảnh
+alpha                        12/12 ảnh
+Ước tính giờ GPU (theo thời gian đo trên GPU hiện tại, chưa gồm đánh giá ~10-15%): {'pilot': 0.8, 'paper': 3.5, 'full': 19.7}
+==================== STAGE B_generate OK (26.7 min) ====================
+
+==================== STAGE C_evaluate ====================
+quickdraw/abl_alpha0: 21 ảnh đã đánh giá (+3)
+quickdraw/abl_bg_only: 21 ảnh đã đánh giá (+3)
+quickdraw/abl_global_only: 21 ảnh đã đánh giá (+3)
+quickdraw/abl_k1: 21 ảnh đã đánh giá (+3)
+quickdraw/abl_no_attsep: 21 ảnh đã đánh giá (+3)
+quickdraw/abl_no_blend: 21 ảnh đã đánh giá (+3)
+quickdraw/abl_no_energy: 21 ảnh đã đánh giá (+3)
+quickdraw/abl_no_m5: 21 ảnh đã đánh giá (+3)
+quickdraw/abl_no_region: 21 ảnh đã đánh giá (+3)
+quickdraw/abl_no_scenecn: 21 ảnh đã đánh giá (+3)
+quickdraw/abl_no_verify: 21 ảnh đã đánh giá (+3)
+quickdraw/alpha_0.0: 13 ảnh đã đánh giá (+1)
+quickdraw/alpha_0.2: 13 ảnh đã đánh giá (+1)
+quickdraw/alpha_0.4: 15 ảnh đã đánh giá (+3)
+quickdraw/alpha_0.6: 15 ảnh đã đánh giá (+3)
+quickdraw/alpha_0.8: 15 ảnh đã đánh giá (+3)
+quickdraw/alpha_1.0: 15 ảnh đã đánh giá (+3)
+quickdraw/cn_energy: 118 ảnh đã đánh giá (+10)
+quickdraw/cn_region: 118 ảnh đã đánh giá (+10)
+quickdraw/controlnet: 118 ảnh đã đánh giá (+10)
+quickdraw/controlnet_bo3: 118 ảnh đã đánh giá (+10)
+quickdraw/gligen: 118 ảnh đã đánh giá (+10)
+quickdraw/ocsd: 78 ảnh đã đánh giá (+6)
+quickdraw/ocsd_lite: 118 ảnh đã đánh giá (+10)
+quickdraw/t2i_adapter: 118 ảnh đã đánh giá (+10)
+quickdraw/zhang2025: 78 ảnh đã đánh giá (+6)
+/content/KLTN_OCSD/ocsd/metrics.py:76: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  return pd.concat(all_rows, ignore_index=True) if all_rows else pd.DataFrame()
+{'method': 'abl_alpha0', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'abl_bg_only', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'abl_global_only', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'abl_k1', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'abl_no_attsep', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'abl_no_blend', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'abl_no_energy', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'abl_no_m5', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'abl_no_region', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'abl_no_scenecn', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'abl_no_verify', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'alpha_0.0', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 3}
+{'method': 'alpha_0.2', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 3}
+{'method': 'alpha_0.4', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 5}
+{'method': 'alpha_0.6', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 5}
+{'method': 'alpha_0.8', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 5}
+{'method': 'alpha_1.0', 'split': 'quickdraw', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 5}
+Downloading: "https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-inception-2015-12-05-6726825d.pth" to /root/.cache/torch/hub/checkpoints/weights-inception-2015-12-05-6726825d.pth
+  0%|          | 0.00/91.2M [00:00<?, ?B/s]  8%|▊         | 6.88M/91.2M [00:00<00:01, 70.8MB/s] 27%|██▋       | 24.2M/91.2M [00:00<00:00, 135MB/s]  45%|████▍     | 40.9M/91.2M [00:00<00:00, 147MB/s] 63%|██████▎   | 57.2M/91.2M [00:00<00:00, 156MB/s] 81%|████████▏ | 74.1M/91.2M [00:00<00:00, 164MB/s]100%|██████████| 91.2M/91.2M [00:00<00:00, 169MB/s]100%|██████████| 91.2M/91.2M [00:00<00:00, 156MB/s]
+/usr/local/lib/python3.13/dist-packages/torchmetrics/utilities/prints.py:43: UserWarning: Metric `Kernel Inception Distance` will save all extracted features in buffer. For large datasets this may lead to large memory footprint.
+  warnings.warn(*args, **kwargs)
+{'method': 'cn_energy', 'split': 'quickdraw', 'fid': 316.91058349609375, 'kid': 42.541179805994034, 'kid_std': 10.549486614763737, 'n_gen': 24}
+{'method': 'cn_region', 'split': 'quickdraw', 'fid': 307.1787109375, 'kid': 35.88058426976204, 'kid_std': 10.077130049467087, 'n_gen': 24}
+{'method': 'controlnet', 'split': 'quickdraw', 'fid': 318.44757080078125, 'kid': 29.12849187850952, 'kid_std': 10.698583908379078, 'n_gen': 24}
+{'method': 'controlnet_bo3', 'split': 'quickdraw', 'fid': 301.3902893066406, 'kid': 28.956012800335884, 'kid_std': 8.160430006682873, 'n_gen': 24}
+{'method': 'gligen', 'split': 'quickdraw', 'fid': 305.12237548828125, 'kid': 30.942929908633232, 'kid_std': 7.158135529607534, 'n_gen': 24}
+{'method': 'ocsd', 'split': 'quickdraw', 'fid': 384.755615234375, 'kid': 80.50728589296341, 'kid_std': 24.09241907298565, 'n_gen': 11}
+{'method': 'ocsd_lite', 'split': 'quickdraw', 'fid': 334.0316467285156, 'kid': 69.88644599914551, 'kid_std': 14.892492443323135, 'n_gen': 24}
+{'method': 't2i_adapter', 'split': 'quickdraw', 'fid': 326.4084777832031, 'kid': 47.73802310228348, 'kid_std': 7.683099713176489, 'n_gen': 24}
+{'method': 'zhang2025', 'split': 'quickdraw', 'fid': 339.50238037109375, 'kid': 33.100273460149765, 'kid_std': 10.88877022266388, 'n_gen': 11}
+coco/cn_energy: 35 ảnh đã đánh giá (+3)
+coco/cn_region: 35 ảnh đã đánh giá (+3)
+coco/controlnet: 35 ảnh đã đánh giá (+3)
+coco/controlnet_bo3: 35 ảnh đã đánh giá (+3)
+coco/gligen: 35 ảnh đã đánh giá (+3)
+coco/ocsd: 20 ảnh đã đánh giá (+4)
+coco/ocsd_lite: 35 ảnh đã đánh giá (+3)
+coco/t2i_adapter: 35 ảnh đã đánh giá (+3)
+coco/zhang2025: 20 ảnh đã đánh giá (+4)
+coco/real: 35 ảnh đã đánh giá (+3)
+/content/KLTN_OCSD/ocsd/metrics.py:76: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  return pd.concat(all_rows, ignore_index=True) if all_rows else pd.DataFrame()
+{'method': 'cn_energy', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 8}
+{'method': 'cn_region', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 8}
+{'method': 'controlnet', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 8}
+{'method': 'controlnet_bo3', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 8}
+{'method': 'gligen', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 8}
+{'method': 'ocsd', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+{'method': 'ocsd_lite', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 8}
+{'method': 't2i_adapter', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 8}
+{'method': 'zhang2025', 'split': 'coco', 'fid': nan, 'kid': nan, 'kid_std': nan, 'n_gen': 6}
+==================== STAGE C_evaluate OK (7.9 min) ====================
+
+==================== STAGE D_report ====================
+E3_quickdraw_free           168/168 ảnh
+E3_quickdraw_trained          8/8 ảnh
+E3_coco_free                 56/56 ảnh
+E3_coco_trained               8/8 ảnh
+E4_ablation                  22/22 ảnh
+alpha                        12/12 ảnh
+# Kết quả thực nghiệm OCSD (2026-10-01 04:42:37)
+
+Tier: pilot; backbone: sd15; seeds: [0]; bộ phát hiện đánh giá: owlv2
+
+Phần cứng: {"python": "3.13.15", "torch": "2.11.0+cu128", "gpu": "NVIDIA A100-SXM4-40GB", "vram_gb": 39.5, "diffusers": "0.40.0", "transformers": "5.17.0", "cpu": "Intel(R) Xeon(R) CPU @ 2.20GHz", "ram_gb": 83.5}
+
+## E1_coco
+
+**OPR (%) / OCE-lớp theo count_bin trên coco**
+
+| Phương pháp                                           | 1           | 2-3         | 4-5         | 6-8         |
+|:------------------------------------------------------|:------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 60.0 / 0.40 | 30.0 / 1.60 | 20.0 / 3.40 | 33.3 / 5.20 |
+| SD + T2I-Adapter                                      | 60.0 / 0.40 | 30.0 / 1.60 | 20.0 / 3.20 | 33.3 / 5.20 |
+| GLIGEN (hộp + văn bản)                                | 80.0 / 0.20 | 40.0 / 1.40 | 25.0 / 3.20 | 56.2 / 3.00 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 80.0 / 0.20 | 36.7 / 1.00 | 20.0 / 3.20 | 43.3 / 4.20 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 60.0 / 0.40 | 53.3 / 1.00 | 20.0 / 3.20 | 46.7 / 5.00 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 60.0 / 0.40 | 30.0 / 1.60 | 15.0 / 3.40 | 33.3 / 5.20 |
+| Zhang et al. (2025) - cài đặt lại                     | 80.0 / 0.80 | 40.0 / 1.80 | 20.0 / 3.60 | 50.0 / 3.60 |
+| OCSD-lite (không học định danh)                       | 60.0 / 0.40 | 50.0 / 1.20 | 30.0 / 2.80 | 56.2 / 3.40 |
+| OCSD (đề xuất)                                        | 80.0 / 0.20 | 50.0 / 1.20 | 25.0 / 3.20 | 56.2 / 3.00 |
+
+## E1_quickdraw
+
+**OPR (%) / OCE-lớp theo count_bin trên quickdraw**
+
+| Phương pháp                                           | 1            | 3           | 5           | 8+          |
+|:------------------------------------------------------|:-------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 95.8 / 0.21  | 63.6 / 1.82 | 73.0 / 2.20 | 40.1 / 5.33 |
+| SD + T2I-Adapter                                      | 91.7 / 0.54  | 57.6 / 2.18 | 64.0 / 2.25 | 41.1 / 6.22 |
+| GLIGEN (hộp + văn bản)                                | 100.0 / 0.04 | 72.7 / 1.36 | 74.0 / 1.75 | 47.8 / 6.44 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 95.8 / 0.29  | 62.1 / 2.45 | 72.0 / 2.20 | 39.4 / 6.28 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 91.7 / 0.25  | 74.2 / 1.95 | 75.0 / 1.95 | 44.4 / 7.78 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 95.8 / 0.17  | 68.2 / 2.18 | 76.0 / 1.50 | 45.8 / 5.67 |
+| Zhang et al. (2025) - cài đặt lại                     | 75.0 / 0.92  | 51.5 / 1.68 | 37.0 / 3.85 | 19.0 / 6.56 |
+| OCSD-lite (không học định danh)                       | 87.5 / 0.50  | 71.2 / 1.05 | 59.0 / 2.55 | 53.1 / 4.56 |
+| OCSD (đề xuất)                                        | 79.2 / 0.42  | 72.7 / 0.91 | 50.0 / 2.75 | 47.2 / 5.33 |
+
+## E2_coco
+
+**OPR (%) / OCE-lớp theo complexity trên coco**
+
+| Phương pháp                                           | real        |
+|:------------------------------------------------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 35.8 / 2.65 |
+| SD + T2I-Adapter                                      | 35.8 / 2.60 |
+| GLIGEN (hộp + văn bản)                                | 50.3 / 1.95 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 45.0 / 2.15 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 45.0 / 2.40 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 34.6 / 2.65 |
+| Zhang et al. (2025) - cài đặt lại                     | 47.5 / 2.45 |
+| OCSD-lite (không học định danh)                       | 49.0 / 1.95 |
+| OCSD (đề xuất)                                        | 52.8 / 1.90 |
+
+## E2_quickdraw
+
+**OPR (%) / OCE-lớp theo complexity trên quickdraw**
+
+| Phương pháp                                           | simple      | medium      | complex     |
+|:------------------------------------------------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 70.3 / 1.87 | 75.7 / 2.21 | 63.7 / 2.58 |
+| SD + T2I-Adapter                                      | 65.4 / 2.50 | 70.5 / 2.32 | 59.6 / 3.00 |
+| GLIGEN (hộp + văn bản)                                | 73.8 / 1.97 | 79.8 / 2.21 | 72.8 / 2.35 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 72.9 / 2.50 | 74.8 / 2.07 | 59.0 / 3.27 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 77.0 / 2.90 | 74.2 / 2.32 | 67.1 / 2.92 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 76.6 / 2.10 | 73.5 / 2.11 | 68.8 / 2.38 |
+| Zhang et al. (2025) - cài đặt lại                     | 55.0 / 2.63 | 44.6 / 2.71 | 42.9 / 3.81 |
+| OCSD-lite (không học định danh)                       | 72.6 / 1.50 | 71.5 / 2.00 | 62.4 / 2.58 |
+| OCSD (đề xuất)                                        | 66.3 / 1.70 | 68.9 / 2.11 | 55.1 / 2.73 |
+
+## E3_coco
+
+**So sánh định lượng trên coco (20 cảnh, trung bình ± nửa KTC 95%)**
+
+| Phương pháp                                           | OPR (%) ↑       | OCE-lớp ↓       | Đếm đúng (%) ↑   | mIoU ↑            | RA (%) ↑        | CLIP ↑           | CLIP-đt ↑        | ID-Sim ↑          | FID ↓   | KID×10³ ↓   |
+|:------------------------------------------------------|:----------------|:----------------|:-----------------|:------------------|:----------------|:-----------------|:-----------------|:------------------|:--------|:------------|
+| SD + ControlNet (mô hình nền)                         | 35.8 ± 16.5     | 2.65 ± 0.83     | 15.0 ± 15.0      | 0.309 ± 0.149     | 8.9 ± 11.8      | 25.54 ± 1.42     | 20.41 ± 1.62     | –                 | –       | –           |
+| SD + T2I-Adapter                                      | 35.8 ± 16.9     | 2.60 ± 1.05     | 20.0 ± 17.5      | 0.292 ± 0.138     | 10.3 ± 13.3     | 25.54 ± 1.18     | 21.14 ± 1.93     | –                 
+==================== STAGE D_report OK (1.7 min) ====================
+
+Stage status:
+  A_data                   ok              0.0 min  benchmarks for tier 'pilot' already built (/content/drive/MyDrive/KLTN_OCSD/data/benchmarks/.done_pilot.json)
+  B_generate               ok             26.7 min  
+  C_evaluate               ok              7.9 min  
+  D_report                 ok              1.7 min  
+  T_tune                   ok              0.0 min  tier 'pilot' does not tune
+
+Most recent error:
+stage: B_generate
+context: 
+time: 20260928_195254
+log: /content/drive/MyDrive/KLTN_OCSD/results/logs/run_20260928_195017.log
+
+Traceback (most recent call last):
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 108, in run_items
+    self._run_scene(scene, todo, split, stats)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 174, in _run_scene
+    id_tokens = learn_identity(eng, scene, objs, c3, seed=0, log=prep_log)
+  File "/content/KLTN_OCSD/ocsd/method.py", line 202, in learn_identity
+    eng.add_lora(cfg.lora_rank)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/engine.py", line 185, in add_lora
+    self.unet.add_adapter(cfg, adapter_name="ocsd")
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/diffusers/loaders/peft.py", line 517, in add_adapter
+    elif adapter_name in self.peft_config:
+                         ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/diffusers/models/modeling_utils.py", line 286, in __getattr__
+    return super().__getattr__(name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/torch/nn/modules/module.py", line 1968, in __getattr__
+    raise AttributeError(
+        f"'{type(self).__name__}' object has no attribute '{name}'"
+    )
+AttributeError: 'UNet2DConditionModel' object has no attribute 'peft_config'. Did you mean: 'from_config'?
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/content/KLTN_OCSD/ocsd/runlog.py", line 132, in stage
+    yield
+  File "/tmp/ipykernel_3720/256484334.py", line 5, in <cell line: 0>
+    eng, vis = stages.generate(P, E, max_minutes=MAX_MINUTES)
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/stages.py", line 168, in generate
+    runner.run_items(todo, max_minutes=max_minutes)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 115, in run_items
+    raise RuntimeError("The first 3 scenes all failed; stopping so the error can be fixed "
+                       "(see results/logs/LATEST_ERROR.txt)") from e
+RuntimeError: The first 3 scenes all failed; stopping so the error can be fixed (see results/logs/LATEST_ERROR.txt)
+
+
+env: {"time": "2026-09-28 19:52:54", "python": "3.13.15", "torch": "2.11.0+cu128", "torchvision": "0.26.0+cu128", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA A100-SXM4-80GB", "vram_gb": 79.3}
+
