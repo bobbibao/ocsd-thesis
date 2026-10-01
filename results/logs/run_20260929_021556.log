@@ -1,0 +1,482 @@
+[log] writing to /content/drive/MyDrive/KLTN_OCSD/results/logs/run_20260929_021556.log
+[env] {"time": "2026-09-29 02:15:56", "python": "3.13.15", "torch": "2.11.0+cu128", "torchvision": "0.26.0+cu128", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA A100-SXM4-40GB", "vram_gb": 39.5, "git": "cbe5cdc Tune alpha and LoRA strength on the pilot scenes before the paper tier"}
+ExperimentConfig(backbone='sd15', seeds=[0, 1], tier='paper', eval_detector='owlv2', det_thr=0.3, match_iou=0.1, rel_delta=0.05, fp16=True)
+
+==================== STAGE A_data ====================
+[tune] pilot results moved to /content/drive/MyDrive/KLTN_OCSD/results/pilot
+[tune] froze tuning split: 36 QuickDraw + 16 COCO scenes
+QuickDraw-Scenes: 108 cảnh tại /content/drive/MyDrive/KLTN_OCSD/data/benchmarks/quickdraw
+$ wget -q -c http://images.cocodataset.org/annotations/annotations_trainval2017.zip -O /content/coco/ann.zip && unzip -q -o /content/coco/ann.zip -d /content/coco
+$ wget -q -c http://images.cocodataset.org/zips/val2017.zip -O /content/coco/val.zip && unzip -q -o /content/coco/val.zip -d /content/coco
+loading annotations into memory...
+Done (t=0.50s)
+creating index...
+index created!
+loading annotations into memory...
+Done (t=0.04s)
+creating index...
+index created!
+/usr/local/lib/python3.13/dist-packages/controlnet_aux/mediapipe_face/mediapipe_face_common.py:7: UserWarning: The module 'mediapipe' is not installed. The package will have limited functionality. Please install it using the command: pip install 'mediapipe'
+  warnings.warn(
+/usr/local/lib/python3.13/dist-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+/usr/local/lib/python3.13/dist-packages/timm/models/registry.py:4: FutureWarning: Importing from timm.models.registry is deprecated, please import via timm.models
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.models", FutureWarning)
+/usr/local/lib/python3.13/dist-packages/controlnet_aux/segment_anything/modeling/tiny_vit_sam.py:654: UserWarning: Overwriting tiny_vit_5m_224 in registry with controlnet_aux.segment_anything.modeling.tiny_vit_sam.tiny_vit_5m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/usr/local/lib/python3.13/dist-packages/controlnet_aux/segment_anything/modeling/tiny_vit_sam.py:654: UserWarning: Overwriting tiny_vit_11m_224 in registry with controlnet_aux.segment_anything.modeling.tiny_vit_sam.tiny_vit_11m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/usr/local/lib/python3.13/dist-packages/controlnet_aux/segment_anything/modeling/tiny_vit_sam.py:654: UserWarning: Overwriting tiny_vit_21m_224 in registry with controlnet_aux.segment_anything.modeling.tiny_vit_sam.tiny_vit_21m_224. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/usr/local/lib/python3.13/dist-packages/controlnet_aux/segment_anything/modeling/tiny_vit_sam.py:654: UserWarning: Overwriting tiny_vit_21m_384 in registry with controlnet_aux.segment_anything.modeling.tiny_vit_sam.tiny_vit_21m_384. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/usr/local/lib/python3.13/dist-packages/controlnet_aux/segment_anything/modeling/tiny_vit_sam.py:654: UserWarning: Overwriting tiny_vit_21m_512 in registry with controlnet_aux.segment_anything.modeling.tiny_vit_sam.tiny_vit_21m_512. This is because the name being registered conflicts with an existing name. Please check if this is not expected.
+  return register_model(fn_wrapper)
+/usr/local/lib/python3.13/dist-packages/huggingface_hub/utils/_auth.py:138: UserWarning: 
+Error while fetching `HF_TOKEN` secret value from your vault: 'Requesting secret HF_TOKEN timed out. Secrets can only be fetched when running from the Colab UI.'.
+  warnings.warn(f"\nError while fetching `HF_TOKEN` secret value from your vault: '{str(e)}'.")
+COCO-Sketch: 48 cảnh tại /content/drive/MyDrive/KLTN_OCSD/data/benchmarks/coco
+{
+ "coco|1|real": 12,
+ "coco|2-3|real": 12,
+ "coco|4-5|real": 12,
+ "coco|6-8|real": 12,
+ "quickdraw|1|complex": 9,
+ "quickdraw|1|medium": 9,
+ "quickdraw|1|simple": 9,
+ "quickdraw|3|complex": 9,
+ "quickdraw|3|medium": 9,
+ "quickdraw|3|simple": 9,
+ "quickdraw|5|complex": 9,
+ "quickdraw|5|medium": 9,
+ "quickdraw|5|simple": 9,
+ "quickdraw|8+|complex": 9,
+ "quickdraw|8+|medium": 9,
+ "quickdraw|8+|simple": 9
+}
+==================== STAGE A_data OK (2.3 min) ====================
+
+==================== STAGE T_tune ====================
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+/usr/local/lib/python3.13/dist-packages/huggingface_hub/utils/_validators.py:206: UserWarning: The `local_dir_use_symlinks` argument is deprecated and ignored in `hf_hub_download`. Downloading to a local directory does not use symlinks anymore.
+  warnings.warn(
+An error occurred while trying to fetch TencentARC/t2iadapter_sketch_sd15v2: TencentARC/t2iadapter_sketch_sd15v2 does not appear to have a file named diffusion_pytorch_model.safetensors.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+[transformers] The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+[tune] 10 settings, 16 scenes, seeds [0, 1]: 320 images to generate
+[1/16] quickdraw/qd_1_complex_001 (n=1): 20 ảnh | 0 phút
+[2/16] quickdraw/qd_1_medium_002 (n=1): 20 ảnh | 2 phút
+[3/16] quickdraw/qd_1_simple_000 (n=1): 20 ảnh | 4 phút
+[4/16] quickdraw/qd_3_complex_000 (n=3): 20 ảnh | 6 phút
+[5/16] quickdraw/qd_3_medium_001 (n=3): 20 ảnh | 9 phút
+[6/16] quickdraw/qd_3_simple_002 (n=3): 20 ảnh | 12 phút
+[7/16] quickdraw/qd_5_complex_000 (n=5): 20 ảnh | 14 phút
+[8/16] quickdraw/qd_5_medium_001 (n=5): 20 ảnh | 18 phút
+[9/16] quickdraw/qd_5_simple_000 (n=5): 20 ảnh | 22 phút
+[10/16] quickdraw/qd_8p_complex_002 (n=10): 20 ảnh | 26 phút
+[11/16] quickdraw/qd_8p_medium_001 (n=10): 20 ảnh | 31 phút
+[12/16] quickdraw/qd_8p_simple_002 (n=10): 20 ảnh | 35 phút
+[13/16] coco/coco_000000190756 (n=2): 20 ảnh | 39 phút
+[14/16] coco/coco_000000315492 (n=4): 20 ảnh | 43 phút
+[15/16] coco/coco_000000386210 (n=6): 20 ảnh | 47 phút
+[16/16] coco/coco_000000478721 (n=1): 20 ảnh | 51 phút
+Tổng kết: {'done': 320, 'skipped': 0, 'failed': 0} - 52.9 phút
+quickdraw/tune_a0.0_l0.5: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_a0.0_l1.0: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_a0.1_l0.5: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_a0.1_l1.0: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_a0.2_l0.5: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_a0.2_l1.0: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_a0.3_l0.5: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_a0.3_l1.0: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_a0.5_l0.5: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_a0.5_l1.0: 24 ảnh đã đánh giá (+24)
+coco/tune_a0.0_l0.5: 8 ảnh đã đánh giá (+8)
+coco/tune_a0.0_l1.0: 8 ảnh đã đánh giá (+8)
+coco/tune_a0.1_l0.5: 8 ảnh đã đánh giá (+8)
+coco/tune_a0.1_l1.0: 8 ảnh đã đánh giá (+8)
+coco/tune_a0.2_l0.5: 8 ảnh đã đánh giá (+8)
+coco/tune_a0.2_l1.0: 8 ảnh đã đánh giá (+8)
+coco/tune_a0.3_l0.5: 8 ảnh đã đánh giá (+8)
+coco/tune_a0.3_l1.0: 8 ảnh đã đánh giá (+8)
+coco/tune_a0.5_l0.5: 8 ảnh đã đánh giá (+8)
+coco/tune_a0.5_l1.0: 8 ảnh đã đánh giá (+8)
+[tune] results (scene means):
+                  opr   miou     ra  oce_c    clip  id_sim  score
+method                                                           
+tune_a0.1_l0.5  0.664  0.484  0.414  1.844  26.362   0.358  1.562
+tune_a0.0_l0.5  0.588  0.436  0.488  1.594  25.874   0.418  1.512
+tune_a0.1_l1.0  0.632  0.462  0.417  1.938  26.038   0.375  1.511
+tune_a0.0_l1.0  0.581  0.431  0.486  1.688  25.862   0.418  1.498
+tune_a0.2_l0.5  0.630  0.459  0.365  1.969  25.989   0.340  1.454
+tune_a0.5_l0.5  0.648  0.417  0.342  2.031  26.220   0.339  1.407
+tune_a0.2_l1.0  0.568  0.402  0.366  1.969  25.030   0.342  1.335
+tune_a0.5_l1.0  0.570  0.371  0.354  1.938  26.372   0.362  1.294
+tune_a0.3_l1.0  0.547  0.391  0.341  2.312  25.611   0.339  1.279
+tune_a0.3_l0.5  0.562  0.410  0.267  2.375  25.961   0.344  1.239
+[tune] chosen: {'alpha': 0.1, 'lora_scale': 0.5}
+==================== STAGE T_tune OK (55.5 min) ====================
+E3_quickdraw_free        72 scenes x  7 methods x 1 seeds -> 504 images left
+E3_quickdraw_free_seeds   36 scenes x  7 methods x 1 seeds -> 252 images left
+E3_quickdraw_trained     36 scenes x  2 methods x 2 seeds -> 144 images left
+E3_coco_free             32 scenes x  7 methods x 1 seeds -> 224 images left
+E3_coco_trained          16 scenes x  2 methods x 1 seeds -> 32 images left
+E4_ablation              18 scenes x 11 methods x 1 seeds -> 198 images left
+alpha                    12 scenes x  6 methods x 1 seeds -> 72 images left
+
+==================== STAGE B_generate ====================
+Còn 1426 ảnh trên 104 cảnh
+[1/104] quickdraw/qd_1_complex_005 (n=1): 18 ảnh | 0 phút
+/usr/local/lib/python3.13/dist-packages/diffusers/utils/deprecation_utils.py:23: FutureWarning: `torch_dtype` is deprecated and will be removed in version 1.0.0. Please use `dtype` instead.
+  deprecate("torch_dtype", "1.0.0", _TORCH_DTYPE_DEPRECATION_MESSAGE)
+An error occurred while trying to fetch /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/unet: Error no file named diffusion_pytorch_model.safetensors found in directory /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/unet.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+An error occurred while trying to fetch /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/vae: Error no file named diffusion_pytorch_model.safetensors found in directory /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/vae.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+CLIPFeatureExtractor appears to have been deprecated in transformers. Using CLIPImageProcessor instead.
+The StableDiffusionGLIGENPipeline has been deprecated and will not receive bug fixes or feature updates after Diffusers version 0.33.1. 
+[2/104] quickdraw/qd_1_complex_006 (n=1): 18 ảnh | 2 phút
+[3/104] quickdraw/qd_1_complex_008 (n=1): 18 ảnh | 4 phút
+[4/104] quickdraw/qd_1_medium_003 (n=1): 18 ảnh | 6 phút
+[5/104] quickdraw/qd_1_medium_004 (n=1): 18 ảnh | 8 phút
+[6/104] quickdraw/qd_1_medium_005 (n=1): 18 ảnh | 10 phút
+[7/104] quickdraw/qd_1_simple_005 (n=1): 18 ảnh | 12 phút
+[8/104] quickdraw/qd_1_simple_007 (n=1): 18 ảnh | 14 phút
+[9/104] quickdraw/qd_1_simple_008 (n=1): 18 ảnh | 16 phút
+[10/104] quickdraw/qd_3_complex_004 (n=3): 35 ảnh | 18 phút
+[11/104] quickdraw/qd_3_complex_005 (n=3): 35 ảnh | 23 phút
+[12/104] quickdraw/qd_3_complex_008 (n=3): 35 ảnh | 28 phút
+[13/104] quickdraw/qd_3_medium_006 (n=3): 35 ảnh | 34 phút
+[14/104] quickdraw/qd_3_medium_007 (n=3): 35 ảnh | 39 phút
+[15/104] quickdraw/qd_3_medium_008 (n=3): 35 ảnh | 44 phút
+[16/104] quickdraw/qd_3_simple_004 (n=3): 35 ảnh | 49 phút
+[17/104] quickdraw/qd_3_simple_005 (n=3): 35 ảnh | 54 phút
+[18/104] quickdraw/qd_3_simple_006 (n=3): 35 ảnh | 59 phút
+[19/104] quickdraw/qd_5_complex_005 (n=5): 35 ảnh | 64 phút
+[20/104] quickdraw/qd_5_complex_007 (n=5): 35 ảnh | 70 phút
+[21/104] quickdraw/qd_5_complex_008 (n=5): 35 ảnh | 76 phút
+[22/104] quickdraw/qd_5_medium_003 (n=5): 29 ảnh | 82 phút
+[23/104] quickdraw/qd_5_medium_006 (n=5): 29 ảnh | 87 phút
+[24/104] quickdraw/qd_5_medium_008 (n=5): 29 ảnh | 92 phút
+[25/104] quickdraw/qd_5_simple_004 (n=5): 29 ảnh | 97 phút
+[26/104] quickdraw/qd_5_simple_007 (n=5): 29 ảnh | 103 phút
+[27/104] quickdraw/qd_5_simple_008 (n=5): 29 ảnh | 108 phút
+[28/104] quickdraw/qd_8p_complex_006 (n=8): 18 ảnh | 113 phút
+[29/104] quickdraw/qd_8p_complex_007 (n=10): 18 ảnh | 116 phút
+[30/104] quickdraw/qd_8p_complex_008 (n=9): 18 ảnh | 119 phút
+[31/104] quickdraw/qd_8p_medium_003 (n=9): 18 ảnh | 122 phút
+[32/104] quickdraw/qd_8p_medium_004 (n=9): 18 ảnh | 126 phút
+[33/104] quickdraw/qd_8p_medium_005 (n=8): 18 ảnh | 129 phút
+[34/104] quickdraw/qd_8p_simple_003 (n=9): 18 ảnh | 132 phút
+[35/104] quickdraw/qd_8p_simple_004 (n=8): 18 ảnh | 135 phút
+[36/104] quickdraw/qd_8p_simple_007 (n=9): 18 ảnh | 138 phút
+[37/104] quickdraw/qd_1_complex_003 (n=1): 7 ảnh | 141 phút
+[38/104] quickdraw/qd_1_complex_004 (n=1): 7 ảnh | 142 phút
+[39/104] quickdraw/qd_1_complex_007 (n=1): 7 ảnh | 142 phút
+[40/104] quickdraw/qd_1_medium_006 (n=1): 7 ảnh | 142 phút
+[41/104] quickdraw/qd_1_medium_007 (n=1): 7 ảnh | 142 phút
+[42/104] quickdraw/qd_1_medium_008 (n=1): 7 ảnh | 143 phút
+[43/104] quickdraw/qd_1_simple_003 (n=1): 7 ảnh | 143 phút
+[44/104] quickdraw/qd_1_simple_004 (n=1): 7 ảnh | 143 phút
+[45/104] quickdraw/qd_1_simple_006 (n=1): 7 ảnh | 144 phút
+[46/104] quickdraw/qd_3_complex_003 (n=3): 7 ảnh | 144 phút
+[47/104] quickdraw/qd_3_complex_006 (n=3): 7 ảnh | 145 phút
+[48/104] quickdraw/qd_3_complex_007 (n=3): 7 ảnh | 145 phút
+[49/104] quickdraw/qd_3_medium_003 (n=3): 7 ảnh | 146 phút
+[50/104] quickdraw/qd_3_medium_004 (n=3): 7 ảnh | 146 phút
+[51/104] quickdraw/qd_3_medium_005 (n=3): 7 ảnh | 147 phút
+[52/104] quickdraw/qd_3_simple_003 (n=3): 7 ảnh | 147 phút
+[53/104] quickdraw/qd_3_simple_007 (n=3): 7 ảnh | 148 phút
+[54/104] quickdraw/qd_3_simple_008 (n=3): 7 ảnh | 149 phút
+[55/104] quickdraw/qd_5_complex_003 (n=5): 7 ảnh | 149 phút
+[56/104] quickdraw/qd_5_complex_004 (n=5): 7 ảnh | 150 phút
+[57/104] quickdraw/qd_5_complex_006 (n=5): 7 ảnh | 150 phút
+[58/104] quickdraw/qd_5_medium_004 (n=5): 7 ảnh | 151 phút
+[59/104] quickdraw/qd_5_medium_005 (n=5): 7 ảnh | 152 phút
+[60/104] quickdraw/qd_5_medium_007 (n=5): 7 ảnh | 152 phút
+[61/104] quickdraw/qd_5_simple_003 (n=5): 7 ảnh | 153 phút
+[62/104] quickdraw/qd_5_simple_005 (n=5): 7 ảnh | 153 phút
+[63/104] quickdraw/qd_5_simple_006 (n=5): 7 ảnh | 154 phút
+[64/104] quickdraw/qd_8p_complex_003 (n=9): 7 ảnh | 155 phút
+[65/104] quickdraw/qd_8p_complex_004 (n=10): 7 ảnh | 156 phút
+[66/104] quickdraw/qd_8p_complex_005 (n=10): 7 ảnh | 157 phút
+[67/104] quickdraw/qd_8p_medium_006 (n=8): 7 ảnh | 158 phút
+[68/104] quickdraw/qd_8p_medium_007 (n=10): 7 ảnh | 158 phút
+[69/104] quickdraw/qd_8p_medium_008 (n=9): 7 ảnh | 159 phút
+[70/104] quickdraw/qd_8p_simple_005 (n=9): 7 ảnh | 160 phút
+[71/104] quickdraw/qd_8p_simple_006 (n=10): 7 ảnh | 161 phút
+[72/104] quickdraw/qd_8p_simple_008 (n=8): 7 ảnh | 162 phút
+[73/104] coco/coco_000000008629 (n=6): 9 ảnh | 163 phút
+[74/104] coco/coco_000000115898 (n=2): 9 ảnh | 165 phút
+[75/104] coco/coco_000000162092 (n=7): 9 ảnh | 167 phút
+[76/104] coco/coco_000000172856 (n=1): 9 ảnh | 170 phút
+[77/104] coco/coco_000000175387 (n=1): 9 ảnh | 171 phút
+[78/104] coco/coco_000000210789 (n=4): 9 ảnh | 173 phút
+[79/104] coco/coco_000000237118 (n=2): 9 ảnh | 175 phút
+[80/104] coco/coco_000000239717 (n=4): 9 ảnh | 177 phút
+[81/104] coco/coco_000000297084 (n=6): 9 ảnh | 179 phút
+[82/104] coco/coco_000000367818 (n=2): 9 ảnh | 182 phút
+[83/104] coco/coco_000000407646 (n=1): 9 ảnh | 184 phút
+[84/104] coco/coco_000000408830 (n=2): 9 ảnh | 185 phút
+[85/104] coco/coco_000000414638 (n=6): 9 ảnh | 187 phút
+[86/104] coco/coco_000000479248 (n=4): 9 ảnh | 190 phút
+[87/104] coco/coco_000000549738 (n=1): 9 ảnh | 192 phút
+[88/104] coco/coco_000000574823 (n=4): 9 ảnh | 193 phút
+[89/104] coco/coco_000000006012 (n=2): 7 ảnh | 196 phút
+[90/104] coco/coco_000000016502 (n=1): 7 ảnh | 196 phút
+[91/104] coco/coco_000000054592 (n=4): 7 ảnh | 196 phút
+[92/104] coco/coco_000000078170 (n=5): 7 ảnh | 197 phút
+[93/104] coco/coco_000000158660 (n=7): 7 ảnh | 198 phút
+[94/104] coco/coco_000000166426 (n=5): 7 ảnh | 198 phút
+[95/104] coco/coco_000000190753 (n=3): 7 ảnh | 199 phút
+[96/104] coco/coco_000000245576 (n=4): 7 ảnh | 199 phút
+[97/104] coco/coco_000000293858 (n=7): 7 ảnh | 200 phút
+[98/104] coco/coco_000000345385 (n=3): 7 ảnh | 201 phút
+[99/104] coco/coco_000000380203 (n=1): 7 ảnh | 201 phút
+[100/104] coco/coco_000000389381 (n=6): 7 ảnh | 202 phút
+[101/104] coco/coco_000000400044 (n=1): 7 ảnh | 203 phút
+[102/104] coco/coco_000000498032 (n=1): 7 ảnh | 203 phút
+[103/104] coco/coco_000000527784 (n=7): 7 ảnh | 203 phút
+[104/104] coco/coco_000000551794 (n=2): 7 ảnh | 204 phút
+Tổng kết: {'done': 1426, 'skipped': 0, 'failed': 0} - 204.3 phút
+E3_quickdraw_free           504/504 ảnh
+E3_quickdraw_free_seeds     252/252 ảnh
+E3_quickdraw_trained        144/144 ảnh
+E3_coco_free                224/224 ảnh
+E3_coco_trained              32/32 ảnh
+E4_ablation                 198/198 ảnh
+alpha                        72/72 ảnh
+Ước tính giờ GPU (theo thời gian đo trên GPU hiện tại, chưa gồm đánh giá ~10-15%): {'pilot': 0.8, 'paper': 3.5, 'full': 19.9}
+==================== STAGE B_generate OK (207.8 min) ====================
+
+==================== STAGE C_evaluate ====================
+quickdraw/abl_alpha0: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_bg_only: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_global_only: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_k1: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_attsep: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_blend: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_energy: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_m5: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_region: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_scenecn: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_verify: 18 ảnh đã đánh giá (+18)
+quickdraw/alpha_0.0: 12 ảnh đã đánh giá (+12)
+quickdraw/alpha_0.2: 12 ảnh đã đánh giá (+12)
+quickdraw/alpha_0.4: 12 ảnh đã đánh giá (+12)
+quickdraw/alpha_0.6: 12 ảnh đã đánh giá (+12)
+quickdraw/alpha_0.8: 12 ảnh đã đánh giá (+12)
+quickdraw/alpha_1.0: 12 ảnh đã đánh giá (+12)
+quickdraw/cn_energy: 108 ảnh đã đánh giá (+108)
+quickdraw/cn_region: 108 ảnh đã đánh giá (+108)
+quickdraw/controlnet: 108 ảnh đã đánh giá (+108)
+quickdraw/controlnet_bo3: 108 ảnh đã đánh giá (+108)
+quickdraw/gligen: 108 ảnh đã đánh giá (+108)
+quickdraw/ocsd: 72 ảnh đã đánh giá (+72)
+quickdraw/ocsd_lite: 108 ảnh đã đánh giá (+108)
+quickdraw/t2i_adapter: 108 ảnh đã đánh giá (+108)
+quickdraw/zhang2025: 72 ảnh đã đánh giá (+72)
+/content/KLTN_OCSD/ocsd/metrics.py:76: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  return pd.concat(all_rows, ignore_index=True) if all_rows else pd.DataFrame()
+Downloading: "https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-inception-2015-12-05-6726825d.pth" to /root/.cache/torch/hub/checkpoints/weights-inception-2015-12-05-6726825d.pth
+  0%|          | 0.00/91.2M [00:00<?, ?B/s] 11%|█         | 10.1M/91.2M [00:00<00:01, 84.3MB/s] 22%|██▏       | 20.1M/91.2M [00:00<00:01, 65.5MB/s] 41%|████      | 37.1M/91.2M [00:00<00:00, 104MB/s]  55%|█████▍    | 50.1M/91.2M [00:00<00:00, 107MB/s] 72%|███████▏  | 65.9M/91.2M [00:00<00:00, 125MB/s] 88%|████████▊ | 80.1M/91.2M [00:00<00:00, 121MB/s]100%|██████████| 91.2M/91.2M [00:00<00:00, 113MB/s]
+/usr/local/lib/python3.13/dist-packages/torchmetrics/utilities/prints.py:43: UserWarning: Metric `Kernel Inception Distance` will save all extracted features in buffer. For large datasets this may lead to large memory footprint.
+  warnings.warn(*args, **kwargs)
+Downloading: "https://download.pytorch.org/models/alexnet-owt-7be5be79.pth" to /root/.cache/torch/hub/checkpoints/alexnet-owt-7be5be79.pth
+  0%|          | 0.00/233M [00:00<?, ?B/s]  4%|▍         | 9.88M/233M [00:00<00:02, 103MB/s] 12%|█▏        | 28.1M/233M [00:00<00:01, 155MB/s] 20%|█▉        | 45.9M/233M [00:00<00:01, 169MB/s] 27%|██▋       | 63.5M/233M [00:00<00:01, 175MB/s] 35%|███▍      | 81.1M/233M [00:00<00:00, 178MB/s] 42%|████▏     | 98.9M/233M [00:00<00:00, 181MB/s] 50%|█████     | 117M/233M [00:00<00:00, 182MB/s]  58%|█████▊    | 134M/233M [00:00<00:00, 183MB/s] 65%|██████▌   | 152M/233M [00:00<00:00, 183MB/s] 73%|███████▎  | 170M/233M [00:01<00:00, 183MB/s] 80%|████████  | 187M/233M [00:01<00:00, 182MB/s] 88%|████████▊ | 205M/233M [00:01<00:00, 183MB/s] 95%|█████████▌| 222M/233M [00:01<00:00, 183MB/s]100%|██████████| 233M/233M [00:01<00:00, 179MB/s]
+{'method': 'abl_alpha0', 'split': 'quickdraw', 'fid': 387.3730163574219, 'kid': 101.1790856719017, 'kid_std': 21.688617765903473, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'abl_bg_only', 'split': 'quickdraw', 'fid': 383.99127197265625, 'kid': 89.52434360980988, 'kid_std': 18.969448283314705, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'abl_global_only', 'split': 'quickdraw', 'fid': 317.3410949707031, 'kid': 34.84364598989487, 'kid_std': 9.043054655194283, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'abl_k1', 'split': 'quickdraw', 'fid': 365.9354553222656, 'kid': 87.32087910175323, 'kid_std': 19.886592403054237, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'abl_no_attsep', 'split': 'quickdraw', 'fid': 390.78302001953125, 'kid': 105.59222102165222, 'kid_std': 21.716466173529625, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'abl_no_blend', 'split': 'quickdraw', 'fid': 316.436767578125, 'kid': 21.06526307761669, 'kid_std': 7.9726530238986015, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'abl_no_energy', 'split': 'quickdraw', 'fid': 387.7601013183594, 'kid': 97.48779237270355, 'kid_std': 18.453039228916168, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'abl_no_m5', 'split': 'quickdraw', 'fid': 389.2383117675781, 'kid': 107.86395519971848, 'kid_std': 20.78745886683464, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'abl_no_region', 'split': 'quickdraw', 'fid': 389.80615234375, 'kid': 113.3008822798729, 'kid_std': 20.830340683460236, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'abl_no_scenecn', 'split': 'quickdraw', 'fid': 390.6611022949219, 'kid': 122.61231988668442, 'kid_std': 23.1616348028183, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'abl_no_verify', 'split': 'quickdraw', 'fid': 385.62255859375, 'kid': 120.22289633750916, 'kid_std': 21.8221265822649, 'n_gen': 18, 'lpips_div': nan}
+{'method': 'alpha_0.0', 'split': 'quickdraw', 'fid': 406.7824401855469, 'kid': 89.03850615024567, 'kid_std': 23.53481948375702, 'n_gen': 12, 'lpips_div': nan}
+{'method': 'alpha_0.2', 'split': 'quickdraw', 'fid': 388.5130310058594, 'kid': 93.92572194337845, 'kid_std': 26.359345763921738, 'n_gen': 12, 'lpips_div': nan}
+{'method': 'alpha_0.4', 'split': 'quickdraw', 'fid': 370.0028076171875, 'kid': 61.62990257143974, 'kid_std': 18.986785784363747, 'n_gen': 12, 'lpips_div': nan}
+{'method': 'alpha_0.6', 'split': 'quickdraw', 'fid': 363.7192077636719, 'kid': 63.77684324979782, 'kid_std': 17.523085698485374, 'n_gen': 12, 'lpips_div': nan}
+{'method': 'alpha_0.8', 'split': 'quickdraw', 'fid': 328.3113708496094, 'kid': 27.972586452960968, 'kid_std': 9.280474856495857, 'n_gen': 12, 'lpips_div': nan}
+{'method': 'alpha_1.0', 'split': 'quickdraw', 'fid': 329.79852294921875, 'kid': 14.553348533809185, 'kid_std': 6.1538368463516235, 'n_gen': 12, 'lpips_div': nan}
+{'method': 'cn_energy', 'split': 'quickdraw', 'fid': 226.2877655029297, 'kid': 31.96539729833603, 'kid_std': 3.9362842217087746, 'n_gen': 108, 'lpips_div': 0.6579377940959401}
+{'method': 'cn_region', 'split': 'quickdraw', 'fid': 224.6845245361328, 'kid': 28.52187305688858, 'kid_std': 3.748709801584482, 'n_gen': 108, 'lpips_div': 0.6497694452603658}
+{'method': 'controlnet', 'split': 'quickdraw', 'fid': 224.9679412841797, 'kid': 26.71089582145214, 'kid_std': 3.7565783131867647, 'n_gen': 108, 'lpips_div': 0.6537618736426035}
+{'method': 'controlnet_bo3', 'split': 'quickdraw', 'fid': 225.34298706054688, 'kid': 27.976304292678833, 'kid_std': 4.67720115557313, 'n_gen': 108, 'lpips_div': 0.7007435245646371}
+{'method': 'gligen', 'split': 'quickdraw', 'fid': 219.43096923828125, 'kid': 25.060486048460007, 'kid_std': 2.437866060063243, 'n_gen': 108, 'lpips_div': 0.6042782945765389}
+{'method': 'ocsd', 'split': 'quickdraw', 'fid': 278.9048156738281, 'kid': 75.74552297592163, 'kid_std': 8.503032848238945, 'n_gen': 72, 'lpips_div': 0.6985394871897168}
+{'method': 'ocsd_lite', 'split': 'quickdraw', 'fid': 248.89649963378906, 'kid': 69.16170567274094, 'kid_std': 7.5559900142252445, 'n_gen': 108, 'lpips_div': 0.6927206938465437}
+{'method': 't2i_adapter', 'split': 'quickdraw', 'fid': 236.79537963867188, 'kid': 43.08127239346504, 'kid_std': 3.642822615802288, 'n_gen': 108, 'lpips_div': 0.56748863019877}
+{'method': 'zhang2025', 'split': 'quickdraw', 'fid': 248.01345825195312, 'kid': 31.615395098924637, 'kid_std': 3.682767739519477, 'n_gen': 72, 'lpips_div': 0.7399355818827947}
+coco/cn_energy: 32 ảnh đã đánh giá (+32)
+coco/cn_region: 32 ảnh đã đánh giá (+32)
+coco/controlnet: 32 ảnh đã đánh giá (+32)
+coco/controlnet_bo3: 32 ảnh đã đánh giá (+32)
+coco/gligen: 32 ảnh đã đánh giá (+32)
+coco/ocsd: 16 ảnh đã đánh giá (+16)
+coco/ocsd_lite: 32 ảnh đã đánh giá (+32)
+coco/t2i_adapter: 32 ảnh đã đánh giá (+32)
+coco/zhang2025: 16 ảnh đã đánh giá (+16)
+coco/real: 32 ảnh đã đánh giá (+32)
+/content/KLTN_OCSD/ocsd/metrics.py:76: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  return pd.concat(all_rows, ignore_index=True) if all_rows else pd.DataFrame()
+/usr/local/lib/python3.13/dist-packages/torchmetrics/utilities/prints.py:43: UserWarning: Metric `Kernel Inception Distance` will save all extracted features in buffer. For large datasets this may lead to large memory footprint.
+  warnings.warn(*args, **kwargs)
+{'method': 'cn_energy', 'split': 'coco', 'fid': 274.8410339355469, 'kid': 15.643490478396416, 'kid_std': 6.30597397685051, 'n_gen': 32}
+{'method': 'cn_region', 'split': 'coco', 'fid': 275.5138854980469, 'kid': 10.331453755497932, 'kid_std': 4.018327686935663, 'n_gen': 32}
+{'method': 'controlnet', 'split': 'coco', 'fid': 262.21099853515625, 'kid': 6.173286121338606, 'kid_std': 3.3934556413441896, 'n_gen': 32}
+{'method': 'controlnet_bo3', 'split': 'coco', 'fid': 262.81158447265625, 'kid': 7.4496218003332615, 'kid_std': 3.1711277551949024, 'n_gen': 32}
+{'method': 'gligen', 'split': 'coco', 'fid': 248.96337890625, 'kid': 6.2593817710876465, 'kid_std': 3.7804024759680033, 'n_gen': 32}
+{'method': 'ocsd', 'split': 'coco', 'fid': 326.6071472167969, 'kid': 28.21487933397293, 'kid_std': 11.119824834167957, 'n_gen': 16}
+{'method': 'ocsd_lite', 'split': 'coco', 'fid': 286.6441345214844, 'kid': 26.77645906805992, 'kid_std': 7.665240205824375, 'n_gen': 32}
+{'method': 't2i_adapter', 'split': 'coco', 'fid': 251.97726440429688, 'kid': 7.576360367238522, 'kid_std': 3.977002575993538, 'n_gen': 32}
+{'method': 'zhang2025', 'split': 'coco', 'fid': 296.0268249511719, 'kid': 20.853066816926003, 'kid_std': 7.124649826437235, 'n_gen': 16}
+==================== STAGE C_evaluate OK (18.7 min) ====================
+
+==================== STAGE D_report ====================
+E3_quickdraw_free           504/504 ảnh
+E3_quickdraw_free_seeds     252/252 ảnh
+E3_quickdraw_trained        144/144 ảnh
+E3_coco_free                224/224 ảnh
+E3_coco_trained              32/32 ảnh
+E4_ablation                 198/198 ảnh
+alpha                        72/72 ảnh
+# Kết quả thực nghiệm OCSD (2026-09-29 07:01:13)
+
+Tier: paper; backbone: sd15; seeds: [0, 1]; bộ phát hiện đánh giá: owlv2
+
+Phần cứng: {"python": "3.13.15", "torch": "2.11.0+cu128", "gpu": "NVIDIA A100-SXM4-40GB", "vram_gb": 39.5, "diffusers": "0.40.0", "transformers": "5.17.0", "cpu": "Intel(R) Xeon(R) CPU @ 2.20GHz", "ram_gb": 83.5}
+
+## E1_coco
+
+**OPR (%) / OCE-lớp theo count_bin trên coco**
+
+| Phương pháp                                           | 1           | 2-3         | 4-5         | 6-8         |
+|:------------------------------------------------------|:------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 50.0 / 0.50 | 37.5 / 1.25 | 12.5 / 3.75 | 41.7 / 5.00 |
+| SD + T2I-Adapter                                      | 50.0 / 0.50 | 37.5 / 1.25 | 12.5 / 3.50 | 41.7 / 5.25 |
+| GLIGEN (hộp + văn bản)                                | 75.0 / 0.25 | 50.0 / 1.00 | 18.8 / 3.50 | 61.9 / 2.75 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 75.0 / 0.25 | 37.5 / 0.75 | 12.5 / 3.50 | 50.0 / 4.00 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 50.0 / 0.50 | 50.0 / 1.00 | 12.5 / 3.50 | 50.0 / 5.00 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 50.0 / 0.50 | 37.5 / 1.25 | 6.2 / 3.75  | 41.7 / 5.00 |
+| Zhang et al. (2025) - cài đặt lại                     | 75.0 / 1.00 | 50.0 / 1.50 | 18.8 / 3.75 | 54.2 / 3.75 |
+| OCSD-lite (không học định danh)                       | 50.0 / 0.50 | 62.5 / 0.75 | 25.0 / 3.00 | 53.6 / 4.00 |
+| OCSD (đề xuất)                                        | 75.0 / 0.25 | 62.5 / 0.75 | 18.8 / 3.50 | 49.4 / 3.50 |
+
+## E1_quickdraw
+
+**OPR (%) / OCE-lớp theo count_bin trên quickdraw**
+
+| Phương pháp                                           | 1            | 3           | 5           | 8+          |
+|:------------------------------------------------------|:-------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 94.4 / 0.28  | 63.0 / 2.00 | 72.2 / 2.22 | 40.1 / 5.33 |
+| SD + T2I-Adapter                                      | 88.9 / 0.72  | 51.9 / 2.22 | 60.0 / 2.39 | 41.1 / 6.22 |
+| GLIGEN (hộp + văn bản)                                | 100.0 / 0.06 | 70.4 / 1.56 | 73.3 / 1.83 | 47.8 / 6.44 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 94.4 / 0.39  | 64.8 / 2.56 | 73.3 / 2.22 | 39.4 / 6.28 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 88.9 / 0.33  | 72.2 / 2.17 | 76.7 / 1.94 | 44.4 / 7.78 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 94.4 / 0.22  | 64.8 / 2.44 | 75.6 / 1.56 | 45.8 / 5.67 |
+| Zhang et al. (2025) - cài đặt lại                     | 77.8 / 1.11  | 48.1 / 1.94 | 32.2 / 4.06 | 19.0 / 6.56 |
+| OCSD-lite (không học định danh)                       | 83.3 / 0.67  | 72.2 / 1.06 | 56.7 / 2.72 | 53.1 / 4.56 |
+| OCSD (đề xuất)                                        | 83.3 / 0.44  | 70.4 / 1.00 | 48.9 / 2.83 | 47.2 / 5.33 |
+
+## E2_coco
+
+**OPR (%) / OCE-lớp theo complexity trên coco**
+
+| Phương pháp                                           | real        |
+|:------------------------------------------------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 35.4 / 2.62 |
+| SD + T2I-Adapter                                      | 35.4 / 2.62 |
+| GLIGEN (hộp + văn bản)                                | 51.4 / 1.88 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 43.8 / 2.12 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 40.6 / 2.50 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 33.9 / 2.62 |
+| Zhang et al. (2025) - cài đặt lại                     | 49.5 / 2.50 |
+| OCSD-lite (không học định danh)                       | 47.8 / 2.06 |
+| OCSD (đề xuất)                                        | 51.4 / 2.00 |
+
+## E2_quickdraw
+
+**OPR (%) / OCE-lớp theo complexity trên quickdraw**
+
+| Phương pháp                                           | simple      | medium      | complex     |
+|:------------------------------------------------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 65.6 / 2.33 | 74.4 / 2.42 | 62.3 / 2.62 |
+| SD + T2I-Adapter                                      | 56.8 / 3.12 | 68.4 / 2.38 | 56.2 / 3.17 |
+| GLIGEN (hộp + văn bản)                                | 67.2 / 2.46 | 79.2 / 2.50 | 72.2 / 2.46 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 71.7 / 2.96 | 73.4 / 2.25 | 58.9 / 3.38 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 71.3 / 3.62 | 72.6 / 2.54 | 67.7 / 3.00 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 70.8 / 2.62 | 71.8 / 2.29 | 67.8 / 2.50 |
+| Zhang et al. (2025) - cài đặt lại                     | 46.5 / 3.29 | 46.5 / 3.00 | 39.8 / 3.96 |
+| OCSD-lite (không học định danh)                       | 68.5 / 1.79 | 69.5 / 2.25 | 61.0 / 2.71 |
+| OCSD (đề xuất)                                        | 66.2 / 2.04 | 66.5 / 2.38 | 54.7 / 2.79 |
+
+## E3_coco
+
+**So sánh định lượng trên coco (16 cảnh, trung bình ± nửa KTC 95%)**
+
+| Phương pháp                                           | OPR (%) ↑       | OCE-lớp ↓       | Đếm đúng (%) ↑   | mIoU ↑            | RA (%) ↑        | CLIP ↑           | CLIP-đt ↑        | ID-Sim ↑          | FID ↓      | KID×10³ ↓   |
+|:------------------------------------------------------|:----------------|:----------------|:-----------------|:------------------|:----------------|:-----------------|:-----------------|:------------------|:-----------|:------------|
+| SD + ControlNet (mô hình nền)                         | 35.4 ± 17.7     | 2.62 ± 0.91     | 12.5 ± 15.6      | 0.306 ± 0.159     | 10.2 ± 14.3     | 24.66 ± 1.17     | 20.67 ± 1.81     | –                 | 262.21     | **6.17**    |
+| SD + T2I-Adapter                                      | 35.4 ± 18.5     | 2.62 ± 1.19     | 18.8 ± 18.8      | 0.297 ± 0.158     | 12.0 ± 16.1     | 24.69 ± 1.05     | 21.56 ± 2.15     | –     
+==================== STAGE D_report OK (0.6 min) ====================
+
+Stage status:
+  A_data                   ok              2.3 min  benchmarks for tier 'pilot' already built (/content/drive/MyDrive/KLTN_OCSD/data/benchmarks/.done_pilot.json)
+  B_generate               ok            207.8 min  
+  C_evaluate               ok             18.7 min  
+  D_report                 ok              0.6 min  
+  T_tune                   ok             55.5 min  
+
+Most recent error:
+stage: B_generate
+context: 
+time: 20260928_195254
+log: /content/drive/MyDrive/KLTN_OCSD/results/logs/run_20260928_195017.log
+
+Traceback (most recent call last):
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 108, in run_items
+    self._run_scene(scene, todo, split, stats)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 174, in _run_scene
+    id_tokens = learn_identity(eng, scene, objs, c3, seed=0, log=prep_log)
+  File "/content/KLTN_OCSD/ocsd/method.py", line 202, in learn_identity
+    eng.add_lora(cfg.lora_rank)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/engine.py", line 185, in add_lora
+    self.unet.add_adapter(cfg, adapter_name="ocsd")
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/diffusers/loaders/peft.py", line 517, in add_adapter
+    elif adapter_name in self.peft_config:
+                         ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/diffusers/models/modeling_utils.py", line 286, in __getattr__
+    return super().__getattr__(name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/torch/nn/modules/module.py", line 1968, in __getattr__
+    raise AttributeError(
+        f"'{type(self).__name__}' object has no attribute '{name}'"
+    )
+AttributeError: 'UNet2DConditionModel' object has no attribute 'peft_config'. Did you mean: 'from_config'?
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/content/KLTN_OCSD/ocsd/runlog.py", line 132, in stage
+    yield
+  File "/tmp/ipykernel_3720/256484334.py", line 5, in <cell line: 0>
+    eng, vis = stages.generate(P, E, max_minutes=MAX_MINUTES)
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/stages.py", line 168, in generate
+    runner.run_items(todo, max_minutes=max_minutes)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 115, in run_items
+    raise RuntimeError("The first 3 scenes all failed; stopping so the error can be fixed "
+                       "(see results/logs/LATEST_ERROR.txt)") from e
+RuntimeError: The first 3 scenes all failed; stopping so the error can be fixed (see results/logs/LATEST_ERROR.txt)
+
+
+env: {"time": "2026-09-28 19:52:54", "python": "3.13.15", "torch": "2.11.0+cu128", "torchvision": "0.26.0+cu128", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA A100-SXM4-80GB", "vram_gb": 79.3}
+
+[sync] no GH_TOKEN secret: results stay on Drive only

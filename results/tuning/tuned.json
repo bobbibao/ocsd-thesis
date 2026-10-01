@@ -1,0 +1,17 @@
+{
+ "chosen": {
+  "alpha": 0.1,
+  "lora_scale": 0.5
+ },
+ "method": "tune_a0.1_l0.5",
+ "rule": "max OPR+mIoU+RA with CLIP >= CLIP(tune_a0.5_l1.0) - 1.0",
+ "n_scenes": {
+  "quickdraw": 12,
+  "coco": 4
+ },
+ "seeds": [
+  0,
+  1
+ ],
+ "time": "2026-09-29 03:13:56"
+}

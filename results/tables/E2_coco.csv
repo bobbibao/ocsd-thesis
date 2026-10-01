@@ -1,10 +1,10 @@
 Phương pháp,real
-SD + ControlNet (mô hình nền),37.5 / 2.50
-SD + T2I-Adapter,31.2 / 2.50
-GLIGEN (hộp + văn bản),64.6 / 1.75
-ControlNet + chú ý vùng (kiểu DenseDiffusion),29.2 / 2.00
-ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E),58.3 / 3.50
-ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra),37.5 / 2.50
-Zhang et al. (2025) - cài đặt lại,45.8 / 1.50
-OCSD-lite (không học định danh),66.7 / 1.25
-OCSD (đề xuất),70.8 / 1.25
+SD + ControlNet (mô hình nền),35.4 / 2.62
+SD + T2I-Adapter,35.4 / 2.62
+GLIGEN (hộp + văn bản),51.4 / 1.88
+ControlNet + chú ý vùng (kiểu DenseDiffusion),43.8 / 2.12
+ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E),40.6 / 2.50
+ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra),33.9 / 2.62
+Zhang et al. (2025) - cài đặt lại,49.5 / 2.50
+OCSD-lite (không học định danh),47.8 / 2.06
+OCSD (đề xuất),51.4 / 2.00

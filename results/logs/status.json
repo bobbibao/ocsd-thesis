@@ -1,33 +1,40 @@
 {
  "A_data": {
   "state": "ok",
-  "started": "2026-09-28 20:30:10",
-  "updated": "2026-09-28 20:30:12",
+  "started": "2026-09-29 02:16:02",
+  "updated": "2026-09-29 02:18:23",
   "reason": "benchmarks for tier 'pilot' already built (/content/drive/MyDrive/KLTN_OCSD/data/benchmarks/.done_pilot.json)",
-  "minutes": 0.0,
+  "minutes": 2.3,
   "error": null
  },
  "B_generate": {
   "state": "ok",
-  "started": "2026-09-28 20:31:06",
-  "updated": "2026-09-28 21:20:41",
-  "minutes": 49.6,
+  "started": "2026-09-29 03:14:05",
+  "updated": "2026-09-29 06:41:56",
+  "minutes": 207.8,
   "error": null,
   "traceback_file": "/content/drive/MyDrive/KLTN_OCSD/results/logs/errors/B_generate_20260928_195254.txt"
  },
  "C_evaluate": {
   "state": "ok",
-  "started": "2026-09-28 21:20:41",
-  "updated": "2026-09-28 21:26:04",
-  "minutes": 5.4,
+  "started": "2026-09-29 06:41:56",
+  "updated": "2026-09-29 07:00:39",
+  "minutes": 18.7,
   "error": null,
   "traceback_file": "/content/drive/MyDrive/KLTN_OCSD/results/logs/errors/C_evaluate_20260928_194434.txt"
  },
  "D_report": {
   "state": "ok",
-  "started": "2026-09-28 21:26:04",
-  "updated": "2026-09-28 21:27:24",
-  "minutes": 1.3,
+  "started": "2026-09-29 07:00:39",
+  "updated": "2026-09-29 07:01:14",
+  "minutes": 0.6,
+  "error": null
+ },
+ "T_tune": {
+  "state": "ok",
+  "started": "2026-09-29 02:18:23",
+  "updated": "2026-09-29 03:13:56",
+  "minutes": 55.5,
   "error": null
  }
 }

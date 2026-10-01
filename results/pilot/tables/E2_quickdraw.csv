@@ -1,0 +1,10 @@
+Phương pháp,simple,medium,complex
+SD + ControlNet (mô hình nền),83.3 / 0.00,68.9 / 1.67,53.3 / 0.67
+SD + T2I-Adapter,100.0 / 0.00,68.9 / 2.67,57.8 / 2.33
+GLIGEN (hộp + văn bản),100.0 / 0.00,68.9 / 1.67,75.6 / 1.00
+ControlNet + chú ý vùng (kiểu DenseDiffusion),66.7 / 1.00,62.2 / 1.33,42.2 / 2.33
+ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E),100.0 / 0.00,68.9 / 1.67,86.7 / 1.33
+ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra),100.0 / 0.00,68.9 / 1.67,53.3 / 0.67
+Zhang et al. (2025) - cài đặt lại,83.3 / 0.00,28.9 / 2.00,46.7 / 1.00
+OCSD-lite (không học định danh),83.3 / 0.50,82.2 / 1.00,93.3 / 0.33
+OCSD (đề xuất),50.0 / 0.50,68.9 / 1.33,80.0 / 1.00

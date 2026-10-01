@@ -1,26 +1,30 @@
 {
  "E3_quickdraw_free": {
+  "total": 504,
+  "todo": 0
+ },
+ "E3_quickdraw_free_seeds": {
   "total": 252,
   "todo": 0
  },
  "E3_quickdraw_trained": {
-  "total": 16,
+  "total": 144,
   "todo": 0
  },
  "E3_coco_free": {
-  "total": 56,
+  "total": 224,
   "todo": 0
  },
  "E3_coco_trained": {
-  "total": 8,
+  "total": 32,
   "todo": 0
  },
  "E4_ablation": {
-  "total": 44,
+  "total": 198,
   "todo": 0
  },
  "alpha": {
-  "total": 24,
+  "total": 72,
   "todo": 0
  }
 }
