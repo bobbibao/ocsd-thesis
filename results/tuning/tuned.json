@@ -1,7 +1,10 @@
 {
  "chosen": {
   "alpha": 0.1,
-  "lora_scale": 0.5
+  "lora_scale": 0.5,
+  "use_energy": true,
+  "energy_tokens": "phrase",
+  "eta": 20.0
  },
  "method": "tune_a0.1_l0.5",
  "rule": "max OPR+mIoU+RA with CLIP >= CLIP(tune_a0.5_l1.0) - 1.0",
@@ -13,5 +16,7 @@
   0,
   1
  ],
- "time": "2026-09-29 03:13:56"
+ "time": "2026-09-29 03:13:56",
+ "method_energy": "tune_a0.1_l0.5_e_ph20",
+ "time_energy": "2026-10-01 05:31:02"
 }

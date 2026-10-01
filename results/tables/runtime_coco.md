@@ -9,5 +9,5 @@
 | ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      |            3.34 |   nan    |   nan    |       12.04 |          1    |
 | ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) |            5.27 |   nan    |   nan    |       12.08 |          2.2  |
 | Zhang et al. (2025) - cài đặt lại                     |            2.26 |     7.29 |    37.77 |       11.73 |          1    |
-| OCSD-lite (không học định danh)                       |            4.95 |    10.7  |     0    |       12.08 |          1.94 |
-| OCSD (đề xuất)                                        |            6.18 |    10.48 |    37.87 |       12.19 |          2.05 |
+| OCSD-lite (không học định danh)                       |            4.31 |     9.96 |     0    |        7.42 |          1.88 |
+| OCSD (đề xuất)                                        |            4.64 |     9.43 |    35.68 |        7.7  |          1.81 |
