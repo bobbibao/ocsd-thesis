@@ -62,3 +62,9 @@ Tệp này dành cho người viết khóa luận: mỗi mục nêu bản thảo
    {tắt; token định danh η = 20 (cũ), η = 10; token cụm từ đối tượng η = 20, η = 10}, cùng quy tắc chọn. Chỉ các
    dòng họ OCSD (OCSD, OCSD-lite, cắt bỏ, α) được sinh lại; baseline giữ nguyên. Tham số `energy_tokens` mới
    ("id" | "phrase") cần mô tả ở mục M5(b); giá trị chọn nằm trong `results/tuning/tuned.json`.
+9. **Kết quả cuối và hai sửa lỗi đánh giá (02/10/2026).** Pha 2 chọn token cụm từ đối tượng, η = 20 (cấu hình cũ
+   xếp cuối trong năm lựa chọn). (a) Bảng chỉ dùng các cặp (cảnh, seed) của kế hoạch `paper`
+   (`results/<split>/plan.json`): một lượt pilot chạy sau khi tách tập tinh chỉnh đã thêm dòng baseline cho các cảnh
+   tinh chỉnh, làm lệch trần bộ phát hiện và bảng thời gian. (b) FID/KID ở bảng E3 tính trên cùng một tập ảnh cho mọi
+   phương pháp (tập học định danh × các seed), vì FID phụ thuộc số ảnh; trước đó baseline 108 ảnh, OCSD 72 ảnh.
+   Mục 4.x cần nêu rõ: FID/KID so sánh trên cùng số ảnh; FID tuyệt đối cao do số ảnh nhỏ (72 trên QuickDraw, 16 trên COCO).

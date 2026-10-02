@@ -177,25 +177,34 @@ def lpips_diversity(out_root, split, method, sids, seeds, device="cuda") -> floa
 
 
 def image_level_quality(out_root, bench_dir, split, methods, seeds, ref_paths, results_dir, device="cuda",
-                        with_lpips=True, scene_ids=None) -> pd.DataFrame:
-    """FID/KID (+ LPIPS diversity) per method over its images of `scene_ids` (all scenes if None) and `seeds`."""
+                        with_lpips=True, scene_ids=None, pairs=None) -> pd.DataFrame:
+    """FID/KID (+ LPIPS diversity) per method over its images of `scene_ids` (all scenes if None) and `seeds`.
+    `pairs` (method -> set of (sid, seed)) overrides both per method, so methods can be scored on the same images."""
+    import hashlib
     rows = []
     prev_p = os.path.join(results_dir, split, "quality_fid_kid.csv")
     prev = pd.read_csv(prev_p).set_index("method") if os.path.exists(prev_p) else pd.DataFrame()
     for m in methods:
         gen = sorted(glob.glob(os.path.join(out_root, split, m, "*.png")))
-        keep = {f"_s{s}.png" for s in seeds}
-        gen = [p for p in gen if any(p.endswith(k) for k in keep)
-               and (scene_ids is None or os.path.basename(p).rsplit("_s", 1)[0] in scene_ids)]
+        if pairs is not None and m in pairs:
+            gen = [p for p in gen if tuple(os.path.basename(p)[:-4].rsplit("_s", 1)) in
+                   {(sid, str(s)) for sid, s in pairs[m]}]
+        else:
+            keep = {f"_s{s}.png" for s in seeds}
+            gen = [p for p in gen if any(p.endswith(k) for k in keep)
+                   and (scene_ids is None or os.path.basename(p).rsplit("_s", 1)[0] in scene_ids)]
         if not gen:
             continue
-        if m in prev.index and int(prev.loc[m, "n_gen"]) == len(gen):   # no new images -> reuse
+        sel = hashlib.md5("|".join(os.path.basename(p) for p in gen).encode()).hexdigest()[:12]
+        if m in prev.index and "sel" in prev.columns and prev.loc[m, "sel"] == sel:   # same images -> reuse
             rows.append(dict(prev.loc[m].to_dict(), method=m))
             continue
         r = dict(method=m, split=split, **fid_kid(gen, ref_paths, device))
-        if with_lpips and len(seeds) > 1:
+        r["sel"] = sel
+        sd = sorted({int(os.path.basename(p)[:-4].rsplit("_s", 1)[1]) for p in gen})
+        if with_lpips and len(sd) > 1:
             sids = sorted({os.path.basename(p).rsplit("_s", 1)[0] for p in gen})
-            r["lpips_div"] = lpips_diversity(out_root, split, m, sids, seeds, device)
+            r["lpips_div"] = lpips_diversity(out_root, split, m, sids, sd, device)
         rows.append(r)
         print(r)
     df = pd.DataFrame(rows)
