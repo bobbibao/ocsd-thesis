@@ -70,8 +70,8 @@ def e1_curves():
         ('SD + ControlNet', S1, 'o', [94.4, 63.0, 72.2, 40.1], [0.28, 2.00, 2.22, 5.33]),
         ('GLIGEN', S2, 's', [100.0, 70.4, 73.3, 47.8], [0.06, 1.56, 1.83, 6.44]),
         ('Zhang et al. (re-impl.)', S3, '^', [77.8, 48.1, 32.2, 19.0], [1.11, 1.94, 4.06, 6.56]),
-        ('OCSD-lite', S4, 'D', [83.3, 72.2, 56.7, 53.1], [0.67, 1.06, 2.72, 4.56]),
-        ('OCSD (prelim.)', S5, 'v', [83.3, 70.4, 48.9, 47.2], [0.44, 1.00, 2.83, 5.33]),
+        ('OCSD-lite', S4, 'D', [88.9, 79.6, 62.2, 61.2], [0.56, 0.78, 2.28, 4.94]),
+        ('OCSD', S5, 'v', [88.9, 75.9, 72.2, 64.4], [0.61, 0.78, 1.72, 4.56]),
     ]
     fig, axs = plt.subplots(1, 2, figsize=(9.6, 3.5), dpi=220)
     for ax, k, yl in ((axs[0], 3, 'OPR (%)  ↑'), (axs[1], 4, 'Class-wise OCE  ↓')):
@@ -91,19 +91,19 @@ def e1_curves():
 def ablation():
     # QuickDraw-Scenes, 18 scenes (3 and 5 objects), 1 seed; preliminary (run 1, before M5(b) re-tuning).
     rows = [
-        ('Full OCSD', 59.6, 13.0),
-        ('w/o blended inference (α = 1)', 57.4, 10.2),
+        ('Full OCSD', 74.1, 11.3),
+        ('w/o blended inference (α = 1)', 63.0, 11.9),
         ('blend whole trajectory (α = 0)', 60.4, 12.0),
-        ('w/o identity learning (OCSD-lite)', 64.4, 11.3),
-        ('w/o L_att in M3', 57.0, 13.0),
-        ('M2 with K = 1', 54.4, 16.5),
-        ('w/o region attention M5(a)', 63.3, 13.3),
-        ('w/o energy guidance M5(b)', 78.1, 8.7),
-        ('w/o scene ControlNet M5(c)', 53.0, 14.6),
-        ('w/o verification M5(d)', 52.6, 16.1),
-        ('w/o all of M5', 68.1, 13.9),
-        ('background prompt only', 66.3, 11.7),
-        ('global prompt only', 62.6, 13.1),
+        ('w/o identity learning (OCSD-lite)', 70.9, 10.9),
+        ('w/o L_att in M3', 72.6, 11.7),
+        ('M2 with K = 1', 63.7, 17.2),
+        ('w/o region attention M5(a)', 78.5, 13.1),
+        ('w/o energy guidance M5(b)', 81.1, 9.3),
+        ('w/o scene ControlNet M5(c)', 70.7, 11.9),
+        ('w/o verification M5(d)', 70.7, 13.3),
+        ('w/o all of M5', 70.7, 12.8),
+        ('background prompt only', 64.1, 13.1),
+        ('global prompt only', 70.4, 13.9),
         ('Zhang et al. (re-impl.)', 40.2, 9.2),
     ]
     fig, ax = plt.subplots(figsize=(7.2, 4.6), dpi=220)
@@ -111,7 +111,7 @@ def ablation():
     y = np.arange(len(rows))[::-1]
     full = rows[0][1]
     for yi, (name, m, ci) in zip(y, rows):
-        c = S1 if name == 'Full OCSD' else ('#b9b8b2' if 'Zhang' in name else ('#e87b52' if 'energy' in name else '#8fb8ea'))
+        c = S1 if name == 'Full OCSD' else ('#b9b8b2' if 'Zhang' in name else '#8fb8ea')
         ax.barh(yi, m, height=0.62, color=c, edgecolor='white', linewidth=2)
         ax.errorbar(m, yi, xerr=ci, color=INK2, lw=1, capsize=2)
         ax.text(m + ci + 1.2, yi, f'{m:.1f}', va='center', fontsize=8, color=INK)
@@ -124,9 +124,9 @@ def ablation():
 
 def alpha():
     a = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-    opr = [57.8, 57.8, 67.8, 51.1, 52.8, 44.4]; opr_ci = [15.3, 11.7, 10.6, 13.6, 13.1, 13.9]
-    miou = [0.417, 0.384, 0.410, 0.259, 0.238, 0.164]; miou_ci = [0.137, 0.110, 0.110, 0.090, 0.074, 0.078]
-    fid = [406.78, 388.51, 370.00, 363.72, 328.31, 329.80]
+    opr = [57.8, 70.0, 72.2, 77.8, 63.3, 70.6]; opr_ci = [15.3, 15.8, 13.6, 12.8, 13.1, 14.2]
+    miou = [0.417, 0.499, 0.500, 0.465, 0.329, 0.308]; miou_ci = [0.136, 0.132, 0.123, 0.113, 0.090, 0.105]
+    fid = [406.85, 404.52, 380.52, 380.04, 341.96, 322.20]
     fig, axs = plt.subplots(1, 3, figsize=(9.6, 3.0), dpi=220)
     for ax, v, ci, yl, c in ((axs[0], opr, opr_ci, 'OPR (%)  ↑', S1), (axs[1], miou, miou_ci, 'Layout mIoU  ↑', S1), (axs[2], fid, None, 'FID  ↓', S1)):
         style(ax)
@@ -139,6 +139,13 @@ def alpha():
     fig.savefig(os.path.join(OUT, 'fig4_alpha.png'), facecolor='white'); plt.close(fig)
 
 
+def qualitative():
+    from PIL import Image
+    src = '/mnt/project-files/results/paper/figures/qualitative_quickdraw.png'
+    im = Image.open(src).convert('RGB'); im.thumbnail((1800, 1800))
+    im.save(os.path.join(OUT, 'fig5_qual.jpg'), quality=85)
+
+
 if __name__ == '__main__':
-    arch(); e1_curves(); ablation(); alpha()
+    arch(); e1_curves(); ablation(); alpha(); qualitative()
     print(sorted(os.listdir(OUT)))

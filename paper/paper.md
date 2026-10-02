@@ -11,7 +11,7 @@ Faculty of Information Technology, Industrial University of Ho Chi Minh City, Vi
 :::
 
 ::: {custom-style="Note"}
-**Manuscript status (29 September 2026).** All baseline numbers are final. Rows marked † (OCSD, OCSD-lite, the ablation study and the α study) come from the first paper-tier run, before energy guidance M5(b) was re-tuned on the tuning split; they are preliminary and will be replaced by the re-run. The analysis below is written to be honest about what these preliminary numbers do and do not show.
+**Manuscript status (2 October 2026).** All numbers come from the final paper-tier run (1 October 2026, NVIDIA A100) and are final, except the FID and KID columns marked ‡, which will be recomputed on equal sample sizes by an evaluation-only pass.
 :::
 
 ::: {custom-style="AbstractTitle"}
@@ -19,7 +19,7 @@ Abstract
 :::
 
 ::: {custom-style="Abstract"}
-Sketch-and-text conditioned diffusion models such as ControlNet produce realistic images from a single object sketch, but they lose objects, miscount them and misplace them as soon as a freehand scene sketch contains several objects. We study this *object-consistency* problem and make three contributions. First, we propose OCSD (Object-Consistent Sketch-guided Diffusion), a framework that decomposes the sketch into objects, generates and selects each object independently, learns a per-object identity token with a masked diffusion loss, composes the scene with blended latent inference, and adds an object-aware conditioning module that restricts cross-attention to each object's sketch region, steers attention with an energy function, re-injects the scene sketch through a low-weight ControlNet and verifies the result with an open-set detector. Second, we build an evaluation protocol that isolates object consistency: QuickDraw-Scenes, a controlled benchmark of real freehand object sketches arranged into 1 to 10-object scenes at three abstraction levels, and COCO-Sketch, a real-image benchmark; object preservation, class-wise count error, layout IoU and relation accuracy are scored with a detector (OWLv2) that the method never sees, alongside a detector ceiling, a best-of-3 control for regeneration, bootstrap confidence intervals and Holm-corrected Wilcoxon tests. Third, we report a controlled comparison of eight methods on a shared Stable Diffusion 1.5 backbone. OCSD improves significantly over a faithful re-implementation of the two-branch method of Zhang et al. on every consistency metric (object preservation 62.5% vs. 44.3%, layout mIoU 0.459 vs. 0.251, relation accuracy 34.5% vs. 10.1%; Holm-adjusted p < 0.05), and its training-free variant has the lowest class-wise count error of all methods. However, the box-conditioned GLIGEN remains the strongest method on most metrics, and our preliminary ablation shows why: energy guidance on identity tokens costs 18.5 points of object preservation, and removing it raises OCSD to 78.1% on the ablation subset. We release code, benchmarks and all per-scene results.
+Sketch-and-text conditioned diffusion models such as ControlNet produce realistic images from a single object sketch, but they lose objects, miscount them and misplace them as soon as a freehand scene sketch contains several objects. We study this *object-consistency* problem and make three contributions. First, we propose OCSD (Object-Consistent Sketch-guided Diffusion), a framework that decomposes the sketch into objects, generates and selects each object independently, learns a per-object identity token with a masked diffusion loss, composes the scene with blended latent inference, and adds an object-aware conditioning module that restricts cross-attention to each object's sketch region, steers attention with an energy function, re-injects the scene sketch through a low-weight ControlNet and verifies the result with an open-set detector. Second, we build an evaluation protocol that isolates object consistency: QuickDraw-Scenes, a controlled benchmark of real freehand object sketches arranged into 1 to 10-object scenes at three abstraction levels, and COCO-Sketch, a real-image benchmark; object preservation, class-wise count error, layout IoU and relation accuracy are scored with a detector (OWLv2) that the method never sees, alongside a detector ceiling, a best-of-3 control for regeneration, bootstrap confidence intervals and Holm-corrected Wilcoxon tests. Third, we report a controlled comparison of nine methods on a shared Stable Diffusion 1.5 backbone. On QuickDraw-Scenes, OCSD preserves the most objects (75.4% vs. 72.9% for the box-conditioned GLIGEN and 67.4% for ControlNet), has the lowest class-wise count error (1.92 vs. 2.47) and the highest relation accuracy (52.3% vs. 43.2%), and keeps 16.6 points more objects than GLIGEN in scenes with 8 to 10 objects; GLIGEN remains ahead on count accuracy and layout IoU, and none of the differences to it is significant after Holm correction. OCSD is significantly better than a faithful re-implementation of the two-branch method of Zhang et al. on every consistency metric (Holm-adjusted p ≤ 0.0005), and on real COCO scenes it is tied with GLIGEN at 92% of the detector ceiling. An ablation shows that blended inference and candidate selection carry most of the gain and that the region-attention and energy-guidance components of M5 overlap. We release code, benchmarks and all per-scene results.
 :::
 
 **Keywords:** diffusion models, sketch-to-image, scene generation, object consistency, controllable generation, evaluation protocol.
@@ -104,7 +104,7 @@ so each object's tokens act only inside its own sketch region and the background
 
 $$E(\mathbf{z}_t)=\sum_{i=1}^{N}\Big[\big(1-\max_{n\in\tilde{\mathbf{m}}_i}\bar{A}_i[n]\big)+\beta\,\frac{\sum_{n\notin\tilde{\mathbf{m}}_i}\bar{A}_i[n]}{\sum_n\bar{A}_i[n]}\Big].$$
 
-The first term penalises an object that no location attends to strongly (a missing object), as in Attend-and-Excite [@chefer2023attend]; the second penalises attention outside the region (drift or duplication), as in BoxDiff and Layout Guidance [@xie2023boxdiff; @chen2024trainingfreelayout]. Attention maps follow Attend-and-Excite (drop the start token, scale by 100, softmax over text tokens, $3\times3$ Gaussian smoothing), and $\eta_t$ decays linearly from $\eta$ to $\eta/2$. In the preliminary run the energy acts on the identity tokens $\langle o_i\rangle$; Section 5.4 shows that this is harmful and motivates steering the object-phrase tokens instead.
+The first term penalises an object that no location attends to strongly (a missing object), as in Attend-and-Excite [@chefer2023attend]; the second penalises attention outside the region (drift or duplication), as in BoxDiff and Layout Guidance [@xie2023boxdiff; @chen2024trainingfreelayout]. Attention maps follow Attend-and-Excite (drop the start token, scale by 100, softmax over text tokens, $3\times3$ Gaussian smoothing), and $\eta_t$ decays linearly from $\eta$ to $\eta/2$. Which tokens the energy acts on is a design choice: steering the identity tokens $\langle o_i\rangle$ turned out to be harmful, and the final configuration, chosen on the tuning split (Section 4.4), steers the object-phrase tokens (attributes and class words) of each object.
 
 **(c) Low-weight scene ControlNet (R3, R4).** The full scene sketch is fed to ControlNet Scribble with conditioning scale $\omega=0.4$ during customised inference, reminding the model of contours and relative placement after hard blending stops, without imposing strokes on the background.
 
@@ -123,7 +123,7 @@ Table 1 lists the hyperparameters. The default column is the full configuration 
 | $S_1$, $S_2$ | embedding / joint steps (M3), LoRA rank | 200 / 200, 16 | 100 / 100, 16 |
 | $\alpha$, $s$ | blending switch point, LoRA strength (M4) | 0.5, 1.0 | 0.1, 0.5 (tuned) |
 | $\lambda_0$, $\gamma$ | region-attention strength and decay (M5a) | 8, 1 | 8, 1 |
-| $\beta$, $\eta$, $\tau$ | energy guidance (M5b) | 1, 20, 10 steps | 1, 20, 10 steps |
+| $\beta$, $\eta$, $\tau$ | energy guidance (M5b), steered tokens | 1, 20, 10 steps, identity | 1, 20, 10 steps, phrase (tuned) |
 | $\omega$ | scene ControlNet scale (M5c) | 0.4 | 0.4 |
 | $R$ | maximum regenerations (M5d) | 2 | 2 |
 
@@ -157,7 +157,7 @@ Detection-based metrics use **OWLv2** [@minderer2023owlv2] (threshold 0.30), que
 
 ## 4.4 Held-out tuning
 
-A pilot run with the default $\alpha=0.5$, $s=1.0$ showed that OPR rose as $\alpha$ fell and that full OCSD trailed OCSD-lite, suggesting that full-strength identity LoRA pulls the scene away from the sketch layout. Before the paper run we therefore tuned $\alpha\in\{0,0.1,0.2,0.3,0.5\}\times s\in\{0.5,1.0\}$ with two seeds on the 16 pilot scenes (12 QuickDraw-Scenes, 4 COCO-Sketch), which are **excluded from every evaluation set**. The rule selects the maximum OPR + mIoU + RA subject to global CLIP within 1 point of the default. It chose $\alpha=0.1$, $s=0.5$ (score 1.562 vs. 1.294 for the default; OPR 66.4% vs. 57.0%, mIoU 0.484 vs. 0.371, CLIP 26.36 vs. 26.37). LoRA strength 0.5 beat 1.0 for four of five $\alpha$ values. Our Zhang et al. re-implementation keeps its published setting ($\alpha=0.5$, $s=1.0$).
+A pilot run with the default $\alpha=0.5$, $s=1.0$ showed that OPR rose as $\alpha$ fell and that full OCSD trailed OCSD-lite, suggesting that full-strength identity LoRA pulls the scene away from the sketch layout. Before the paper run we therefore tuned $\alpha\in\{0,0.1,0.2,0.3,0.5\}\times s\in\{0.5,1.0\}$ with two seeds on the 16 pilot scenes (12 QuickDraw-Scenes, 4 COCO-Sketch), which are **excluded from every evaluation set**. The rule selects the maximum OPR + mIoU + RA subject to global CLIP within 1 point of the default. It chose $\alpha=0.1$, $s=0.5$ (score 1.562 vs. 1.294 for the default; OPR 66.4% vs. 57.0%, mIoU 0.484 vs. 0.371, CLIP 26.36 vs. 26.37). LoRA strength 0.5 beat 1.0 for four of five $\alpha$ values. Our Zhang et al. re-implementation keeps its published setting ($\alpha=0.5$, $s=1.0$). A first paper-tier run showed that energy guidance on the identity tokens was harmful (removing it raised OPR by 18.5 points in the ablation), so a second tuning phase on the same held-out scenes, with $\alpha$ and $s$ fixed, compared five M5(b) options with the same rule: off, identity tokens with $\eta\in\{10,20\}$ and object-phrase tokens with $\eta\in\{10,20\}$. Phrase tokens with $\eta=20$ won (score 1.754; OPR 70.8%, RA 53.2%), ahead of phrase tokens with $\eta=10$ (1.736) and no guidance (1.704); the original identity-token setting came last (1.414). Only OCSD-family images were regenerated; baselines were unchanged.
 
 # 5. Results
 
@@ -168,126 +168,130 @@ A pilot run with the default $\alpha=0.5$, $s=1.0$ showed that OPR rose as $\alp
 ## 5.2 Main comparison
 
 ::: {custom-style="TableCaption"}
-**Table 2.** QuickDraw-Scenes, 36 identity-learning scenes × 2 seeds (mean ± 95% CI half-width). † preliminary. Bold: best.
+**Table 2.** QuickDraw-Scenes, 36 identity-learning scenes × 2 seeds (mean ± 95% CI half-width). Bold: best. ‡ FID is provisional (see text).
 :::
 
-| Method | OPR (%) ↑ | OCE~c~ ↓ | Count acc. (%) ↑ | mIoU ↑ | RA (%) ↑ | Obj. CLIP ↑ | ID-Sim ↑ | FID ↓ |
+| Method | OPR (%) ↑ | OCE~c~ ↓ | Count acc. (%) ↑ | mIoU ↑ | RA (%) ↑ | Obj. CLIP ↑ | ID-Sim ↑ | FID ‡ ↓ |
 |:--|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | SD + ControlNet | 67.4 ± 8.9 | 2.46 ± 0.81 | 25.0 ± 13.2 | 0.510 ± 0.080 | 36.6 ± 10.4 | 23.52 | – | 225.0 |
 | T2I-Adapter | 60.5 ± 9.7 | 2.89 ± 0.92 | 22.2 ± 11.8 | 0.470 ± 0.080 | 28.3 ± 10.6 | 22.70 | – | 236.8 |
-| GLIGEN | **72.9 ± 8.2** | 2.47 ± 1.03 | **41.7 ± 14.6** | **0.565 ± 0.073** | **43.2 ± 11.1** | 24.04 | – | **219.4** |
+| GLIGEN | 72.9 ± 8.2 | 2.47 ± 1.03 | **41.7 ± 14.6** | **0.565 ± 0.073** | 43.2 ± 11.1 | 24.04 | – | **219.4** |
 | CN + region attention | 68.0 ± 9.2 | 2.86 ± 1.03 | 29.2 ± 13.2 | 0.508 ± 0.082 | 38.0 ± 12.1 | 23.56 | – | 224.7 |
 | CN + attention energy | 70.5 ± 8.2 | 3.06 ± 1.40 | 30.6 ± 13.2 | 0.496 ± 0.076 | 42.3 ± 11.5 | **24.22** | – | 226.3 |
 | CN best-of-3 | 70.1 ± 8.7 | 2.47 ± 0.87 | 29.2 ± 14.6 | 0.530 ± 0.080 | 41.1 ± 10.8 | 23.62 | – | 225.3 |
 | Zhang et al. (re-impl.) | 44.3 ± 10.9 | 3.42 ± 0.85 | 12.5 ± 8.3 | 0.251 ± 0.078 | 10.1 ± 4.7 | 20.08 | 0.276 | 248.0 |
-| OCSD-lite † | 66.3 ± 9.1 | **2.25 ± 0.64** | 29.2 ± 13.2 | 0.488 ± 0.078 | 38.8 ± 11.1 | 23.30 | **0.396** | 248.9 |
-| OCSD † | 62.5 ± 9.4 | 2.40 ± 0.71 | 29.2 ± 13.2 | 0.459 ± 0.081 | 34.5 ± 11.9 | 23.03 | 0.395 | 278.9 |
+| OCSD-lite | 73.0 ± 8.7 | 2.14 ± 0.72 | 33.3 ± 13.2 | 0.550 ± 0.075 | 47.9 ± 11.1 | 23.76 | 0.433 | 249.3 |
+| OCSD | **75.4 ± 8.2** | **1.92 ± 0.67** | 36.1 ± 13.9 | 0.547 ± 0.075 | **52.3 ± 11.2** | 23.96 | **0.467** | 279.9 |
 
-**Two-branch generation needs object-aware conditioning.** Our re-implementation of Zhang et al. is the weakest method on QuickDraw-Scenes: with blending switched off halfway ($\alpha=0.5$) and nothing constraining the free phase, objects drift and vanish (OPR 44.3%, RA 10.1%). OCSD, built on the same two-branch idea, is significantly better on every consistency metric: OPR +18.2 points, $\mathrm{OCE}_c$ −1.01, mIoU +0.208, RA +24.4 points and object CLIP +2.95 (Wilcoxon, Holm-adjusted $p$ = 0.022, 0.005, 0.0005, 0.004 and $10^{-8}$). It also keeps object identity better (ID-Sim 0.395 vs. 0.276). This answers Q2 with a qualification: the two-branch decomposition preserves identity, but it only preserves *layout and count* once the scene phase is constrained.
+**OCSD has the best object preservation, count error and relation accuracy.** On QuickDraw-Scenes (Table 2), OCSD preserves 75.4% of sketched objects, against 72.9% for GLIGEN, 70.5% for the strongest ControlNet variant and 67.4% for the ControlNet baseline. It has the lowest class-wise count error (1.92 vs. 2.46–3.06 for every baseline), the highest relation accuracy (52.3% vs. 43.2% for GLIGEN and 36.6% for the baseline), and the highest identity similarity (0.467). GLIGEN remains ahead on count accuracy (41.7% vs. 36.1%) and layout mIoU (0.565 vs. 0.547), and matches OCSD on global and object CLIP, so OCSD does not dominate it.
 
-**A strong box-conditioned baseline remains ahead.** GLIGEN leads on OPR, count accuracy, mIoU, RA and FID. Per-object boxes tied to phrases are evidently a stronger grounding signal than feeding the whole sketch to ControlNet, even though GLIGEN ignores stroke shape. Preliminary OCSD does not beat it, nor the plain ControlNet baseline, on OPR or mIoU; none of these differences is significant after Holm correction ($p_{Holm}=1.0$ for every training-free baseline), so on 36 scenes every method except Zhang et al. is statistically indistinguishable from OCSD. The regeneration control is informative: best-of-3 lifts the baseline from 67.4% to 70.1% OPR, which is the gain available from verification alone.
+**Significance.** With 36 scenes the intervals overlap, and we report the paired tests literally. OCSD is significantly better than the Zhang et al. re-implementation on all five tested metrics (OPR +31.1 points, $\mathrm{OCE}_c$ −1.50, mIoU +0.296, RA +42.2 points, object CLIP +3.89; Wilcoxon with Holm correction over all comparisons, $p_{Holm}\le0.0005$) and than T2I-Adapter on RA and object CLIP ($p_{Holm}=0.047$ and $0.039$). Against GLIGEN, the attention-control baselines and best-of-3, no difference survives Holm correction (unadjusted $p$ from 0.23 to 0.96 against GLIGEN; the smallest against the ControlNet baseline is RA, $p=0.035$). The honest summary is that OCSD is *at least on par with* the strongest baseline and better on the metrics it targets, but that a larger benchmark is needed to call the gains over GLIGEN significant.
 
-**Counting.** OCSD-lite has the lowest class-wise count error of all methods (2.25), and both OCSD variants have lower $\mathrm{OCE}_c$ than GLIGEN, ControlNet and every attention-control baseline. Attention-energy guidance applied to a ControlNet baseline has the *highest* count error (3.06): exciting object tokens raises presence but also creates duplicates.
+**Two-branch generation needs object-aware conditioning (Q2).** Our Zhang et al. re-implementation is the weakest method: with blending switched off halfway ($\alpha=0.5$) and nothing constraining the free phase, objects drift and vanish (OPR 44.3%, RA 10.1%). The same object/scene decomposition, with candidate selection, a long blending phase and M5, becomes the best method on OPR and RA. The regeneration control matters for reading this result: best-of-3 lifts the baseline from 67.4% to 70.1% OPR with the same verifier, so most of OCSD's 8-point margin over the baseline does not come from extra sampling.
 
-**Image quality.** Two-branch methods pay in FID/KID (OCSD 278.9 vs. 225.0 FID). Visible pasting boundaries and the long blending phase selected by tuning ($\alpha=0.1$) both contribute; Section 5.5 shows FID falling monotonically as $\alpha$ grows.
+**Identity learning.** OCSD-lite, which skips M3 and is training-free, is already competitive (73.0% OPR, $\mathrm{OCE}_c$ 2.14, RA 47.9%). Full OCSD adds 2.4 points of OPR, 4.4 points of RA, a lower count error and higher identity similarity (0.467 vs. 0.433), none significant on its own ($p\ge0.26$).
+
+**Image quality (provisional).** Two-branch methods have higher FID (OCSD 279.9 vs. 225.0 for the baseline). These FID/KID values are provisional: in this run baselines were scored on 108 images and the identity-learning methods on 72, and FID depends on sample size; the code now scores all E3 methods on the same images, and the columns will be recomputed by an evaluation-only pass. The qualitative results (Figure 2) show a real part of the gap: pasted objects and visible blending seams.
 
 ::: {custom-style="TableCaption"}
-**Table 3.** Training-free methods on all 72 QuickDraw-Scenes scenes (seed 0). † preliminary.
+**Table 3.** Training-free methods on all 72 QuickDraw-Scenes scenes (seed 0).
 :::
 
 | Method | OPR (%) ↑ | OCE~c~ ↓ | Count acc. (%) ↑ | mIoU ↑ | RA (%) ↑ | CLIP ↑ |
 |:--|:--:|:--:|:--:|:--:|:--:|:--:|
 | SD + ControlNet | 65.2 ± 6.5 | 2.49 ± 0.57 | 26.4 ± 9.7 | 0.493 ± 0.058 | 32.0 ± 7.5 | 27.98 |
 | T2I-Adapter | 61.7 ± 7.3 | 2.92 ± 0.65 | 26.4 ± 9.0 | 0.485 ± 0.064 | 29.5 ± 8.6 | 27.30 |
-| GLIGEN | **71.4 ± 6.3** | 2.54 ± 0.72 | **38.9 ± 10.4** | **0.548 ± 0.054** | **41.0 ± 8.3** | 27.98 |
+| GLIGEN | **71.4 ± 6.3** | 2.54 ± 0.72 | **38.9 ± 10.4** | **0.548 ± 0.054** | 41.0 ± 8.3 | 27.98 |
 | CN + region attention | 66.5 ± 6.8 | 2.83 ± 0.70 | 28.5 ± 10.4 | 0.492 ± 0.059 | 32.8 ± 8.1 | 27.61 |
 | CN + attention energy | 70.0 ± 5.7 | 2.78 ± 0.84 | 31.9 ± 10.1 | 0.490 ± 0.056 | 38.0 ± 8.0 | **28.59** |
 | CN best-of-3 | 67.8 ± 6.2 | 2.35 ± 0.56 | 29.9 ± 9.7 | 0.507 ± 0.057 | 34.6 ± 7.4 | 28.23 |
-| OCSD-lite † | 69.3 ± 6.4 | **2.18 ± 0.52** | 35.4 ± 10.1 | 0.509 ± 0.056 | 39.8 ± 8.7 | 27.62 |
+| OCSD-lite | 71.2 ± 6.7 | **2.12 ± 0.55** | 37.5 ± 10.8 | 0.530 ± 0.058 | **44.9 ± 9.0** | 27.80 |
 
-On the full 72 scenes (Table 3), the training-free OCSD-lite is second only to GLIGEN on count accuracy and RA, within 0.7 points of the best ControlNet variant on OPR, beats the ControlNet baseline on every consistency metric (OPR +4.1, RA +7.8 points) and again has the lowest count error.
+On all 72 scenes (Table 3), the training-free OCSD-lite ties GLIGEN on OPR (71.2% vs. 71.4%), has the lowest count error and the highest relation accuracy, and beats the ControlNet baseline on every consistency metric (OPR +6.0, RA +12.9 points), which confirms that the main-table ranking is not an artefact of the 36-scene subset.
+
+![**Figure 2.** Qualitative comparison on QuickDraw-Scenes (rows chosen automatically: largest OPR gap between OCSD and the baseline, plus random scenes). OCSD keeps more of the sketched objects at their sketched positions (rows 2, 3, 6), but its pasted objects can show seams and a cut-out look (rows 1, 5), and dense scenes can still gain extra content (row 4). GLIGEN is photorealistic but ignores stroke shape and attributes (row 4: black instead of brown sheep).](figs/fig5_qual.jpg){width=6.5in}
 
 ## 5.3 Degradation with object count and abstraction (E1, E2)
 
-![**Figure 2.** QuickDraw-Scenes, 36-scene subset: OPR (left) and class-wise count error (right) against the number of sketched objects. OCSD rows are preliminary.](figs/fig2_e1.png){width=6.5in}
+![**Figure 3.** QuickDraw-Scenes, 36-scene subset: OPR (left) and class-wise count error (right) against the number of sketched objects.](figs/fig2_e1.png){width=6.5in}
 
-Figure 2 answers Q1. The ControlNet baseline falls from 94.4% OPR on single objects to 40.1% at 8–10 objects, and its count error grows from 0.28 to 5.33; Zhang et al. collapses fastest (77.8% to 19.0%). The two-branch methods pay a cost on single objects (OCSD 83.3%: generating the object separately and re-composing it loses some objects the baseline would have drawn directly), but degrade more slowly. At 8+ objects, OCSD-lite has the best OPR of all methods (53.1% vs. 47.8% for GLIGEN and 40.1% for the baseline) and the lowest count error (4.56 vs. 6.44 for GLIGEN), and at 3 objects both OCSD variants have the lowest count error (1.00–1.06). This is the regime the method was designed for: independent generation (M2) and sketch-region constraints (M4, M5a) keep many objects from competing in one attention map. Across abstraction levels, all methods lose most on *complex* sketches; the baseline drops from 74.4% (medium) to 62.3% (complex), OCSD-lite from 69.5% to 61.0%, while GLIGEN, which ignores strokes, stays highest on complex sketches (72.2%). This is consistent with abstraction hurting sketch-conditioned methods at the object-generation stage, where ControlNet has to recognise each object from its strokes.
+Figure 3 answers Q1. The ControlNet baseline falls from 94.4% OPR on single objects to 40.1% at 8–10 objects, and its count error grows from 0.28 to 5.33; Zhang et al. collapses fastest (77.8% to 19.0%). OCSD pays a small price on single objects (88.9% vs. 94.4% for the baseline and 100% for GLIGEN: re-composing a separately generated object occasionally loses it), but degrades much more slowly. At 8–10 objects it preserves 64.4% of objects, 16.6 points more than GLIGEN (47.8%) and 24.3 points more than the baseline, with the lowest count error of all methods (4.56 vs. 6.44 for GLIGEN). At 3 objects both OCSD variants have the lowest count error (0.78), and at 5 objects OCSD (1.72) is second only to best-of-3 (1.56). This is the regime the method was designed for: independent generation (M2) and sketch-region constraints (M4, M5) keep many objects from competing in one attention map.
+
+Across abstraction levels, OCSD has the lowest class-wise count error at every level (1.54 / 1.96 / 2.25 for simple / medium / complex) and the best OPR on medium sketches (82.8% vs. 79.2% for GLIGEN); OCSD-lite is best on simple sketches (77.2%). On *complex* sketches GLIGEN, which ignores strokes, leads (72.2% vs. 66.8%). Abstraction therefore hurts sketch-conditioned methods mainly at the object-generation stage, where ControlNet has to recognise each object from very rough strokes.
 
 ## 5.4 Ablation study (E4)
 
-![**Figure 3.** Preliminary ablation on 18 QuickDraw-Scenes scenes with 3 and 5 objects (one seed): OPR with 95% bootstrap intervals. The dashed line is full OCSD.](figs/fig3_ablation.png){width=5.2in}
+![**Figure 4.** Ablation on 18 QuickDraw-Scenes scenes with 3 and 5 objects (one seed): OPR with 95% bootstrap intervals. The dashed line is full OCSD. No difference to full OCSD is significant after Holm correction.](figs/fig3_ablation.png){width=5.2in}
 
 ::: {custom-style="TableCaption"}
-**Table 4.** Preliminary ablation (†), 18 scenes. Rows change one component of full OCSD.
+**Table 4.** Ablation, 18 scenes. Each row changes one component of full OCSD.
 :::
 
 | Configuration | OPR (%) ↑ | OCE~c~ ↓ | mIoU ↑ | RA (%) ↑ | CLIP ↑ | ID-Sim ↑ |
 |:--|:--:|:--:|:--:|:--:|:--:|:--:|
-| Full OCSD | 59.6 ± 13.0 | 1.92 | 0.420 | 40.9 | 27.80 | 0.349 |
-| w/o blended inference ($\alpha=1$) | 57.4 ± 10.2 | 2.17 | 0.278 | 29.1 | 28.00 | 0.294 |
-| blending over the whole trajectory ($\alpha=0$) | 60.4 ± 12.0 | 2.22 | 0.437 | 38.8 | 29.29 | 0.426 |
-| w/o identity learning (OCSD-lite) | 64.4 ± 11.3 | 1.89 | 0.460 | 43.5 | 29.55 | 0.374 |
-| w/o $\mathcal{L}_{att}$ in M3 | 57.0 ± 13.0 | 1.94 | 0.423 | 36.9 | 29.59 | 0.400 |
-| M2 with $K=1$ | 54.4 ± 16.5 | 2.00 | 0.398 | 41.0 | 27.48 | 0.348 |
-| w/o region attention M5(a) | 63.3 ± 13.3 | 1.83 | 0.444 | 44.7 | 29.07 | 0.385 |
-| w/o energy guidance M5(b) | **78.1 ± 8.7** | 1.22 | **0.561** | **61.0** | **31.09** | **0.483** |
-| w/o scene ControlNet M5(c) | 53.0 ± 14.6 | 2.11 | 0.385 | 35.0 | 28.43 | 0.360 |
-| w/o verification M5(d) | 52.6 ± 16.1 | 2.17 | 0.384 | 36.2 | 28.30 | 0.348 |
-| w/o all of M5 | 68.1 ± 13.9 | **1.17** | 0.492 | 50.5 | 30.64 | 0.463 |
-| background prompt only | 66.3 ± 11.7 | 2.00 | 0.464 | 44.3 | 29.49 | 0.408 |
-| global prompt only | 62.6 ± 13.1 | 2.56 | 0.354 | 42.8 | 28.34 | 0.342 |
+| Full OCSD | 74.1 ± 11.3 | 1.25 | 0.520 | 58.0 | 30.24 | 0.449 |
+| w/o blended inference ($\alpha=1$) | 63.0 ± 11.9 | 1.94 | 0.318 | 41.3 | 28.52 | 0.329 |
+| blending over the whole trajectory ($\alpha=0$) | 60.4 ± 12.0 | 2.22 | 0.437 | 38.8 | 29.30 | 0.426 |
+| w/o identity learning (OCSD-lite) | 70.9 ± 10.9 | 1.53 | 0.522 | 52.0 | 30.11 | 0.401 |
+| w/o $\mathcal{L}_{att}$ in M3 | 72.6 ± 11.7 | 1.61 | 0.515 | 55.3 | 30.73 | 0.458 |
+| M2 with $K=1$ | 63.7 ± 17.2 | 1.72 | 0.458 | 51.9 | 29.54 | 0.428 |
+| w/o region attention M5(a) | 78.5 ± 13.1 | **1.00** | **0.571** | **66.6** | 30.59 | 0.455 |
+| w/o energy guidance M5(b) | **81.1 ± 9.3** | 1.22 | **0.571** | 65.5 | **31.26** | **0.485** |
+| w/o scene ControlNet M5(c) | 70.7 ± 11.9 | 1.50 | 0.504 | 51.5 | 31.16 | 0.459 |
+| w/o verification M5(d) | 70.7 ± 13.3 | 1.28 | 0.520 | 54.4 | 30.38 | 0.446 |
+| w/o all of M5 | 70.7 ± 12.8 | 1.11 | 0.517 | 52.7 | 30.74 | 0.454 |
+| background prompt only | 64.1 ± 13.1 | 2.22 | 0.449 | 43.3 | 29.35 | 0.401 |
+| global prompt only | 70.4 ± 13.9 | 2.28 | 0.424 | 55.3 | 29.23 | 0.419 |
 | Zhang et al. (re-impl.) | 40.2 ± 9.2 | 3.00 | 0.204 | 13.2 | 24.75 | 0.248 |
 
-The ablation (Table 4, Figure 3) separates helpful from harmful components; with 18 scenes and one seed, individual differences are not significant after Holm correction, so we read directions and effect sizes.
+With 18 scenes and one seed, no ablation row differs significantly from full OCSD after Holm correction (smallest $p_{Holm}=0.075$), so Table 4 shows directions and effect sizes, not established effects. Within that limit:
 
-- **Helpful:** the scene ControlNet M5(c) (removing it costs 6.6 OPR points and 5.9 RA points), verification M5(d) (−7.0 OPR, beyond what the best-of-3 control recovers for the baseline), candidate selection in M2 (−5.2 OPR with $K=1$), attention separation (−2.6 OPR, −4.0 RA) and blended inference (without it, mIoU drops from 0.420 to 0.278, the largest layout effect; unadjusted $p=0.008$).
-- **Harmful:** attention-energy guidance on identity tokens. Removing M5(b) raises OPR by 18.5 points (59.6% to 78.1%; unadjusted $p=0.029$), mIoU by 0.141, RA by 20.1 points, and lowers the count error from 1.92 to 1.22. Because M5(b) is applied during the customised phase, where the identity tokens are also shaped by LoRA, maximising their attention appears to overshoot: the latent is pushed towards strong but spatially wrong activations. The same mechanism on a plain ControlNet also raised count error (Table 2). Removing all of M5 is better than full OCSD for the same reason, but worse than removing only M5(b) (68.1% vs. 78.1%), which confirms that M5(a), (c) and (d) together contribute about 10 OPR points once M5(b) is gone.
-- **Identity learning** currently costs consistency (OCSD-lite 64.4% vs. 59.6%) while it should preserve appearance; ID-Sim is in fact *higher* without it on this subset (0.374 vs. 0.349), because the LoRA-conditioned free phase is exactly where energy guidance acts. Whether identity learning pays off once M5(b) is fixed is the main open question of the re-run.
-
-These findings motivated a second tuning phase on the held-out pilot scenes that chooses between no energy guidance, identity-token guidance ($\eta\in\{10,20\}$) and guidance on the object-phrase tokens ($\eta\in\{10,20\}$), with the same selection rule; only the OCSD-family rows are regenerated.
+- **The scene-composition design carries most of the gain.** Removing blended inference ($\alpha=1$) costs 11.1 OPR points and drops mIoU from 0.520 to 0.318 (unadjusted $p=0.010$); blending during the whole trajectory ($\alpha=0$) is worse still on OPR (60.4%) and count error (2.22, unadjusted $p=0.004$). Using only the background prompt or only the global prompt also raises count error to 2.22–2.28 ($p\le0.003$ unadjusted). Candidate selection in M2 is the largest single module effect (−10.4 OPR with $K=1$). Identity learning (+3.2 OPR, +6.0 RA) and $\mathcal{L}_{att}$ (+1.5 OPR, +2.7 RA, lower count error) help modestly.
+- **M5 helps as a whole but its parts overlap.** Removing all of M5 costs 3.4 OPR points and 5.3 RA points, and removing either the scene ControlNet M5(c) or verification M5(d) costs the same 3.4 OPR points. In contrast, removing *only* region attention M5(a) or *only* energy guidance M5(b) scores higher than full OCSD (78.5% and 81.1% OPR, RA 66.6% and 65.5%), although neither difference is significant ($p=0.55$ and $0.28$ unadjusted). A plausible reading is that M5(a) and M5(b) push in the same direction, so either one is useful but stacking both over-constrains attention in the free phase. A configuration with only one of them is the natural next candidate, and it must be chosen on the tuning split, not on these 18 evaluation scenes.
+- **The energy re-tuning fixed the harmful setting.** Steering identity tokens with $\eta=20$, the first configuration, came last of five options on the tuning split (Section 4.4), and in the first run removing it raised OPR by 18.5 points. With phrase-token guidance, full OCSD rises from 59.6% to 74.1% OPR on the same 18 scenes and the gap to the no-energy variant shrinks from 18.5 to 7.0 points.
 
 ## 5.5 Effect of α
 
-![**Figure 4.** Preliminary α study on 12 scenes (one seed, verification off): OPR, layout mIoU and FID against α. α = 0 blends during the whole trajectory; α = 1 never blends.](figs/fig4_alpha.png){width=6.5in}
+![**Figure 5.** α study on 12 scenes (one seed, verification off): OPR, layout mIoU and FID against α. α = 0 blends during the whole trajectory; α = 1 never blends.](figs/fig4_alpha.png){width=6.5in}
 
-With verification disabled (Figure 4), layout mIoU is flat for $\alpha\le0.4$ (0.38–0.42) and collapses beyond it (0.164 at $\alpha=1$, significantly below full OCSD, $p_{Holm}=0.012$); OPR peaks at $\alpha=0.4$ (67.8%) and falls to 44.4% without blending. FID improves steadily as the blending phase shortens (406.8 at $\alpha=0$ to 328.3 at $\alpha=0.8$). The range reported by Zhang et al. ($\alpha\in[0.4,0.6]$) thus sits on the edge where layout starts to break for multi-object hand-drawn scenes. The tuning split preferred $\alpha=0.1$ with regeneration enabled; the two results are compatible (both favour $\alpha\le0.4$ for layout) but the study grid did not include 0.1, and with 12 scenes the OPR peak at 0.4 is within noise. The trade-off between layout and realism is real, and $\alpha$ is the knob that sets it.
+With verification disabled (Figure 5), layout mIoU is highest for $\alpha\in[0.2,0.4]$ (0.50) and drops steadily once blending ends earlier (0.329 at $\alpha=0.8$, 0.308 at $\alpha=1$; unadjusted $p=0.027$ and $0.016$ against full OCSD). OPR peaks at $\alpha=0.6$ (77.8%), count error is lowest at $\alpha=0.4$ (1.00), and FID improves monotonically as the blending phase shortens (406.9 at $\alpha=0$ to 322.2 at $\alpha=1$). Blending everywhere ($\alpha=0$) is clearly worst on OPR (57.8%). So $\alpha$ trades layout against realism, and with phrase-token energy guidance the balanced range sits around $\alpha\in[0.4,0.6]$, the range reported by Zhang et al. Our tuned $\alpha=0.1$ was selected *before* the energy re-tune, under the harmful identity-token guidance; re-tuning $\alpha$ jointly with M5 on the tuning split is a cheap and principled improvement that we leave to the next run rather than choosing it on evaluation scenes.
 
 ## 5.6 COCO-Sketch
 
 ::: {custom-style="TableCaption"}
-**Table 5.** COCO-Sketch, 16 scenes common to all methods (one seed). The first row scores the real photographs (detector ceiling). † preliminary.
+**Table 5.** COCO-Sketch, 16 scenes common to all methods (one seed). The first row scores the real photographs (detector ceiling). ‡ FID/KID are provisional.
 :::
 
-| Method | OPR (%) ↑ | OCE~c~ ↓ | Count acc. (%) ↑ | mIoU ↑ | RA (%) ↑ | CLIP ↑ | FID ↓ | KID×10³ ↓ |
+| Method | OPR (%) ↑ | OCE~c~ ↓ | Count acc. (%) ↑ | mIoU ↑ | RA (%) ↑ | CLIP ↑ | FID ‡ ↓ | KID×10³ ‡ ↓ |
 |:--|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | Real images (ceiling) | 57.7 | 2.28 | – | 0.485 | 33.8 | 24.89 | – | – |
-| SD + ControlNet | 35.4 ± 17.7 | 2.62 | 12.5 | 0.306 | 10.2 | 24.66 | 262.2 | **6.17** |
-| T2I-Adapter | 35.4 ± 18.5 | 2.62 | 18.8 | 0.297 | 12.0 | 24.69 | 252.0 | 7.58 |
-| GLIGEN | **51.4 ± 20.3** | **1.88** | **31.2** | **0.441** | **23.3** | 24.62 | **249.0** | 6.26 |
-| CN + region attention | 43.8 ± 19.8 | 2.12 | 25.0 | 0.371 | 13.5 | 19.77 | 275.5 | 10.33 |
-| CN + attention energy | 40.6 ± 16.9 | 2.50 | 12.5 | 0.297 | 8.5 | 19.48 | 274.8 | 15.64 |
-| CN best-of-3 | 33.9 ± 18.0 | 2.62 | 12.5 | 0.293 | 9.7 | **25.45** | 262.8 | 7.45 |
-| Zhang et al. (re-impl.) | 49.5 ± 18.5 | 2.50 | 18.8 | 0.369 | 14.9 | 18.86 | 296.0 | 20.85 |
-| OCSD-lite † | 47.8 ± 17.8 | 2.06 | 18.8 | 0.364 | 21.9 | 19.99 | 286.6 | 26.78 |
-| OCSD † | **51.4 ± 18.8** | 2.00 | **31.2** | 0.392 | 20.8 | 20.08 | 326.6 | 28.21 |
+| SD + ControlNet | 35.4 ± 17.7 | 2.62 | 12.5 | 0.306 | 10.2 | 24.66 | 262.2 | **6.31** |
+| T2I-Adapter | 35.4 ± 18.5 | 2.62 | 18.8 | 0.297 | 12.0 | 24.69 | 252.0 | 7.95 |
+| GLIGEN | 51.4 ± 20.3 | **1.88** | **31.2** | **0.441** | **23.3** | 24.62 | **249.0** | 6.48 |
+| CN + region attention | 43.8 ± 19.8 | 2.12 | 25.0 | 0.371 | 13.5 | 19.77 | 275.5 | 10.89 |
+| CN + attention energy | 40.6 ± 16.9 | 2.50 | 12.5 | 0.297 | 8.5 | 19.48 | 274.8 | 16.09 |
+| CN best-of-3 | 33.9 ± 18.0 | 2.62 | 12.5 | 0.293 | 9.7 | **25.45** | 262.8 | 7.22 |
+| Zhang et al. (re-impl.) | 49.5 ± 18.5 | 2.50 | 18.8 | 0.369 | 14.9 | 18.86 | 291.2 | 21.33 |
+| OCSD-lite | **54.0 ± 18.3** | 2.00 | 25.0 | 0.423 | 21.9 | 20.00 | 286.8 | 29.13 |
+| OCSD | 53.0 ± 18.3 | 2.00 | **31.2** | 0.426 | 22.2 | 19.38 | 314.3 | 20.40 |
 
-Real COCO scenes are much harder: even the photographs reach only 57.7% OPR under OWLv2, because objects are small and occluded, so every generated result should be read against this ceiling. OCSD ties GLIGEN on OPR (51.4%, 89% of the ceiling) and count accuracy (31.2%) and is 16 points above the ControlNet baseline, but trails it on mIoU, RA and image quality. All methods that restrict attention by region or rewrite latents (region attention, attention energy, Zhang et al., OCSD) lose 4–6 points of global CLIP on COCO but not on QuickDraw-Scenes; PiDiNet scribbles also contain background strokes, and constraining background tokens away from object regions is a plausible cause that we will verify on the images. With 16 scenes the intervals are about ±18 OPR points, so these are trends, not conclusions.
+Real COCO scenes are much harder: even the photographs reach only 57.7% OPR under OWLv2, because objects are small and occluded, so every generated result should be read against this ceiling. OCSD and GLIGEN are roughly tied: OCSD has slightly higher OPR (53.0% vs. 51.4%, 92% of the ceiling) and equal count accuracy (31.2%), GLIGEN slightly better count error, mIoU and RA; none of these differences approaches significance ($p\ge0.60$). OCSD is 17.6 points above the ControlNet baseline on OPR (unadjusted $p=0.016$, $p_{Holm}=0.15$), and its advantage over Zhang et al. is not significant on these 16 scenes. On the 32-scene training-free set, OCSD-lite (50.7%) trails GLIGEN (56.3%). All methods that restrict attention by region or rewrite latents (region attention, attention energy, Zhang et al., OCSD) lose 4–6 points of global CLIP on COCO but not on QuickDraw-Scenes; PiDiNet scribbles also contain background strokes, and constraining background tokens away from object regions is a plausible cause. With 16 scenes the intervals are about ±18 OPR points, so COCO results are trends.
 
 ## 5.7 Cost
 
-On the A100, one generation with the ControlNet baseline takes 2.2 s, and best-of-3 5.5 s (2.4 generations on average). OCSD takes 5.7 s per image including verification (2.2 generations on average), plus a per-scene preparation of 12.4 s for M2 and 37.0 s for M3 that is reused across seeds and prompts; peak memory is 12.5 GB versus 12.0 GB. OCSD-lite avoids M3 entirely. When a user changes only the background or $\alpha$, the prepared objects are reused, which the demo application exploits by caching M1–M3.
+On the A100, one generation with the ControlNet baseline takes 2.2 s, and best-of-3 5.2 s (2.3 generations on average). OCSD takes 4.9 s per image including verification (1.9 generations on average: fewer regenerations than best-of-3 because more first attempts pass the verifier), plus a per-scene preparation of 12.4 s for M2 and 35.6 s for M3 that is reused across seeds and prompts. OCSD-lite avoids M3 entirely (4.4 s per image). When a user changes only the background or $\alpha$, the prepared objects are reused, which the demo application exploits by caching M1–M3.
 
 # 6. Discussion and Limitations
 
-**What the preliminary evidence supports.** (i) Object consistency degrades sharply with object count for sketch-conditioned diffusion (Q1). (ii) The two-branch approach is only competitive once the scene phase is constrained; with object-aware conditioning, OCSD improves over the two-branch baseline significantly on all consistency metrics (Q2). (iii) Region constraints, the scene ControlNet, candidate selection and verification each help, and the training-free OCSD-lite gives the best counting behaviour and the best object preservation in dense scenes (Q3), but attention-energy guidance on identity tokens is harmful and currently masks these gains.
+**Answers to the research questions.** (Q1) Object consistency of sketch-conditioned diffusion degrades sharply with object count: the ControlNet baseline keeps 94% of single objects but 40% at 8–10 objects. (Q2) Splitting generation into object and scene levels is not enough by itself (Zhang et al. re-implementation: 44.3% OPR), but with candidate selection, a long blending phase and object-aware conditioning it becomes the best method on object preservation, count error and relation accuracy, significantly better than its predecessor. (Q3) Object-aware conditioning as a whole improves preservation and relations, and the largest benefit appears in dense scenes, where OCSD keeps 16.6 points more objects than GLIGEN; however, its region-attention and energy components overlap, and either one alone scored higher than both together in the ablation.
 
-**What it does not support (yet).** OCSD does not beat GLIGEN overall. We do not claim state of the art; the claim that removing M5(b) would lift OCSD above GLIGEN is not established, because the ablation subset (18 scenes, one seed) differs from the main table, and the re-tuned run is required.
+**What the evidence does not support.** We do not claim a significant improvement over GLIGEN: on 36 scenes OCSD is better on OPR, count error and RA and worse on count accuracy and mIoU, and none of these gaps survives Holm correction. On COCO-Sketch the two are tied. Image quality is lower than the single-pass baselines.
 
-**Limitations.** Per-scene identity learning adds about 50 s of preparation. Results depend on auxiliary models: Grounded-SAM masks in M2, Grounding DINO in M5(d) and OWLv2 in the evaluation; the COCO ceiling shows that the evaluation detector alone misses 42% of real objects. QuickDraw-Scenes uses real strokes but synthetic layouts, and COCO-Sketch uses PiDiNet scribbles rather than human scene sketches; FS-COCO [@chowdhury2022fscoco] is the natural next test set. The experiments use a reduced configuration (30 steps, $K=2$, 100 + 100 training steps) and small samples (36 and 16 scenes), so the confidence intervals are wide and most pairwise differences are not significant. Very abstract object sketches make ControlNet produce wrong-class objects already in M2, a limitation shared by ControlNet-based methods [@koley2024sketch; @bourouis2026sketchingreality]. Finally, a user study, planned with an anonymised automatically generated questionnaire following [@zhang2025sketchscene], has not been run.
+**Limitations.** Per-scene identity learning adds about 48 s of preparation. Results depend on auxiliary models: Grounded-SAM masks in M2, Grounding DINO in M5(d) and OWLv2 in the evaluation; the COCO ceiling shows that the evaluation detector alone misses 42% of real objects. QuickDraw-Scenes uses real strokes but synthetic layouts, and COCO-Sketch uses PiDiNet scribbles rather than human scene sketches; FS-COCO [@chowdhury2022fscoco] is the natural next test set. The experiments use a reduced configuration (30 steps, $K=2$, 100 + 100 training steps) and small samples (36 and 16 scenes, one seed on COCO and in the ablation), so confidence intervals are wide and most pairwise differences are not significant. The $\alpha$ value was tuned before the energy re-tune, and the ablation suggests a lighter M5; both should be re-selected jointly on the tuning split. FID/KID are provisional until all methods are scored on the same images. Very abstract object sketches make ControlNet produce wrong-class objects already in M2, a limitation shared by ControlNet-based methods [@koley2024sketch; @bourouis2026sketchingreality]. Finally, a user study, prepared as an anonymised, automatically generated questionnaire following [@zhang2025sketchscene], has not been run.
 
 # 7. Conclusion
 
-We framed sketch-and-text scene generation around object consistency and contributed a method, OCSD, and an evaluation protocol that measures it with an independent detector, a detector ceiling, a fair regeneration control, a held-out tuning split and paired tests. On a common SD 1.5 backbone, object-aware conditioning turns the two-branch approach from the weakest into a competitive method, significantly better than its re-implemented predecessor, with the lowest count errors and the best preservation in dense scenes for its training-free variant, while a box-conditioned model remains the strongest baseline. The ablation identifies attention-energy guidance on identity tokens as the component holding OCSD back; the re-tuned run, a larger evaluation, FS-COCO and a user study are the next steps. Code, benchmarks, per-scene results and the tuning record are available at github.com/bobbibao/ocsd-thesis.
+We framed sketch-and-text scene generation around object consistency and contributed a method, OCSD, and an evaluation protocol that measures it with an independent detector, a detector ceiling, a fair regeneration control, a held-out tuning split and paired tests. On a common SD 1.5 backbone, OCSD preserves the most objects (75.4%), has the lowest count error and the highest relation accuracy on QuickDraw-Scenes, keeps 16.6 points more objects than GLIGEN in scenes with 8–10 objects, and is significantly better than a re-implementation of the two-branch method it extends; against the strongest baseline the gains are consistent but not yet statistically significant, and on real COCO scenes the two are tied. The ablation points to a lighter object-aware conditioning module and a jointly re-tuned blending schedule as the next steps, together with a larger evaluation, FS-COCO and a user study. Code, benchmarks, per-scene results and the tuning record are available at github.com/bobbibao/ocsd-thesis.
 
 # Acknowledgements
 
