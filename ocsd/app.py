@@ -64,7 +64,7 @@ def launch(backbone="sd15", share=True):
                                 value="brown horse, white sheep")
                 bg = gr.Textbox(label="Mô tả nền", value="on the hillside at sunset")
                 full = gr.Checkbox(label="OCSD đầy đủ (học định danh, chậm hơn ~1 phút)", value=False)
-                al = gr.Slider(0.3, 1.0, value=0.5, step=0.05, label="alpha")
+                al = gr.Slider(0.0, 1.0, value=OCSDConfig().alpha, step=0.05, label="alpha")
                 seed = gr.Number(value=0, label="seed", precision=0)
                 btn = gr.Button("Sinh ảnh", variant="primary")
             with gr.Column():

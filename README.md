@@ -46,7 +46,23 @@ Phương pháp so sánh (`methods.py`), cùng backbone SD 1.5, cùng DDIM 50 bư
 ControlNet Scribble, T2I-Adapter Sketch, GLIGEN, ControlNet + chú ý vùng (kiểu DenseDiffusion),
 ControlNet + năng lượng chú ý (kiểu BoxDiff/Attend-and-Excite), ControlNet chọn tốt nhất trong 3 bằng cùng bộ kiểm tra
 (đối chứng công bằng cho M5(d)), Zhang et al. (2025) cài đặt lại, OCSD-lite (không huấn luyện), OCSD.
-Cắt bỏ: 12 cấu hình (`abl_*`) và khảo sát α ∈ {0,4 … 1,0}.
+Cắt bỏ: 14 cấu hình (`abl_*`) và khảo sát α ∈ {0,4 … 1,0}.
+
+### Final configuration (frozen code defaults, `config.py: OCSDConfig`)
+
+| Setting | Value | Where it comes from |
+|---|---|---|
+| α (latent blending while t > αT) | 0.1 | tuning phase 1 (`results/tuning/tuned.json`) |
+| LoRA strength at inference | 0.5 | tuning phase 1 |
+| M5(b) energy guidance | on object-phrase tokens, η = 20, τ = 10 | tuning phase 2 |
+| Caption in the global prompt P_g | on (only changes COCO-Sketch prompts) | plan item 2.6 |
+| M5(a) region attention | λ0 = 8, γ = 1 | thesis Table 3.x |
+| M5(c) scene ControlNet / M5(d) verification | ω = 0.4 / R = 2, threshold 0.35, λ0 × 1.5 | thesis Table 3.x |
+
+Tiers `paper` and `full` still read `results/tuning/tuned.json` on top of these defaults. Tuning phase 3 (M5(a) / M5(b)
+x α) may switch off one of M5(a) / M5(b) and change α; its result is in `tuned.json` (`method_m5`). Zhang et al. (2025)
+keeps its own setup (α 0.5, LoRA 1.0, no M5, no caption). The tests run on the `paper` tier's power job are fixed in
+advance in `docs/PREREGISTRATION.md`.
 
 ## Đánh giá (`metrics.py`, `report.py`)
 
@@ -63,6 +79,8 @@ pip install -r requirements-colab.txt torch torchvision open_clip_torch
 python tests/smoke_test.py          # mọi phương pháp + đánh giá + báo cáo với mô hình thu nhỏ ngẫu nhiên
 python tests/test_vision_tiny.py    # lớp bao OWLv2/CLIP/SAM/DINOv2
 python tests/test_coco_builder.py   # dựng COCO-Sketch trên bộ COCO giả
+python tests/test_tune.py           # pilot -> paper flow: tuning phases 1-3, stale outputs, power job, report
+python tests/test_prompt.py         # caption in the global prompt P_g
 ```
 (`smoke_test.py` cần biến môi trường `SMOKE_BENCH` trỏ tới một QuickDraw-Scenes dựng ở 128 px và `CLIP_BPE` trỏ tới
 `open_clip/bpe_simple_vocab_16e6.txt.gz`; xem đầu tệp.)

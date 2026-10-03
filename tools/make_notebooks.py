@@ -96,9 +96,10 @@ if os.path.exists(f): display(Image(f, width=900))''',
     "MD:## B. Sinh ảnh\nThứ tự: E3 QuickDraw (mọi baseline + OCSD-lite trên toàn bộ tập) → OCSD và Zhang et al. "
     "(cần học định danh, trên tập con phân tầng) → E3 COCO → E4 cắt bỏ → khảo sát α. "
     "`MAX_MINUTES` giới hạn thời gian của ô này; chạy lại để tiếp tục.",
-    "MD:## T. Tuning\nPaper/full tiers only: choose α and the LoRA strength on the pilot scenes, which are then left out "
-    "of the evaluation. Runs once (about 1 A100 hour) and writes `results/tuning/tuned.json`; skipped afterwards.",
-    r'''#@title T. Tune alpha and LoRA strength on the pilot scenes (skipped when done)
+    "MD:## T. Tuning\nPaper/full tiers only, on the pilot scenes, which are then left out of the evaluation: "
+    "(1) α × LoRA strength, (2) how M5(b) energy guidance is applied, (3) which of M5(a) / M5(b) to keep, jointly "
+    "with α. Writes `results/tuning/tuned.json`; finished phases are skipped (phase 3 alone is about 1 A100 hour).",
+    r'''#@title T. Tune OCSD on the pilot scenes (finished phases are skipped)
 import torch
 eng = vis = None
 with runlog.stage("T_tune"):

@@ -64,12 +64,14 @@ def summarize(ps: pd.DataFrame, by: Sequence[str] = ("method",), metrics=METRICS
     return pd.DataFrame(rows)
 
 
-def paired_tests(ps: pd.DataFrame, ref: str = "ocsd", metrics=("opr", "oce_c", "miou", "ra", "obj_clip")) -> pd.DataFrame:
-    """Wilcoxon signed-rank giữa `ref` và từng phương pháp trên cùng tập cảnh; p hiệu chỉnh Holm theo độ đo."""
+def paired_tests(ps: pd.DataFrame, ref: str = "ocsd", metrics=("opr", "oce_c", "miou", "ra", "obj_clip"),
+                 others: Optional[Sequence[str]] = None, alternative: str = "two-sided") -> pd.DataFrame:
+    """Wilcoxon signed-rank giữa `ref` và từng phương pháp trên cùng tập cảnh; p hiệu chỉnh Holm theo độ đo.
+    alternative="greater" tests that `ref` is better (lower for metrics where lower is better)."""
     from scipy.stats import wilcoxon
     rows = []
     a = ps[ps.method == ref].set_index("sid")
-    for m in sorted(set(ps.method) - {ref}):
+    for m in (others if others is not None else sorted(set(ps.method) - {ref})):
         b = ps[ps.method == m].set_index("sid")
         common = a.index.intersection(b.index)
         for met in metrics:
@@ -81,7 +83,8 @@ def paired_tests(ps: pd.DataFrame, ref: str = "ocsd", metrics=("opr", "oce_c", "
             if len(x) < 6 or np.allclose(x, y):
                 p = 1.0
             else:
-                p = float(wilcoxon(x, y, zero_method="zsplit").pvalue)
+                sx, sy = (x, y) if HIGHER.get(met, True) else (y, x)   # orient so "greater" means ref is better
+                p = float(wilcoxon(sx, sy, zero_method="zsplit", alternative=alternative).pvalue)
             rows.append(dict(ref=ref, method=m, metric=met, n=len(x), mean_ref=x.mean(), mean_other=y.mean(),
                              diff=x.mean() - y.mean(), p=p))
     df = pd.DataFrame(rows)
@@ -96,6 +99,53 @@ def paired_tests(ps: pd.DataFrame, ref: str = "ocsd", metrics=("opr", "oce_c", "
                 df.loc[idx, "p_holm"] = v
                 prev = v
     return df
+
+
+def common_seed_rows(df: pd.DataFrame, methods: Sequence[str]) -> pd.DataFrame:
+    """Rows of `methods` limited to the (scene, seed) pairs that every one of them has, so per-scene means of
+    different methods average the same seeds."""
+    d = df[df.method.isin(methods)]
+    pairs = [set(zip(d[d.method == m].sid, d[d.method == m].seed)) for m in methods if (d.method == m).any()]
+    if not pairs:
+        return d
+    keep = set.intersection(*pairs)
+    return d[[(s, int(e)) in keep for s, e in zip(d.sid, d.seed.astype(int))]]
+
+
+# Pre-registered hypotheses (docs/PREREGISTRATION.md), tested on the E3_quickdraw_power job: every QuickDraw
+# evaluation scene, every seed, scene means. Primary family: one-sided, Holm over its comparisons.
+PREREG = dict(
+    methods=["ocsd", "gligen", "controlnet", "ocsd_lite"],
+    primary=dict(subset=("count_bin", "8+"), metric="opr", ref="ocsd", others=["gligen", "controlnet"],
+                 alternative="greater"),
+    secondary=[
+        # the 8+ scenes that were not part of the first paper-tier comparison (E3), where the effect was first seen
+        dict(name="new_scenes_8plus", subset=("count_bin", "8+"), new_only=True, metrics=["opr"], ref="ocsd",
+             others=["gligen", "controlnet"], alternative="greater"),
+        dict(name="all_scenes", subset=None, metrics=["opr", "oce_c", "ra"], ref="ocsd",
+             others=["gligen", "controlnet"], alternative="two-sided"),
+        dict(name="identity_learning", subset=None, metrics=["opr", "oce_c", "id_sim"], ref="ocsd",
+             others=["ocsd_lite"], alternative="two-sided"),
+    ],
+)
+
+
+def prereg_tests(ps: pd.DataFrame, new_sids: Optional[set] = None) -> pd.DataFrame:
+    """Run the PREREG tests on per-scene means `ps` (already limited to the power job's scenes and seeds).
+    `new_sids`: scenes outside the first E3 comparison (for the tests with new_only)."""
+    out = []
+    fams = [dict(PREREG["primary"], name="primary", metrics=[PREREG["primary"]["metric"]])] + \
+        [dict(s, name=f"secondary:{s['name']}") for s in PREREG["secondary"]]
+    for f in fams:
+        sub = ps if f["subset"] is None else ps[ps[f["subset"][0]] == f["subset"][1]]
+        label = "all" if f["subset"] is None else f"{f['subset'][0]}={f['subset'][1]}"
+        if f.get("new_only"):
+            sub = sub[sub.sid.isin(new_sids or set())]
+            label += ", new scenes"
+        t = paired_tests(sub, f["ref"], f["metrics"], f["others"], f["alternative"])
+        if len(t):
+            out.append(t.assign(family=f["name"], subset=label, alternative=f["alternative"]))
+    return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
 
 
 # ----------------------------------------------------------------------------- formatting
@@ -165,8 +215,8 @@ def save_table(df: pd.DataFrame, path_noext: str, caption: str = ""):
 # ----------------------------------------------------------------------------- experiment tables
 MAIN = ["controlnet", "t2i_adapter", "gligen", "cn_region", "cn_energy", "controlnet_bo3", "zhang2025", "ocsd_lite",
         "ocsd"]
-ABLATION = ["ocsd", "abl_no_blend", "abl_alpha0", "ocsd_lite", "abl_no_region", "abl_no_energy",
-            "abl_no_scenecn", "abl_no_verify", "abl_no_m5", "abl_no_attsep", "abl_k1", "abl_bg_only",
+ABLATION = ["ocsd", "abl_no_blend", "abl_alpha0", "ocsd_lite", "abl_no_region", "abl_no_energy", "abl_m5ab_both",
+            "abl_no_scenecn", "abl_no_verify", "abl_no_m5", "abl_no_attsep", "abl_k1", "abl_m3_long", "abl_bg_only",
             "abl_global_only", "zhang2025"]
 ALPHAS = [f"alpha_{a:.1f}" for a in (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)]
 
@@ -198,10 +248,32 @@ def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[
         if free:
             cf = set.intersection(*[set(ps[ps.method == m].sid) for m in free])
             if len(cf) > len(common):
-                s = summarize(ps[ps.method.isin(free) & ps.sid.isin(cf)])
+                # same seeds for every method (the power job gives some of them a second seed)
+                s = summarize(per_scene(common_seed_rows(df[df.sid.isin(cf)], free)))
                 out[f"E3all_{split}"] = save_table(table(s, free, [m for m in mets if m in s]),
                                                    os.path.join(tdir, f"E3all_{split}"),
                                                    f"Các phương pháp không huấn luyện trên toàn bộ {split} ({len(cf)} cảnh)")
+        # ---- power: PREREG methods on every scene with every seed, and the pre-registered tests
+        pw = [m for m in PREREG["methods"] if m in set(ps.method)]
+        if split == "quickdraw" and "ocsd" in pw and len(pw) > 1:
+            pp = per_scene(common_seed_rows(df, pw))
+            cp = set.intersection(*[set(pp[pp.method == m].sid) for m in pw])
+            if len(cp) > len(common):
+                pp = pp[pp.sid.isin(cp)]
+                s = summarize(pp)
+                out[f"E3power_{split}"] = save_table(
+                    table(s, pw, [m for m in mets if m in s]), os.path.join(tdir, f"E3power_{split}"),
+                    f"Pre-registered comparison on {split} ({len(cp)} scenes, every seed)")
+                s8 = summarize(pp[pp.count_bin == PREREG["primary"]["subset"][1]])
+                if len(s8):
+                    out[f"E3power8_{split}"] = save_table(
+                        table(s8, pw, [m for m in mets if m in s8]), os.path.join(tdir, f"E3power8_{split}"),
+                        f"Pre-registered comparison on {split}, 8+ objects ({int(s8.n_scenes.max())} scenes)")
+                pr = prereg_tests(pp, new_sids=cp - common)
+                if len(pr):
+                    out[f"prereg_{split}"] = save_table(
+                        pr.round(4), os.path.join(tdir, f"prereg_{split}"),
+                        "Pre-registered Wilcoxon tests (docs/PREREGISTRATION.md); Holm within each family and metric")
         # ---- E1 / E2: theo số đối tượng và độ phức tạp
         for dim, name in (("count_bin", "E1"), ("complexity", "E2")):
             s = summarize(ps[ps.method.isin(main) & ps.sid.isin(common)], by=("method", dim))
@@ -219,7 +291,7 @@ def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[
                                                 f"OPR (%) / OCE-lớp theo {dim} trên {split}")
             s.to_csv(os.path.join(tdir, f"{name}_{split}_long.csv"), index=False)
         # ---- kiểm định thống kê
-        pt = paired_tests(ps[ps.sid.isin(common) | ps.method.isin(ABLATION + ALPHAS)])
+        pt = paired_tests(ps[ps.sid.isin(common) | (ps.method.isin(ABLATION + ALPHAS) & ~ps.method.isin(MAIN))])
         if len(pt):
             pt.to_csv(os.path.join(tdir, f"stats_{split}.csv"), index=False)
             out[f"stats_{split}"] = pt
@@ -227,7 +299,8 @@ def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[
         ab = [m for m in ABLATION if m in set(ps.method)]
         if len(ab) > 1:
             cm = set.intersection(*[set(ps[ps.method == m].sid) for m in ab])
-            s = summarize(ps[ps.method.isin(ab) & ps.sid.isin(cm)])
+            # same seeds for every row: OCSD has every seed on these scenes, the ablation variants only the first
+            s = summarize(per_scene(common_seed_rows(df[df.sid.isin(cm)], ab)))
             out[f"E4_{split}"] = save_table(table(s, ab, ["opr", "oce_c", "miou", "ra", "clip", "obj_clip", "id_sim"]),
                                             os.path.join(tdir, f"E4_{split}"),
                                             f"Nghiên cứu cắt bỏ trên {split} ({len(cm)} cảnh)")
