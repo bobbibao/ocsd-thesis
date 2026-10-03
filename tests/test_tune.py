@@ -18,10 +18,12 @@ small = dict(height=128, width=128, steps=6, obj_steps=4, K=2, S1=3, S2=3, tau=2
 config.TIERS["tiny_pilot"] = dict(qd_per_cell=1, trained_n=2, coco_n=0, coco_trained_n=0, ablation_n=1, alpha_n=1,
                                   seeds=[0], seeds_all=1, tune=False, cfg=small)
 config.TIERS["tiny_paper"] = dict(qd_per_cell=1, trained_n=2, coco_n=0, coco_trained_n=0, ablation_n=1, alpha_n=1,
-                                  seeds=[0, 1], seeds_all=1, tune=True, cfg=small)
+                                  seeds=[0, 1], seeds_all=1, tune=True, power=["ocsd", "ocsd_lite", "gligen", "controlnet"],
+                                  cfg=small)
 config.TUNE_GRID = dict(alpha=[0.0, 0.5], lora_scale=[0.5, 1.0])
 config.TUNE_SEEDS = [0]
 config.TUNE_ENERGY = {k: v for k, v in config.TUNE_ENERGY.items() if k in ('e_off', 'e_id20', 'e_ph20')}
+config.TUNE_M5_ALPHA = [0.5]
 stages.MAIN[:] = [m for m in stages.MAIN if m != "gligen"]   # GLIGEN weights cannot be downloaded offline
 qd = os.path.join(P.benchmarks, "quickdraw")
 
@@ -50,19 +52,55 @@ try:
 except RuntimeError as e:
     print("ok, refused:", e)
 
+# a tuned.json from before phase 3 existed (phases 1-2 only, no "phases" key) resumes at phase 3
 stages.tune(P, E, eng=eng, vis=vis)
-tuned = json.load(open(os.path.join(P.results, "tuning", "tuned.json")))
+tp = os.path.join(P.results, "tuning", "tuned.json")
+tuned = json.load(open(tp))
+assert tuned["phases"] == list(stages.TUNE_PHASES)
+for k in ("use_region_attn", "phases", "method_m5", "reference_m5"):
+    tuned.pop(k, None)
+tuned["chosen"].pop("use_region_attn")
+json.dump(tuned, open(tp, "w"))
+assert not stages.tuning_finished(P)
+stages.tune(P, E, eng=eng, vis=vis)
+tuned = json.load(open(tp))
 print("tuned:", tuned)
+assert stages.tuning_finished(P) and "use_region_attn" in tuned["chosen"]
+for name in ("tuning", "tuning_energy", "tuning_m5"):
+    assert os.path.exists(os.path.join(P.results, "tuning", f"{name}_table.md")), name
 var, _ = stages.tier_variants(E, P=P)
-assert "use_energy" in tuned["chosen"] and os.path.exists(os.path.join(P.results, "tuning", "tuning_energy_table.md"))
-for k in ("ocsd", "ocsd_lite", "abl_no_region"):
+from ocsd.methods import VARIANT_OVERRIDES
+for k in ("ocsd", "ocsd_lite", "abl_no_region", "abl_no_energy", "abl_m5ab_both"):
     for f, v in tuned["chosen"].items():
-        assert getattr(var[k], f) == v, (k, f)
-assert var["abl_no_energy"].use_energy is False
-assert var["alpha_1.0"].alpha == 1.0 and var["abl_alpha0"].alpha == 0.0
-assert var["zhang2025"].alpha == 0.5 and var["zhang2025"].lora_scale == 1.0
+        assert getattr(var[k], f) == VARIANT_OVERRIDES[k].get(f, v), (k, f)
+assert var["abl_no_energy"].use_energy is False and var["abl_no_region"].use_region_attn is False
+assert var["abl_m5ab_both"].use_energy and var["abl_m5ab_both"].use_region_attn
+assert var["alpha_1.0"].alpha == 1.0 and var["abl_alpha0"].alpha == 0.0 and var["alpha_0.5"].alpha == 0.5
+assert var["zhang2025"].alpha == 0.5 and var["zhang2025"].lora_scale == 1.0 and var["zhang2025"].K == 1
+assert not var["zhang2025"].use_caption and var["ocsd"].use_caption
+assert var["abl_m3_long"].S1 == 200 and var["ocsd"].S1 == 3     # the tier setting never replaces a variant's own
+
+# outputs made before .gen_configs.json existed: only what the new defaults change is stale
+# (caption in P_g -> COCO rows of the OCSD family and the P_g baselines); Zhang et al. and QuickDraw are kept
+leg = stages._gen_signatures(E, tuned=tuned["chosen"], defaults=config.LEGACY_DEFAULTS)
+new = stages._gen_signatures(E, P=P)
+assert leg["quickdraw"]["ocsd"] == new["quickdraw"]["ocsd"] and leg["quickdraw"]["cn_region"] == {}
+assert leg["coco"]["ocsd"] != new["coco"]["ocsd"] and leg["coco"]["cn_energy"] != new["coco"]["cn_energy"]
+assert leg["coco"]["zhang2025"] == new["coco"]["zhang2025"]
 
 plan = stages.experiment_plan(P, E)
+names = {j["name"]: j for j in plan}
+# ablation rows identical to OCSD after tuning are not generated (the tiny tier has no 3/5-object trained scene, so
+# its E4 job is empty: check the rule on the variants instead)
+from ocsd.report import ABLATION
+abl = [m for m in ABLATION if m not in ("ocsd", "zhang2025", "ocsd_lite") and var[m] != var["ocsd"]]
+assert "abl_m3_long" in abl and ("abl_m5ab_both" in abl) != (var["ocsd"].use_region_attn and var["ocsd"].use_energy)
+assert ("abl_no_region" in abl) == var["ocsd"].use_region_attn and ("abl_no_energy" in abl) == var["ocsd"].use_energy
+if "E4_ablation" in names:
+    assert names["E4_ablation"]["methods"] == abl
+pw = names["E3_quickdraw_power"]
+assert set(pw["methods"]) == {"ocsd", "ocsd_lite", "controlnet"} and pw["seeds"] == [0, 1]
+assert pw["scenes"] == names["E3_quickdraw_free"]["scenes"]
 used = {os.path.basename(d) for j in plan for d in j["scenes"]}
 assert used and not used & set(pilot_sids), used & set(pilot_sids)
 names = {j["name"]: j for j in plan}

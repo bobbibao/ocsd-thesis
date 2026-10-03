@@ -302,7 +302,7 @@ def build_scene(eng: Engine, scene: Scene, objs: Optional[List[ObjectResult]], c
     ar = lh // eng.attn_div
     lambda0 = cfg.lambda0 if lambda0 is None else lambda0
     use_id = id_tokens is not None
-    gp = scene_global_prompt(eng.tokenizer, scene, id_tokens, use_phrase=cfg.use_user_phrase)
+    gp = scene_global_prompt(eng.tokenizer, scene, id_tokens, use_phrase=cfg.use_user_phrase, caption=cfg.use_caption)
     bg_text = cfg.bg_prompt_tmpl.format(bg=scene.bg)
     neg_bg = cfg.negative_prompt + ", " + ", ".join(sorted({o.cls for o in scene.objects}))
     if cfg.prompt_mode == "bg_only":

@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 import numpy as np
 import torch
 
-from .config import BACKBONES, OCSDConfig
+from .config import BACKBONES, LEGACY_DEFAULTS, OCSDConfig
 from .engine import Engine
 from .matching import consistency, verify_pass, verify_score
 from .method import _lat_mask, sample
@@ -21,28 +21,35 @@ BASE = OCSDConfig()
 # ----------------------------------------------------------------------------- OCSD family (cấu hình)
 M5_OFF = dict(use_region_attn=False, use_energy=False, use_scene_cn=False, use_verify=False)
 
-OCSD_VARIANTS: Dict[str, OCSDConfig] = {
+# Each variant = BASE + its own overrides. stages.tier_variants applies the tier settings and the tuned values only to
+# the fields a variant does not set itself, so an ablation or a sweep keeps what defines it.
+VARIANT_OVERRIDES: Dict[str, dict] = {
     # phương pháp đề xuất
-    "ocsd": BASE,
-    "ocsd_lite": BASE.replace(use_identity=False),                  # không học định danh: không cần huấn luyện
-    # Zhang et al. 2025 (cài đặt lại): M2 1 ứng viên, câu lệnh chỉ tên lớp, M3 không L_att, M4 alpha=0.5, không M5
-    "zhang2025": BASE.replace(K=1, use_user_phrase=False, use_att_sep=False, **M5_OFF),
+    "ocsd": {},
+    "ocsd_lite": dict(use_identity=False),                          # không học định danh: không cần huấn luyện
+    # Zhang et al. 2025 (cài đặt lại): M2 1 ứng viên, câu lệnh chỉ tên lớp, M3 không L_att, M4 alpha=0.5, không M5;
+    # pinned to the pre-freeze defaults, so it is the same re-implementation as in the paper-tier run
+    "zhang2025": dict(LEGACY_DEFAULTS, K=1, use_user_phrase=False, use_att_sep=False, **M5_OFF),
     # ---- nghiên cứu cắt bỏ (E4)
-    "abl_no_blend": BASE.replace(use_blend=False),
-    "abl_alpha0": BASE.replace(alpha=0.0),
-    "abl_no_region": BASE.replace(use_region_attn=False),
-    "abl_no_energy": BASE.replace(use_energy=False),
-    "abl_no_scenecn": BASE.replace(use_scene_cn=False),
-    "abl_no_verify": BASE.replace(use_verify=False),
-    "abl_no_m5": BASE.replace(**M5_OFF),
-    "abl_no_attsep": BASE.replace(use_att_sep=False),
-    "abl_k1": BASE.replace(K=1),
-    "abl_bg_only": BASE.replace(prompt_mode="bg_only"),
-    "abl_global_only": BASE.replace(prompt_mode="global_only"),
+    "abl_no_blend": dict(use_blend=False),
+    "abl_alpha0": dict(alpha=0.0),
+    "abl_no_region": dict(use_region_attn=False),
+    "abl_no_energy": dict(use_energy=False),
+    "abl_m5ab_both": dict(use_region_attn=True, use_energy=True),   # both M5(a) and M5(b), whatever tuning kept
+    "abl_no_scenecn": dict(use_scene_cn=False),
+    "abl_no_verify": dict(use_verify=False),
+    "abl_no_m5": dict(M5_OFF),
+    "abl_no_attsep": dict(use_att_sep=False),
+    "abl_k1": dict(K=1),
+    "abl_m3_long": dict(S1=200, S2=200),                             # M3 at the full 200 + 200 steps (plan 2.7)
+    "abl_bg_only": dict(prompt_mode="bg_only"),
+    "abl_global_only": dict(prompt_mode="global_only"),
 }
 # ---- khảo sát alpha (không kiểm tra hậu sinh để thấy rõ tác động của riêng alpha)
 for _a in (0.0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0):
-    OCSD_VARIANTS[f"alpha_{_a:.1f}"] = BASE.replace(alpha=_a, use_verify=False)
+    VARIANT_OVERRIDES[f"alpha_{_a:.1f}"] = dict(alpha=_a, use_verify=False)
+
+OCSD_VARIANTS: Dict[str, OCSDConfig] = {k: BASE.replace(**o) for k, o in VARIANT_OVERRIDES.items()}
 
 BASELINES = ["controlnet", "t2i_adapter", "gligen", "cn_region", "cn_energy", "controlnet_bo3"]
 
@@ -60,6 +67,8 @@ LABELS = {
     "abl_alpha0": "- trộn tiềm ẩn toàn bộ quá trình (alpha = 0)",
     "abl_no_region": "- bỏ chú ý giới hạn theo vùng M5(a)",
     "abl_no_energy": "- bỏ dẫn hướng năng lượng M5(b)",
+    "abl_m5ab_both": "+ both M5(a) and M5(b)",
+    "abl_m3_long": "+ M3 with the full 200 + 200 steps",
     "abl_no_scenecn": "- bỏ ControlNet cấp cảnh M5(c)",
     "abl_no_verify": "- bỏ kiểm tra hậu sinh M5(d)",
     "abl_no_m5": "- bỏ toàn bộ M5",
@@ -137,7 +146,7 @@ def run_baseline(name: str, eng: Engine, vis, scene: Scene, seed: int, cfg: OCSD
                             negative_prompt=cfg.negative_prompt, generator=g, height=H, width=H).images[0])
     elif name in ("cn_region", "cn_energy"):
         control = eng.control_tensor(sketch_to_control(scene.sketch))
-        gp = scene_global_prompt(eng.tokenizer, scene, None, use_phrase=True)
+        gp = scene_global_prompt(eng.tokenizer, scene, None, use_phrase=True, caption=cfg.use_caption)
         masks = [o.mask for o in scene.objects]
         region = energy = None
         if name == "cn_region":

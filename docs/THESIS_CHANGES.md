@@ -68,3 +68,17 @@ Tệp này dành cho người viết khóa luận: mỗi mục nêu bản thảo
    tinh chỉnh, làm lệch trần bộ phát hiện và bảng thời gian. (b) FID/KID ở bảng E3 tính trên cùng một tập ảnh cho mọi
    phương pháp (tập học định danh × các seed), vì FID phụ thuộc số ảnh; trước đó baseline 108 ảnh, OCSD 72 ảnh.
    Mục 4.x cần nêu rõ: FID/KID so sánh trên cùng số ảnh; FID tuyệt đối cao do số ảnh nhỏ (72 trên QuickDraw, 16 trên COCO).
+10. **Model improvements after the final run (04/10/2026; not run yet).** (a) Stage T has a phase 3 on the same tuning
+    split: {M5(a) + M5(b), M5(a) only, M5(b) only} × α ∈ {0.1, 0.3, 0.4, 0.5, 0.6}, same selection rule, with the
+    phase-2 setting as reference (plan 2.3). (b) On COCO-Sketch the global prompt P_g now ends with the human caption
+    (`use_caption`, group of free tokens: no region bias, no energy), because P_g built from class names and the
+    background phrase lost the caption's meaning and global CLIP dropped to 19–20 (plan 2.6). It is a no-op on
+    QuickDraw-Scenes, whose caption is built from the phrases. It also applies to the "ControlNet + region attention" and
+    "ControlNet + attention energy" baselines, not to Zhang et al. (kept as re-implemented). (c) The final configuration
+    is frozen as the code defaults: α 0.1, LoRA 0.5, energy on phrase tokens with η = 20, caption in P_g (plan 3.1).
+    (d) Job `E3_quickdraw_power`: OCSD, OCSD-lite, GLIGEN and ControlNet on all 72 QuickDraw scenes with both seeds,
+    with the tests fixed in advance in `docs/PREREGISTRATION.md` (tables `E3power_*`, `E3power8_*`, `prereg_*`;
+    plan 2.4). (e) Ablation rows "+ both M5(a) and M5(b)" and "+ M3 with the full 200 + 200 steps" (plan 2.7); an
+    ablation row that tuning makes identical to OCSD is not generated. The E4 table and `E3all` now average the same
+    seeds for every row (before, OCSD rows averaged two seeds and ablation rows one).
+    Only the (split, method) folders whose settings changed are regenerated (`outputs/.gen_configs.json`).

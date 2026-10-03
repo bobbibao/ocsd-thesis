@@ -136,19 +136,54 @@ def _tuned_path(P: Paths) -> str:
     return os.path.join(P.results, "tuning", "tuned.json")
 
 
+TUNE_PHASES = ("alpha_lora", "energy", "m5_alpha")
+
+
+def _phases_done(tuned: Optional[Dict]) -> List[str]:
+    """Finished tuning phases; tuned.json files written before phases were recorded are read from their keys."""
+    if not tuned:
+        return []
+    if "phases" in tuned:
+        return list(tuned["phases"])
+    c = tuned.get("chosen", {})
+    return [p for p, k in zip(TUNE_PHASES, ("alpha", "use_energy", "use_region_attn")) if k in c]
+
+
+def tuning_finished(P: Paths) -> bool:
+    if not os.path.exists(_tuned_path(P)):
+        return False
+    return set(_phases_done(json.load(open(_tuned_path(P))))) >= set(TUNE_PHASES)
+
+
+def _legacy_ocsd(E: ExperimentConfig):
+    """OCSD with the tier settings and the pre-freeze defaults: the starting point of tuning phases 1-2."""
+    from .config import LEGACY_DEFAULTS, OCSDConfig
+    return OCSDConfig(**LEGACY_DEFAULTS).replace(**TIERS[E.tier].get("cfg", {}))
+
+
 def _tune_variants(E: ExperimentConfig):
     from .config import TUNE_GRID
-    var, _ = tier_variants(E, apply_tuned=False)
-    return {f"tune_a{a:.1f}_l{l:.1f}": var["ocsd"].replace(alpha=a, lora_scale=l)
+    base = _legacy_ocsd(E)
+    return {f"tune_a{a:.1f}_l{l:.1f}": base.replace(alpha=a, lora_scale=l)
             for a in TUNE_GRID["alpha"] for l in TUNE_GRID["lora_scale"]}
 
 
 def _tune_energy_variants(E: ExperimentConfig, chosen: Dict):
     from .config import TUNE_ENERGY
-    var, _ = tier_variants(E, apply_tuned=False)
-    base = var["ocsd"].replace(alpha=chosen["alpha"], lora_scale=chosen["lora_scale"])
+    base = _legacy_ocsd(E).replace(alpha=chosen["alpha"], lora_scale=chosen["lora_scale"])
     return {f"tune_a{chosen['alpha']:.1f}_l{chosen['lora_scale']:.1f}_{k}": base.replace(**v)
             for k, v in TUNE_ENERGY.items()}
+
+
+def _tune_m5_variants(E: ExperimentConfig, chosen: Dict):
+    """Phase 3: {M5(a)+M5(b), M5(a) only, M5(b) only} x alpha, on top of the phase 1-2 choices and the current
+    defaults (caption in P_g). Returns (variants, reference name = the phase-2 setting at its alpha)."""
+    from .config import OCSDConfig, TUNE_M5, TUNE_M5_ALPHA
+    base = OCSDConfig().replace(**TIERS[E.tier].get("cfg", {})).replace(**chosen)
+    alphas = sorted(set(TUNE_M5_ALPHA) | {round(float(chosen["alpha"]), 2)})
+    var = {f"tune_m5_{k}_a{a:.1f}": base.replace(alpha=a, **v) for k, v in TUNE_M5.items() for a in alphas}
+    mode = "both" if chosen.get("use_energy", True) else "region"
+    return var, f"tune_m5_{mode}_a{float(chosen['alpha']):.1f}"
 
 
 def _tuning_jobs(P: Paths):
@@ -209,8 +244,9 @@ def _run_grid(P, E, eng, vis, variants, ref, name, max_minutes):
 
 
 def tune(P: Paths, E: ExperimentConfig, eng=None, vis=None, max_minutes: Optional[float] = None):
-    """Tune OCSD on the tuning split (pilot scenes), with the tier's own M2/M3 settings, in two phases:
-    (1) alpha x lora_scale (TUNE_GRID), (2) how M5(b) energy guidance is applied (TUNE_ENERGY).
+    """Tune OCSD on the tuning split (pilot scenes), with the tier's own M2/M3 settings, in three phases:
+    (1) alpha x lora_scale (TUNE_GRID), (2) how M5(b) energy guidance is applied (TUNE_ENERGY),
+    (3) which of M5(a) / M5(b) to keep, jointly with alpha (TUNE_M5 x TUNE_M5_ALPHA).
     Each phase keeps the highest OPR + mIoU + RA (scene means) among settings whose global CLIP score is within
     TUNE_CLIP_TOL of that phase's reference setting. Result: results/tuning/tuned.json; finished phases are skipped."""
     from .config import TUNE_CLIP_TOL, TUNE_SEEDS
@@ -222,7 +258,8 @@ def tune(P: Paths, E: ExperimentConfig, eng=None, vis=None, max_minutes: Optiona
         mark_skipped("T_tune", f"tier '{E.tier}' does not tune")
         return eng, vis
     tuned = json.load(open(_tuned_path(P))) if os.path.exists(_tuned_path(P)) else None
-    if tuned and "use_energy" in tuned["chosen"]:
+    done = _phases_done(tuned)
+    if set(done) >= set(TUNE_PHASES):
         mark_skipped("T_tune", f"already tuned: {tuned['chosen']}")
         return eng, vis
     if not os.path.exists(_tuning_split_path(P)):
@@ -233,58 +270,102 @@ def tune(P: Paths, E: ExperimentConfig, eng=None, vis=None, max_minutes: Optiona
         vis = Vision("cuda", cache_dir=P.cache)
     os.makedirs(os.path.join(P.results, "tuning"), exist_ok=True)
     rule = f"max OPR+mIoU+RA with CLIP >= CLIP(reference) - {TUNE_CLIP_TOL}"
-    if tuned is None:
+
+    def save(phase):
+        done.append(phase)
+        tuned["phases"] = list(done)
+        json.dump(tuned, open(_tuned_path(P), "w"), indent=1)
+
+    if "alpha_lora" not in done:
         variants = _tune_variants(E)
         _, best = _run_grid(P, E, eng, vis, variants, "tune_a0.5_l1.0", "tuning", max_minutes)
         tuned = dict(chosen=dict(alpha=variants[best].alpha, lora_scale=variants[best].lora_scale), method=best,
                      rule=rule, n_scenes={sp: len(ds) for sp, ds in _tuning_jobs(P)}, seeds=TUNE_SEEDS,
                      time=time.strftime("%Y-%m-%d %H:%M:%S"))
-        json.dump(tuned, open(_tuned_path(P), "w"), indent=1)
-    variants = _tune_energy_variants(E, tuned["chosen"])
-    ref = [k for k in variants if k.endswith("_e_id20")][0]
-    _, best = _run_grid(P, E, eng, vis, variants, ref, "tuning_energy", max_minutes)
-    v = variants[best]
-    tuned["chosen"].update(use_energy=v.use_energy, energy_tokens=v.energy_tokens, eta=v.eta)
-    tuned.update(method_energy=best, time_energy=time.strftime("%Y-%m-%d %H:%M:%S"))
-    json.dump(tuned, open(_tuned_path(P), "w"), indent=1)
+        save("alpha_lora")
+    if "energy" not in done:
+        variants = _tune_energy_variants(E, tuned["chosen"])
+        ref = [k for k in variants if k.endswith("_e_id20")][0]
+        _, best = _run_grid(P, E, eng, vis, variants, ref, "tuning_energy", max_minutes)
+        v = variants[best]
+        tuned["chosen"].update(use_energy=v.use_energy, energy_tokens=v.energy_tokens, eta=v.eta)
+        tuned.update(method_energy=best, time_energy=time.strftime("%Y-%m-%d %H:%M:%S"))
+        save("energy")
+    if "m5_alpha" not in done:
+        variants, ref = _tune_m5_variants(E, tuned["chosen"])
+        _, best = _run_grid(P, E, eng, vis, variants, ref, "tuning_m5", max_minutes)
+        v = variants[best]
+        tuned["chosen"].update(alpha=v.alpha, use_region_attn=v.use_region_attn, use_energy=v.use_energy)
+        tuned.update(method_m5=best, reference_m5=ref, time_m5=time.strftime("%Y-%m-%d %H:%M:%S"))
+        save("m5_alpha")
     print(f"[tune] chosen: {tuned['chosen']}")
     return eng, vis
 
 
-def _archive_stale_ocsd(P: Paths):
-    """OCSD-family images depend on the tuned settings: when those change, move the old images, their metrics and
-    FID rows aside (outputs/_stale, results/_stale) so they are generated and scored again. Baselines are kept."""
-    chosen = json.load(open(_tuned_path(P)))["chosen"]
-    marker = os.path.join(P.outputs, ".ocsd_tuned.json")
-    prev = json.load(open(marker)) if os.path.exists(marker) else \
-        {k: v for k, v in chosen.items() if k in ("alpha", "lora_scale")}   # runs before energy tuning existed
-    if prev == chosen:
-        return
-    fam = [m for m in OCSD_VARIANTS if m != "zhang2025"]
-    ts = time.strftime("%Y%m%d_%H%M%S")
-    moved = 0
+PROMPT_BASELINES = ("cn_region", "cn_energy")   # baselines built on P_g (scene_global_prompt)
+
+
+def _gen_signatures(E: ExperimentConfig, tuned: Optional[Dict] = None, defaults: Optional[Dict] = None,
+                    P: Optional[Paths] = None) -> Dict[str, Dict[str, Dict]]:
+    """split -> method -> the settings its images depend on, for the OCSD family and the P_g-based baselines.
+    use_caption is left out on QuickDraw, where the caption never adds anything to P_g (sketch.caption_adds_info)."""
+    var, base = tier_variants(E, P=P, tuned=tuned, defaults=defaults)
+    out = {}
     for sp in ("quickdraw", "coco"):
-        for m in fam:
-            src = os.path.join(P.outputs, sp, m)
-            if os.path.isdir(src):
-                dst = os.path.join(P.outputs, "_stale", ts, sp, m)
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
-                os.rename(src, dst)
-                moved += 1
-            csv = os.path.join(P.results, sp, f"per_image_{m}.csv")
-            if os.path.exists(csv):
-                dst = os.path.join(P.results, "_stale", ts, sp)
-                os.makedirs(dst, exist_ok=True)
-                os.rename(csv, os.path.join(dst, os.path.basename(csv)))
+        sig = {}
+        for m, c in var.items():
+            d = c.to_dict()
+            if sp == "quickdraw":
+                d.pop("use_caption")
+            sig[m] = d
+        for m in PROMPT_BASELINES:
+            sig[m] = dict(use_caption=base.use_caption) if sp == "coco" else {}
+        out[sp] = json.loads(json.dumps(sig))   # tuples -> lists, as read back from the marker
+    return out
+
+
+def _archive_stale(P: Paths, E: ExperimentConfig):
+    """Images of the OCSD family (and of the P_g-based baselines) depend on the tuned settings and the code defaults:
+    when the settings of a (split, method) change, move its images, metrics and FID row aside (outputs/_stale,
+    results/_stale) so they are generated and scored again. Everything else is kept.
+
+    The settings each folder was generated with are kept in outputs/.gen_configs.json. Outputs from before that file
+    existed are described by outputs/.ocsd_tuned.json (the tuned values then) plus config.LEGACY_DEFAULTS."""
+    from .config import LEGACY_DEFAULTS
+    marker = os.path.join(P.outputs, ".gen_configs.json")
+    legacy = os.path.join(P.outputs, ".ocsd_tuned.json")
+    new = _gen_signatures(E, P=P)
+    if os.path.exists(marker):
+        old = json.load(open(marker))
+    elif os.path.exists(legacy):
+        old = _gen_signatures(E, tuned=json.load(open(legacy)), defaults=LEGACY_DEFAULTS)
+    else:
+        old = new   # nothing generated with a tuned configuration yet
+    stale = [(sp, m) for sp in new for m in new[sp] if m in old.get(sp, {}) and old[sp][m] != new[sp][m]]
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    moved = []
+    for sp, m in stale:
+        src = os.path.join(P.outputs, sp, m)
+        if os.path.isdir(src):
+            dst = os.path.join(P.outputs, "_stale", ts, sp, m)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            os.rename(src, dst)
+            moved.append(f"{sp}/{m}")
+        csv = os.path.join(P.results, sp, f"per_image_{m}.csv")
+        if os.path.exists(csv):
+            dst = os.path.join(P.results, "_stale", ts, sp)
+            os.makedirs(dst, exist_ok=True)
+            os.rename(csv, os.path.join(dst, os.path.basename(csv)))
+    for sp in {sp for sp, _ in stale}:
         q = os.path.join(P.results, sp, "quality_fid_kid.csv")
         if os.path.exists(q):
             import pandas as pd
             d = pd.read_csv(q)
-            d[~d.method.isin(fam)].to_csv(q, index=False)
-    json.dump(chosen, open(marker, "w"), indent=1)
+            d[~d.method.isin([m for s, m in stale if s == sp])].to_csv(q, index=False)
+    json.dump(new, open(marker, "w"), indent=1)
     if moved:
-        print(f"[tune] settings changed {prev} -> {chosen}: moved {moved} OCSD-family output folders to "
-              f"outputs/_stale/{ts}; they will be generated again")
+        print(f"[tune] settings changed for {len(moved)} output folders, moved to outputs/_stale/{ts} and generated "
+              f"again: {', '.join(sorted(moved))}")
 
 
 # ============================================================================ 2. generate
@@ -302,6 +383,11 @@ def experiment_plan(P: Paths, E: ExperimentConfig) -> List[Dict]:
     coco_tr = list_scenes(P.benchmarks, "coco", limit=t["coco_trained_n"], seed=1, exclude=ex)
     coco_tr = [d for d in coco_tr if d in coco_all] or coco_all[: t["coco_trained_n"]]
     mid = [d for d in qd_tr if os.path.basename(d).split("_")[1] in ("3", "5")]
+    # ablation rows that tuning made identical to OCSD (e.g. "no M5(b)" when M5(b) is off) would only repeat its row
+    var, _ = tier_variants(E, P=P)
+    abl = [m for m in ABLATION if m in OCSD_VARIANTS and m not in ("ocsd", "zhang2025", "ocsd_lite")
+           and var[m] != var["ocsd"]]
+    power = [m for m in t.get("power", []) if m in main]
     plan = [
         dict(name="E3_quickdraw_free", split="quickdraw", scenes=qd_all, seeds=E.seeds[: t.get("seeds_all", 99)],
              methods=free),
@@ -311,33 +397,34 @@ def experiment_plan(P: Paths, E: ExperimentConfig) -> List[Dict]:
         dict(name="E3_quickdraw_trained", split="quickdraw", scenes=qd_tr, seeds=E.seeds, methods=["ocsd", "zhang2025"]),
         dict(name="E3_coco_free", split="coco", scenes=coco_all, seeds=E.seeds[:1], methods=free),
         dict(name="E3_coco_trained", split="coco", scenes=coco_tr, seeds=E.seeds[:1], methods=["ocsd", "zhang2025"]),
-        dict(name="E4_ablation", split="quickdraw", scenes=mid[: t["ablation_n"]], seeds=E.seeds[:1],
-             methods=[m for m in ABLATION if m in OCSD_VARIANTS and m not in ("ocsd", "zhang2025", "ocsd_lite")]),
+        dict(name="E4_ablation", split="quickdraw", scenes=mid[: t["ablation_n"]], seeds=E.seeds[:1], methods=abl),
         dict(name="alpha", split="quickdraw", scenes=mid[: t["alpha_n"]], seeds=E.seeds[:1], methods=ALPHAS),
+        # every seed on every QuickDraw scene for the pre-registered tests (docs/PREREGISTRATION.md)
+        dict(name="E3_quickdraw_power", split="quickdraw", scenes=qd_all, seeds=E.seeds, methods=power),
     ]
-    return [p for p in plan if p["scenes"] and p["seeds"]]
+    return [p for p in plan if p["scenes"] and p["seeds"] and p["methods"]]
 
 
-def tier_variants(E: ExperimentConfig, apply_tuned: bool = True, P: Optional[Paths] = None):
-    """Áp siêu tham số của tier cho mọi phương pháp (Zhang et al. giữ K = 1).
-    With a tuned.json (stages.tune), its alpha / lora_scale replace the defaults in every OCSD variant that does
-    not set them itself (the alpha sweep and alpha ablations keep their alpha; Zhang et al. keeps its own setup)."""
+def tier_variants(E: ExperimentConfig, apply_tuned: bool = True, P: Optional[Paths] = None,
+                  tuned: Optional[Dict] = None, defaults: Optional[Dict] = None):
+    """Áp siêu tham số của tier cho mọi phương pháp.
+    The tier settings and the tuned values (results/tuning/tuned.json, or `tuned`) apply to every field a variant does
+    not set itself (methods.VARIANT_OVERRIDES): the alpha sweep keeps its alpha, Zhang et al. keeps K = 1 and its own
+    setup, and the tuned values never reach Zhang et al. `defaults` replaces OCSDConfig defaults (e.g. LEGACY_DEFAULTS)."""
     from .config import OCSDConfig
+    from .methods import VARIANT_OVERRIDES
     ov = TIERS[E.tier].get("cfg", {})
-    base = OCSDConfig()
-    tuned = {}
-    if apply_tuned and P is not None and TIERS[E.tier].get("tune") and os.path.exists(_tuned_path(P)):
-        tuned = json.load(open(_tuned_path(P)))["chosen"]
+    base = OCSDConfig(**(defaults or {}))
+    if tuned is None:
+        tuned = {}
+        if apply_tuned and P is not None and TIERS[E.tier].get("tune") and os.path.exists(_tuned_path(P)):
+            tuned = json.load(open(_tuned_path(P)))["chosen"]
     var = {}
-    for k, v in OCSD_VARIANTS.items():
-        o = dict(ov)
-        if v.K == 1:
-            o.pop("K", None)
+    for k, own in VARIANT_OVERRIDES.items():
+        o = {f: v for f, v in ov.items() if f not in own}
         if k != "zhang2025":
-            for f, val in tuned.items():
-                if getattr(v, f) == getattr(base, f):
-                    o[f] = val
-        var[k] = v.replace(**o)
+            o.update({f: v for f, v in tuned.items() if f not in own})
+        var[k] = base.replace(**o).replace(**own)
     return var, base.replace(**ov)
 
 
@@ -382,9 +469,9 @@ def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None,
     if vis is None:
         vis = Vision("cuda", cache_dir=P.cache)
     if TIERS[E.tier].get("tune"):
-        if not os.path.exists(_tuned_path(P)) or "use_energy" not in json.load(open(_tuned_path(P)))["chosen"]:
+        if not tuning_finished(P):
             raise RuntimeError("stage T (tuning) has not finished: run it before generating images for this tier")
-        _archive_stale_ocsd(P)
+        _archive_stale(P, E)
     variants, base = tier_variants(E, P=P)
     runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base, cache_dir=P.cache)
     items = work_items(P, E)
@@ -438,8 +525,15 @@ def estimate(P: Paths, E: ExperimentConfig, tiers=("pilot", "paper", "full")) ->
         sec += t["ablation_n"] * sum(map(T, abl)) + t["alpha_n"] * sum(map(T, ALPHAS))
         # M2: 1 lần/cảnh (khóa cụm từ) + cảnh có học định danh thêm khóa tên lớp (Zhang) + ablation K=1
         sec += t_m2 * (n_qd + t["coco_n"] + 0.5 * (t["trained_n"] + t["coco_trained_n"]) + 0.5 * t["ablation_n"])
-        # M3: OCSD + Zhang trên cảnh học định danh, + 2 khóa cắt bỏ (không L_att, K=1)
-        sec += t_m3 * (2 * (t["trained_n"] + t["coco_trained_n"]) + 2 * t["ablation_n"])
+        # M3: OCSD + Zhang trên cảnh học định danh, + 3 khóa cắt bỏ (không L_att, K=1, 200+200 bước ~ 2x)
+        sec += t_m3 * (2 * (t["trained_n"] + t["coco_trained_n"]) + 4 * t["ablation_n"])
+        # power job: the remaining seeds of its methods on the scenes outside the trained subset (+ M3 for OCSD)
+        rest = n_qd - t["trained_n"]
+        for m in t.get("power", []):
+            if m == "ocsd":
+                sec += rest * (S * T(m) + t_m3)
+            elif m in free:
+                sec += rest * (S - Sa) * T(m)
         out["tiers"][tier] = dict(gpu_hours=round(sec / 3600, 1))
     json.dump(out, open(os.path.join(P.results, "budget_estimate.json"), "w"), indent=1)
     print("Ước tính giờ GPU (theo thời gian đo trên GPU hiện tại, chưa gồm đánh giá ~10-15%):",

@@ -383,12 +383,24 @@ def build_grouped_prompt(tokenizer, pieces: Sequence[Tuple[str, Optional[str]]],
     return GroupedPrompt(" ".join(text_parts), groups)
 
 
+def caption_adds_info(scene: Scene) -> bool:
+    """True when the caption says more than the object phrases + background (COCO captions). QuickDraw-Scenes
+    captions are built from the phrases by make_caption, so appending them would only repeat P_g."""
+    cap = scene.caption.strip().rstrip(".").lower()
+    return bool(cap) and cap != make_caption([o.phrase for o in scene.objects], scene.bg).strip().lower()
+
+
 def scene_global_prompt(tokenizer, scene: Scene, id_tokens: Optional[Sequence[str]] = None,
-                        use_phrase: bool = True, prefix: str = "a photo of") -> GroupedPrompt:
+                        use_phrase: bool = True, prefix: str = "a photo of",
+                        caption: bool = False) -> GroupedPrompt:
     """P_g = 'a photo of <o0> brown dog, <o1> red car and ... on the beach'.
 
     Nhóm 'obj{i}' gồm token định danh + thuộc tính + tên lớp của đối tượng i, nhóm 'id{i}' chỉ gồm token
-    định danh (hoặc token tên lớp khi không có định danh) - dùng cho năng lượng chú ý ở M5(b)."""
+    định danh (hoặc token tên lớp khi không có định danh) - dùng cho năng lượng chú ý ở M5(b).
+
+    caption=True appends the scene caption after the background ('... on the beach. a man riding a horse ...') when
+    caption_adds_info(scene), as group 'cap'. Those tokens get no region bias and no energy, so they only restore the
+    global semantics; the object/background token positions are the same as without the caption."""
     pieces: List[Tuple[str, Optional[str]]] = [(prefix, None)]
     n = scene.n
     for i, o in enumerate(scene.objects):
@@ -404,4 +416,7 @@ def scene_global_prompt(tokenizer, scene: Scene, id_tokens: Optional[Sequence[st
                 pieces.append((attr, f"obj{i}"))
             pieces.append((o.cls, f"obj{i}|id{i}"))
     pieces.append((scene.bg, "bg"))
+    if caption and caption_adds_info(scene):
+        pieces.append((".", None))
+        pieces.append((scene.caption.strip().rstrip("."), "cap"))
     return build_grouped_prompt(tokenizer, pieces)

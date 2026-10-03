@@ -52,6 +52,29 @@ into "significantly better" and closing the remaining gaps.
 - Thesis FINAL_v2 (132 pages, no placeholders), slides (34), paper (15 pages, 57 references) all on final numbers.
 - Runtime reported: OCSD 4.9 s per image plus 12.4 s (M2) and 35.6 s (M3) per scene, 7.7 GB VRAM; OCSD-lite skips M3.
 
+### 1b. Implemented in code on 2026-10-04, waiting for a GPU run
+
+One Run all of the `paper` tier does all of this: stage T runs only the new phase 3, then stage B regenerates only the
+(split, method) folders whose settings changed and adds the new jobs. Rough cost on A100 (from the measured times):
+~1 h tuning phase 3, ~0.6 h for the power job, ~0.6 h for the two new ablation rows, plus what phase 3 makes stale:
+~3 h when it changes α or M5 (every OCSD-family row), ~0.3 h otherwise (only the COCO rows, for the caption).
+Run 2.1 (evaluation only) before pulling this code if the FID/KID numbers of the current images are still needed.
+
+- **2.3** Tuning phase 3 (`config.TUNE_M5`, `TUNE_M5_ALPHA`; `stages._tune_m5_variants`): {M5(a)+M5(b), M5(a) only,
+  M5(b) only} x α ∈ {0.1, 0.3, 0.4, 0.5, 0.6} on the 16 tuning scenes, same rule, phase-2 setting as reference.
+  Table `results/tuning/tuning_m5_table.md`. Ablation row "+ both M5(a) and M5(b)" added; a row that tuning makes
+  identical to OCSD is skipped.
+- **2.4** Job `E3_quickdraw_power` (OCSD, OCSD-lite, GLIGEN, ControlNet on all 72 scenes x 2 seeds). Tests fixed in
+  advance in `docs/PREREGISTRATION.md`; tables `E3power_quickdraw`, `E3power8_quickdraw`, `prereg_quickdraw`.
+  Commit that file before the run so its date precedes the images.
+- **2.6** Caption appended to P_g as free tokens when it adds information (`OCSDConfig.use_caption`, COCO only; also for
+  the cn_region / cn_energy baselines, not Zhang). Check E3 COCO global CLIP after the run.
+- **2.7** Ablation row "+ M3 with the full 200 + 200 steps" and the OCSD vs OCSD-lite test on 72 scenes (secondary
+  pre-registered family).
+- **3.1** Code defaults frozen to the tuned values (α 0.1, LoRA 0.5, phrase tokens, η 20, caption on), listed in the
+  README; Zhang et al. pinned to its own setup; tier/tuned values no longer overwrite a variant's own settings.
+- Report: E4 and E3all rows now average the same seeds for every method.
+
 ---
 
 ## 2. Experiments (open)
@@ -60,11 +83,11 @@ into "significantly better" and closing the remaining gaps.
 |---|---|---|---|---|
 | 2.1 | P0 | **Final FID/KID** | Run all once more (evaluation only, no generation). Then replace the provisional FID/KID column in thesis Table E3 COCO, §4.6.1 "Chất lượng ảnh", limitations and Ch.5; the ‡ values in paper Tables 2 and 5; slide 26 (†). Remove the "giá trị tạm thời" notes. Keep KID as the main quality number; FID on 16–72 images is relative only | Bobby, then Claude |
 | 2.2 | P0 | **Run the user study** | Kit is ready (thesis Appendix D, Drive `results/user_study`). Google Form: 10 scenes x 4 methods (OCSD, GLIGEN, ControlNet, Zhang), randomised, 3 questions (right objects, matches sketch layout, overall quality). 15–20+ respondents; report mean rank + Friedman / Wilcoxon. Fill thesis §4.x and add one paper paragraph | B, C |
-| 2.3 | P1 | **Lighter M5 + α, tuned jointly on the tuning split** | New tuning phase over {M5(a) only, M5(b) only, both} x α ∈ {0.1, 0.3, 0.4, 0.5, 0.6} on the 16 pilot scenes (same selection rule), then regenerate only OCSD-family rows. Never pick α from the test-set sweep. Expected +4–7 OPR (unconfirmed) | Claude (code thread), Bobby runs |
-| 2.4 | P1 | **Statistical power** | Cheapest route to a significant headline: OCSD (or OCSD-lite) + GLIGEN + ControlNet on all 72 QuickDraw scenes with 2 seeds (E3all already has OCSD-lite on 72 at seed 0). Pre-state the 8+ object subgroup as a test before running so the crowded-scene claim is not post hoc | Bobby (GPU), Claude |
+| 2.3 | P1 | **Lighter M5 + α, tuned jointly on the tuning split** (code done, §1b) | New tuning phase over {M5(a) only, M5(b) only, both} x α ∈ {0.1, 0.3, 0.4, 0.5, 0.6} on the 16 pilot scenes (same selection rule), then regenerate only OCSD-family rows. Never pick α from the test-set sweep. Expected +4–7 OPR (unconfirmed) | Claude (code thread), Bobby runs |
+| 2.4 | P1 | **Statistical power** (code done, §1b) | Cheapest route to a significant headline: OCSD (or OCSD-lite) + GLIGEN + ControlNet on all 72 QuickDraw scenes with 2 seeds (E3all already has OCSD-lite on 72 at seed 0). Pre-state the 8+ object subgroup as a test before running so the crowded-scene claim is not post hoc | Bobby (GPU), Claude |
 | 2.5 | P1 | **Validate the Zhang et al. re-implementation** | It scores below plain ControlNet on QuickDraw (44.3 vs 67.4) but near GLIGEN on COCO. Reviewers will question it. Reproduce 2–3 of their figures with their settings (SD 2.1, α 0.4–0.6, LoRA 1.0) for the appendix and list every deviation | Claude (code thread) |
-| 2.6 | P1 | **Explain the COCO CLIP drop** | On COCO, global CLIP falls to about 19–20 for region/energy/Zhang/OCSD vs 24.7 for ControlNet, but not on QuickDraw. Likely the prompt built from object phrases. Check images; fix (keep the caption as global prompt) or document as a trade-off | Claude (code thread) |
-| 2.7 | P1 | **Identity learning (M3) value** | OCSD beats OCSD-lite by only 2.4 OPR (not significant) at a cost of ~36 s per scene. Either show M3 helps at 200+200 steps or on identity-heavy scenes (ID-Sim 0.467 vs 0.433 is the supporting number), or present OCSD-lite as the fast variant | Claude |
+| 2.6 | P1 | **Explain the COCO CLIP drop** (fix in code, §1b) | On COCO, global CLIP falls to about 19–20 for region/energy/Zhang/OCSD vs 24.7 for ControlNet, but not on QuickDraw. Likely the prompt built from object phrases. Check images; fix (keep the caption as global prompt) or document as a trade-off | Claude (code thread) |
+| 2.7 | P1 | **Identity learning (M3) value** (runs added, §1b) | OCSD beats OCSD-lite by only 2.4 OPR (not significant) at a cost of ~36 s per scene. Either show M3 helps at 200+200 steps or on identity-heavy scenes (ID-Sim 0.467 vs 0.433 is the supporting number), or present OCSD-lite as the fast variant | Claude |
 | 2.8 | P2 | **Stronger baselines** | One recent layout method with SD 1.5 code (BoxDiff, Attend-and-Excite on GLIGEN, or MIGC) | Claude (code thread) |
 | 2.9 | P2 | **Real free-hand scene sketches** | Small FS-COCO evaluation (30–50 scenes, training-free methods at least) and 5–10 sketches drawn by the students in the qualitative figure. Replace the approximate FS-COCO pilot numbers in thesis Table 4.7 with exact ones if available | Claude, B, C |
 | 2.10 | P2 | **Failure-case gallery** | 6–8 failures with a one-line cause each (tiny objects, heavy overlap, rare classes) | Claude |
@@ -73,7 +96,7 @@ into "significantly better" and closing the remaining gaps.
 
 | # | Pri | Item | How |
 |---|---|---|---|
-| 3.1 | P1 | Freeze the final configuration | `config.py` defaults are still alpha 0.5, lora_scale 1.0, energy_tokens "id"; the run reads the tuned values from `results/tuning/tuned.json`. Set defaults to alpha 0.1, lora_scale 0.5, energy_tokens "phrase", eta 20 (or the 2.3 result) and list them in the README |
+| 3.1 | P1 | Freeze the final configuration (done, §1b) | `config.py` defaults are still alpha 0.5, lora_scale 1.0, energy_tokens "id"; the run reads the tuned values from `results/tuning/tuned.json`. Set defaults to alpha 0.1, lora_scale 0.5, energy_tokens "phrase", eta 20 (or the 2.3 result) and list them in the README |
 | 3.2 | P1 | Version the results | Commit `results/paper/` tables, tuning and figures (not per-image images) under `results/paper/` in this repo, so every thesis number traces to a commit |
 | 3.3 | P1 | Pin dependencies and tag | Pin the unpinned packages in `requirements-colab.txt` to the final run's versions (`pip freeze` in Colab); tag the commit used for the paper `v1.0-paper` |
 | 3.4 | P1 | Add a LICENSE | None exists. MIT or Apache-2.0 for code; note SD 1.5 is CreativeML OpenRAIL-M and QuickDraw is CC BY 4.0 |

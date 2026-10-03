@@ -102,7 +102,7 @@ class OCSDConfig:
     use_identity: bool = True
     S1: int = 200                     # bước học vector nhúng
     S2: int = 200                     # bước học kết hợp (vector nhúng + LoRA)
-    lora_scale: float = 1.0           # LoRA strength at inference (training always uses 1.0)
+    lora_scale: float = 0.5           # LoRA strength at inference (training always uses 1.0); tuned value
     lr_emb1: float = 5e-3
     lr_emb2: float = 5e-5
     lr_lora: float = 1e-4
@@ -112,9 +112,12 @@ class OCSDConfig:
 
     # M4 - xây dựng cảnh
     use_blend: bool = True
-    alpha: float = 0.5                # t > alpha*T: trộn tiềm ẩn; t <= alpha*T: suy luận tùy biến
+    alpha: float = 0.1                # t > alpha*T: trộn tiềm ẩn; t <= alpha*T: suy luận tùy biến; tuned value
     bg_prompt_tmpl: str = "a photo of {bg}, high quality"
     placement_search: bool = True
+    # append the scene caption to the global prompt P_g when it says more than the object phrases + background
+    # (COCO captions; a no-op on QuickDraw-Scenes, whose caption is built from the phrases)
+    use_caption: bool = True
 
     # M5 - điều kiện hóa nhận biết đối tượng
     use_region_attn: bool = True      # (a)
@@ -124,7 +127,7 @@ class OCSDConfig:
     beta: float = 1.0
     eta: float = 20.0
     tau: int = 10                     # số bước đầu của giai đoạn tùy biến có dẫn hướng năng lượng
-    energy_tokens: str = "id"          # tokens whose attention the energy steers: "id" (<o_i>) or "phrase" (object words)
+    energy_tokens: str = "phrase"      # tokens whose attention the energy steers: "id" (<o_i>) or "phrase" (object words)
     use_scene_cn: bool = True         # (c)
     omega: float = 0.4
     use_verify: bool = True           # (d)
@@ -142,6 +145,12 @@ class OCSDConfig:
         d = self.to_dict()
         d.update(kw)
         return OCSDConfig(**d)
+
+
+# Defaults before the final configuration was frozen into OCSDConfig (alpha 0.1, LoRA 0.5, energy on phrase tokens,
+# caption in P_g). The paper-tier run of 2026-10-01 used these plus results/tuning/tuned.json. Zhang et al. (2025)
+# and tuning phases 1-2 still start from them, and stages._archive_stale uses them to know how older images were made.
+LEGACY_DEFAULTS = dict(alpha=0.5, lora_scale=1.0, energy_tokens="id", eta=20.0, use_caption=False)
 
 
 # ----------------------------------------------------------------------------- experiment
@@ -174,19 +183,23 @@ TIERS = {
     # cfg: ghi đè siêu tham số cho MỌI phương pháp (giống nhau -> vẫn công bằng).
     # seeds_all: how many of `seeds` run on EVERY QuickDraw scene; the rest run only on the trained subset.
     # tune: tune alpha and lora_scale on the pilot scenes first (stages.tune), and leave those scenes out.
+    # power: methods that run on EVERY QuickDraw scene with EVERY seed (job E3_quickdraw_power), for the
+    # pre-registered tests in docs/PREREGISTRATION.md (report.PREREG).
     "pilot": dict(qd_per_cell=2, trained_n=8, coco_n=8, coco_trained_n=4, ablation_n=4, alpha_n=4, seeds=[0],
                   seeds_all=1, tune=False, cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
     "paper": dict(qd_per_cell=6, trained_n=36, coco_n=32, coco_trained_n=16, ablation_n=18, alpha_n=12, seeds=[0, 1],
-                  seeds_all=1, tune=True, cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
+                  seeds_all=1, tune=True, power=["ocsd", "ocsd_lite", "gligen", "controlnet"],
+                  cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
     "full": dict(qd_per_cell=25, trained_n=180, coco_n=200, coco_trained_n=100, ablation_n=60, alpha_n=40,
                  seeds=[0, 1, 2], seeds_all=3, tune=True, cfg=dict()),
 }
 
 
 # Tuning grid (stages.tune): run on the pilot scenes, which are then excluded from the paper/full evaluation.
+# Phases 1-2 start from LEGACY_DEFAULTS, so they repeat the procedure reported in the thesis.
 TUNE_GRID = dict(alpha=[0.0, 0.1, 0.2, 0.3, 0.5], lora_scale=[0.5, 1.0])
 TUNE_SEEDS = [0, 1]
-TUNE_CLIP_TOL = 1.0   # a setting may lose at most this much global CLIP score vs. the default (alpha 0.5, scale 1.0)
+TUNE_CLIP_TOL = 1.0   # a setting may lose at most this much global CLIP score vs. the reference setting of its phase
 # Phase 2 of the tuning (after alpha / lora_scale are fixed): how M5(b) energy guidance is applied.
 TUNE_ENERGY = {
     "e_off": dict(use_energy=False),
@@ -195,3 +208,12 @@ TUNE_ENERGY = {
     "e_ph20": dict(use_energy=True, energy_tokens="phrase", eta=20.0),
     "e_ph10": dict(use_energy=True, energy_tokens="phrase", eta=10.0),
 }
+# Phase 3 (after phases 1-2): which of M5(a) region attention / M5(b) energy guidance to keep, tuned jointly with
+# alpha, since the ablation showed the two overlap. The phase-2 setting at its alpha is the reference and always
+# part of the grid, so the phase can only move away from it when another setting scores higher.
+TUNE_M5 = {
+    "both": dict(use_region_attn=True, use_energy=True),
+    "region": dict(use_region_attn=True, use_energy=False),
+    "energy": dict(use_region_attn=False, use_energy=True),
+}
+TUNE_M5_ALPHA = [0.1, 0.3, 0.4, 0.5, 0.6]
