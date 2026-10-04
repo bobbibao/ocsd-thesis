@@ -1,0 +1,9 @@
+method,sid,seed,split,n_obj,count_bin,complexity,opr,oce,oce_c,count_acc,miou,ra,ra_cond,miou_matched,n_gen,n_preserved,missing,clip,obj_clip,id_sim,time_s,m2_s,m3_s,tries,peak_gb
+tunebl_t2i_adapter_adapter_scale0.6,coco_000000190756,0,coco,2,2-3,real,0.0,2,2,0.0,0.0,0.0,,,0,0,person|motorcycle,26.575613021850586,18.834823608398438,,1.524463176727295,,,1,9.613358974456787
+tunebl_t2i_adapter_adapter_scale0.6,coco_000000190756,1,coco,2,2-3,real,0.5,1,1,0.0,0.4061756612522422,0.0,,0.8123513225044844,1,1,person,26.036209106445312,21.378175735473633,,1.498931646347046,,,1,9.613358974456787
+tunebl_t2i_adapter_adapter_scale0.6,coco_000000315492,0,coco,4,4-5,real,0.0,1,1,0.0,0.0,0.0,,,3,0,person|teddy bear|toilet|teddy bear,31.65593147277832,15.984697341918945,,1.545003890991211,,,1,9.613358974456787
+tunebl_t2i_adapter_adapter_scale0.6,coco_000000315492,1,coco,4,4-5,real,0.0,0,2,0.0,0.0,0.0,,,4,0,person|teddy bear|toilet|teddy bear,32.8630256652832,15.86977767944336,,1.5574445724487305,,,1,9.613358974456787
+tunebl_t2i_adapter_adapter_scale0.6,coco_000000386210,0,coco,6,6-8,real,0.0,5,13,0.0,0.0,0.0,,,11,0,orange|apple|orange|apple|potted plant|potted plant,30.47540855407715,17.3127498626709,,1.503316879272461,,,1,9.613358974456787
+tunebl_t2i_adapter_adapter_scale0.6,coco_000000386210,1,coco,6,6-8,real,0.0,6,6,0.0,0.0,0.0,,,0,0,orange|apple|orange|apple|potted plant|potted plant,33.18442153930664,17.608789443969727,,1.509859561920166,,,1,9.613358974456787
+tunebl_t2i_adapter_adapter_scale0.6,coco_000000478721,0,coco,1,1,real,0.0,1,1,0.0,0.0,,,,2,0,kite,27.26064109802246,18.772979736328125,,1.500025749206543,,,1,9.613358974456787
+tunebl_t2i_adapter_adapter_scale0.6,coco_000000478721,1,coco,1,1,real,1.0,0,0,1.0,0.48695303298393605,,,0.48695303298393605,1,1,,27.95819854736328,22.262699127197266,,1.4806628227233887,,,1,9.613358974456787

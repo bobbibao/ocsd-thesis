@@ -1,0 +1,24 @@
+\begin{table}
+\caption{OPR under three evaluators on quickdraw (36 scenes); RA-cond / matched IoU only count detected objects}
+\begin{tabular}{lllllllll}
+\toprule
+Phương pháp & OPR (OWLv2) & OPR@0.5 (OWLv2) & OPR (OWLv2 + competing queries) & OPR@0.5 (OWLv2 + competing queries) & RA-cond (OWLv2 + competing queries) & matched IoU (OWLv2 + competing queries) & OPR (DETR (COCO, closed set)) & OPR@0.5 (DETR (COCO, closed set)) \\
+\midrule
+SD + ControlNet (mô hình nền) & 67.4 & 58.8 & 66.2 & 57.7 & 99.2 & 0.733 & 59.3 & 49.4 \\
+SD + T2I-Adapter & 65.3 & 49.9 & 63.6 & 49.9 & 98.8 & 0.700 & 54.3 & 36.2 \\
+GLIGEN (hộp + văn bản) & 82.2 & 80.4 & 79.9 & 78.2 & 99.5 & 0.804 & 76.7 & 75.5 \\
+ControlNet + chú ý vùng (kiểu DenseDiffusion) & 68.1 & 58.1 & 66.1 & 56.3 & 99.7 & 0.737 & 60.4 & 49.8 \\
+ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E) & 72.9 & 61.2 & 72.4 & 60.8 & 99.0 & 0.707 & 65.7 & 51.4 \\
+ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) & 70.1 & 60.5 & 68.5 & 59.4 & 99.1 & 0.746 & 65.1 & 52.5 \\
+ControlNet, best of N (same check, compute-matched) & 71.8 & 63.2 & 71.1 & 62.9 & 98.8 & 0.771 & 66.2 & 54.1 \\
+GLIGEN, best of N (same check, compute-matched) & 85.3 & 83.1 & 83.6 & 81.2 & 99.8 & 0.816 & 82.6 & 82.4 \\
+Collage: M2 objects pasted + SDEdit & 84.2 & 73.0 & 81.0 & 69.6 & 98.9 & 0.730 & 73.6 & 60.9 \\
+Collage, best of 3 (same check) & 86.2 & 76.5 & 82.7 & 73.3 & 99.8 & 0.739 & 76.5 & 63.7 \\
+Zhang et al. (2025) - cài đặt lại & 61.6 & 51.7 & 60.8 & 51.4 & 100.0 & 0.691 & 60.1 & 48.1 \\
+OCSD-lite (không học định danh) & 72.2 & 66.2 & 68.9 & 62.9 & 100.0 & 0.741 & 58.9 & 47.4 \\
+OCSD (đề xuất) & 74.0 & 64.8 & 70.6 & 62.0 & 99.6 & 0.708 & 62.5 & 52.6 \\
+OCSD-v2 (joint trajectory, training-free) & 73.2 & 43.5 & 72.6 & 43.4 & 96.0 & 0.538 & 72.6 & 39.1 \\
+Kendall τ vs the OWLv2 ranking & NaN & NaN & 0.87 & NaN & NaN & NaN & 0.67 & NaN \\
+\bottomrule
+\end{tabular}
+\end{table}

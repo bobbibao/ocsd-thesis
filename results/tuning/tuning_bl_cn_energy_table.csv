@@ -1,0 +1,4 @@
+method,opr,miou,ra,oce_c,clip,id_sim,score
+tunebl_cn_energy_eta10,0.7094,0.513,0.3942,2.9688,28.4052,,1.6166
+tunebl_cn_energy_eta40,0.7151,0.5173,0.3572,2.0312,27.594,,1.5897
+tunebl_cn_energy_eta20,0.6823,0.5319,0.3413,1.8125,27.9424,,1.5554

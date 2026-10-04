@@ -4,15 +4,20 @@
 \toprule
 Phương pháp & Thời gian (s) & M2 (s) & M3 (s) & VRAM (GB) & Số lần sinh \\
 \midrule
-SD + ControlNet (mô hình nền) & 2.500000 & NaN & NaN & 11.870000 & 1.000000 \\
-SD + T2I-Adapter & 1.790000 & NaN & NaN & 11.880000 & 1.000000 \\
-GLIGEN (hộp + văn bản) & 4.440000 & NaN & NaN & 11.940000 & 1.000000 \\
-ControlNet + chú ý vùng (kiểu DenseDiffusion) & 2.590000 & NaN & NaN & 11.940000 & 1.000000 \\
-ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E) & 3.340000 & NaN & NaN & 12.040000 & 1.000000 \\
-ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) & 5.270000 & NaN & NaN & 12.080000 & 2.200000 \\
-Zhang et al. (2025) - cài đặt lại & 2.260000 & 7.290000 & 37.770000 & 11.730000 & 1.000000 \\
-OCSD-lite (không học định danh) & 4.310000 & 9.960000 & 0.000000 & 7.420000 & 1.880000 \\
-OCSD (đề xuất) & 4.640000 & 9.430000 & 35.680000 & 7.700000 & 1.810000 \\
+SD + ControlNet (mô hình nền) & 2.220000 & NaN & NaN & 12.020000 & 1.000000 \\
+SD + T2I-Adapter & 1.550000 & NaN & NaN & 12.040000 & 1.000000 \\
+GLIGEN (hộp + văn bản) & 1.920000 & NaN & NaN & 12.030000 & 1.000000 \\
+ControlNet + chú ý vùng (kiểu DenseDiffusion) & 2.260000 & NaN & NaN & 12.030000 & 1.000000 \\
+ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E) & 3.220000 & NaN & NaN & 12.220000 & 1.000000 \\
+ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) & 5.340000 & NaN & NaN & 12.230000 & 2.250000 \\
+ControlNet, best of N (same check, compute-matched) & 11.720000 & NaN & NaN & 12.240000 & 5.060000 \\
+GLIGEN, best of N (same check, compute-matched) & 3.360000 & NaN & NaN & 12.230000 & 1.620000 \\
+Collage: M2 objects pasted + SDEdit & 3.020000 & 9.430000 & NaN & 12.030000 & 1.000000 \\
+Collage, best of 3 (same check) & 5.820000 & 9.430000 & NaN & 12.240000 & 1.940000 \\
+Zhang et al. (2025) - cài đặt lại & 1.870000 & 6.920000 & 35.790000 & 12.030000 & 1.000000 \\
+OCSD-lite (không học định danh) & 4.150000 & 9.430000 & 0.000000 & 12.230000 & 1.750000 \\
+OCSD (đề xuất) & 4.830000 & 9.430000 & 36.360000 & 12.510000 & 1.880000 \\
+OCSD-v2 (joint trajectory, training-free) & 6.830000 & 9.430000 & 0.000000 & 12.230000 & 2.190000 \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -1,10 +1,10 @@
 {
  "E3_quickdraw_free": {
-  "total": 504,
+  "total": 864,
   "todo": 0
  },
  "E3_quickdraw_free_seeds": {
-  "total": 252,
+  "total": 432,
   "todo": 0
  },
  "E3_quickdraw_trained": {
@@ -12,7 +12,7 @@
   "todo": 0
  },
  "E3_coco_free": {
-  "total": 224,
+  "total": 384,
   "todo": 0
  },
  "E3_coco_trained": {
@@ -20,7 +20,15 @@
   "todo": 0
  },
  "E4_ablation": {
-  "total": 198,
+  "total": 216,
+  "todo": 0
+ },
+ "E4v2_ablation": {
+  "total": 162,
+  "todo": 0
+ },
+ "E4v2_coco": {
+  "total": 64,
   "todo": 0
  },
  "alpha": {

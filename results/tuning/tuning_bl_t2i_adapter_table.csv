@@ -1,0 +1,4 @@
+method,opr,miou,ra,oce_c,clip,id_sim,score
+tunebl_t2i_adapter_adapter_scale0.8,0.6109,0.4366,0.3497,2.375,28.6175,,1.3972
+tunebl_t2i_adapter_adapter_scale1,0.5964,0.4818,0.3086,2.4062,27.464,,1.3867
+tunebl_t2i_adapter_adapter_scale0.6,0.4667,0.283,0.1873,2.9062,29.1017,,0.9369

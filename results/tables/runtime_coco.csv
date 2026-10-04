@@ -1,10 +1,15 @@
 Phương pháp,Thời gian (s),M2 (s),M3 (s),VRAM (GB),Số lần sinh
-SD + ControlNet (mô hình nền),2.5,,,11.87,1.0
-SD + T2I-Adapter,1.79,,,11.88,1.0
-GLIGEN (hộp + văn bản),4.44,,,11.94,1.0
-ControlNet + chú ý vùng (kiểu DenseDiffusion),2.59,,,11.94,1.0
-ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E),3.34,,,12.04,1.0
-ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra),5.27,,,12.08,2.2
-Zhang et al. (2025) - cài đặt lại,2.26,7.29,37.77,11.73,1.0
-OCSD-lite (không học định danh),4.31,9.96,0.0,7.42,1.88
-OCSD (đề xuất),4.64,9.43,35.68,7.7,1.81
+SD + ControlNet (mô hình nền),2.22,,,12.02,1.0
+SD + T2I-Adapter,1.55,,,12.04,1.0
+GLIGEN (hộp + văn bản),1.92,,,12.03,1.0
+ControlNet + chú ý vùng (kiểu DenseDiffusion),2.26,,,12.03,1.0
+ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E),3.22,,,12.22,1.0
+ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra),5.34,,,12.23,2.25
+"ControlNet, best of N (same check, compute-matched)",11.72,,,12.24,5.06
+"GLIGEN, best of N (same check, compute-matched)",3.36,,,12.23,1.62
+Collage: M2 objects pasted + SDEdit,3.02,9.43,,12.03,1.0
+"Collage, best of 3 (same check)",5.82,9.43,,12.24,1.94
+Zhang et al. (2025) - cài đặt lại,1.87,6.92,35.79,12.03,1.0
+OCSD-lite (không học định danh),4.15,9.43,0.0,12.23,1.75
+OCSD (đề xuất),4.83,9.43,36.36,12.51,1.88
+"OCSD-v2 (joint trajectory, training-free)",6.83,9.43,0.0,12.23,2.19

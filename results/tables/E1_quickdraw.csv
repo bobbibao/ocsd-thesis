@@ -1,10 +1,15 @@
 Phương pháp,1,3,5,8+
 SD + ControlNet (mô hình nền),94.4 / 0.28,63.0 / 2.00,72.2 / 2.22,40.1 / 5.33
-SD + T2I-Adapter,88.9 / 0.72,51.9 / 2.22,60.0 / 2.39,41.1 / 6.22
-GLIGEN (hộp + văn bản),100.0 / 0.06,70.4 / 1.56,73.3 / 1.83,47.8 / 6.44
-ControlNet + chú ý vùng (kiểu DenseDiffusion),94.4 / 0.39,64.8 / 2.56,73.3 / 2.22,39.4 / 6.28
-ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E),88.9 / 0.33,72.2 / 2.17,76.7 / 1.94,44.4 / 7.78
+SD + T2I-Adapter,100.0 / 0.11,51.9 / 2.39,66.7 / 2.56,42.6 / 5.44
+GLIGEN (hộp + văn bản),100.0 / 0.11,85.2 / 0.67,80.0 / 1.50,63.5 / 5.11
+ControlNet + chú ý vùng (kiểu DenseDiffusion),94.4 / 0.39,64.8 / 2.56,72.2 / 2.22,40.8 / 6.06
+ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E),94.4 / 0.28,74.1 / 2.50,76.7 / 1.78,46.2 / 7.17
 ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra),94.4 / 0.22,64.8 / 2.44,75.6 / 1.56,45.8 / 5.67
-Zhang et al. (2025) - cài đặt lại,77.8 / 1.11,48.1 / 1.94,32.2 / 4.06,19.0 / 6.56
-OCSD-lite (không học định danh),88.9 / 0.56,79.6 / 0.78,62.2 / 2.28,61.2 / 4.94
-OCSD (đề xuất),88.9 / 0.61,75.9 / 0.78,72.2 / 1.72,64.4 / 4.56
+"ControlNet, best of N (same check, compute-matched)",94.4 / 0.17,64.8 / 1.94,75.6 / 1.72,52.5 / 5.11
+"GLIGEN, best of N (same check, compute-matched)",100.0 / 0.11,81.5 / 0.89,87.8 / 1.00,71.8 / 3.06
+Collage: M2 objects pasted + SDEdit,94.4 / 0.17,77.8 / 1.39,92.2 / 1.22,72.4 / 3.06
+"Collage, best of 3 (same check)",100.0 / 0.06,75.9 / 1.33,91.1 / 1.28,77.6 / 2.94
+Zhang et al. (2025) - cài đặt lại,66.7 / 0.78,61.1 / 1.56,66.7 / 1.83,51.9 / 5.50
+OCSD-lite (không học định danh),88.9 / 0.56,79.6 / 0.78,62.2 / 2.28,58.1 / 5.17
+OCSD (đề xuất),88.9 / 0.61,75.9 / 0.78,72.2 / 1.72,58.9 / 5.11
+"OCSD-v2 (joint trajectory, training-free)",88.9 / 0.50,72.2 / 1.94,75.6 / 2.22,56.2 / 8.44

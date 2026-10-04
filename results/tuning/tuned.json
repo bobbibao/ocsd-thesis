@@ -4,7 +4,8 @@
   "lora_scale": 0.5,
   "use_energy": true,
   "energy_tokens": "phrase",
-  "eta": 20.0
+  "eta": 20.0,
+  "use_region_attn": true
  },
  "method": "tune_a0.1_l0.5",
  "rule": "max OPR+mIoU+RA with CLIP >= CLIP(tune_a0.5_l1.0) - 1.0",
@@ -18,5 +19,46 @@
  ],
  "time": "2026-09-29 03:13:56",
  "method_energy": "tune_a0.1_l0.5_e_ph20",
- "time_energy": "2026-10-01 05:31:02"
+ "time_energy": "2026-10-01 05:31:02",
+ "method_m5": "tune_m5_both_a0.1",
+ "reference_m5": "tune_m5_both_a0.1",
+ "time_m5": "2026-10-04 15:04:03",
+ "phases": [
+  "alpha_lora",
+  "energy",
+  "m5_alpha",
+  "v2",
+  "baselines"
+ ],
+ "chosen_v2": {
+  "alpha": 0.4,
+  "anchor_shrink": 0.0
+ },
+ "method_v2": "tune_v2_a0.4_s0.0",
+ "reference_v2": "tune_v2_a0.4_s0.3",
+ "time_v2": "2026-10-04 15:31:36",
+ "baselines": {
+  "controlnet": {
+   "cn_scale": 1.0
+  },
+  "t2i_adapter": {
+   "adapter_scale": 0.8
+  },
+  "gligen": {
+   "gligen_beta": 1.0
+  },
+  "cn_region": {
+   "lambda0": 12.0
+  },
+  "cn_energy": {
+   "eta": 10.0
+  },
+  "collage": {
+   "collage_strength": 0.2
+  },
+  "zhang2025": {
+   "alpha": 0.1
+  }
+ },
+ "time_baselines": "2026-10-04 16:15:55"
 }

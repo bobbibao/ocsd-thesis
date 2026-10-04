@@ -1,0 +1,4 @@
+method,opr,miou,ra,oce_c,clip,id_sim,score
+tunebl_cn_region_lambda012,0.6479,0.4952,0.3544,2.0938,27.4151,,1.4975
+tunebl_cn_region_lambda08,0.6417,0.4895,0.3377,2.25,27.4102,,1.4689
+tunebl_cn_region_lambda04,0.6245,0.4773,0.3127,2.3125,27.352,,1.4145

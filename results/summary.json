@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-01 07:34:07",
+ "generated_at": "2026-10-04 21:46:11",
  "tier": "paper",
  "backbone": "sd15",
  "seeds": [
@@ -9,21 +9,21 @@
  "eval_detector": "owlv2",
  "hardware": {
   "python": "3.13.15",
-  "torch": "2.11.0+cu128",
-  "gpu": "NVIDIA A100-SXM4-40GB",
-  "vram_gb": 39.5,
+  "torch": "2.11.0+cu130",
+  "gpu": "NVIDIA A100-SXM4-80GB",
+  "vram_gb": 79.3,
   "diffusers": "0.40.0",
   "transformers": "5.17.0",
   "cpu": "Intel(R) Xeon(R) CPU @ 2.20GHz",
-  "ram_gb": 83.5
+  "ram_gb": 167.1
  },
  "progress": {
   "E3_quickdraw_free": {
-   "total": 504,
+   "total": 864,
    "todo": 0
   },
   "E3_quickdraw_free_seeds": {
-   "total": 252,
+   "total": 432,
    "todo": 0
   },
   "E3_quickdraw_trained": {
@@ -31,7 +31,7 @@
    "todo": 0
   },
   "E3_coco_free": {
-   "total": 224,
+   "total": 384,
    "todo": 0
   },
   "E3_coco_trained": {
@@ -39,7 +39,15 @@
    "todo": 0
   },
   "E4_ablation": {
-   "total": 198,
+   "total": 216,
+   "todo": 0
+  },
+  "E4v2_ablation": {
+   "total": 162,
+   "todo": 0
+  },
+  "E4v2_coco": {
+   "total": 64,
    "todo": 0
   },
   "alpha": {
@@ -58,8 +66,12 @@
   "E3all_quickdraw",
   "E4_coco",
   "E4_quickdraw",
+  "E4v2_coco",
+  "E4v2_quickdraw",
   "alpha_quickdraw",
   "detector_ceiling_coco",
+  "robustness_coco",
+  "robustness_quickdraw",
   "runtime_coco",
   "runtime_quickdraw",
   "stats_coco",

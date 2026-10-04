@@ -9,5 +9,12 @@
   "det_thr": 0.3,
   "match_iou": 0.1,
   "rel_delta": 0.05,
-  "fp16": true
+  "fp16": true,
+  "skip_jobs": "pareto,E3_quickdraw_power",
+  "extra_detectors": [
+    "owlv2",
+    "owlv2d",
+    "detr"
+  ],
+  "detr_thr": 0.5
 }

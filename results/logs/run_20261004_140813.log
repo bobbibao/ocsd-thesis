@@ -1,0 +1,858 @@
+[log] writing to /content/drive/MyDrive/KLTN_OCSD/results/logs/run_20261004_140813.log
+[env] {"time": "2026-10-04 14:08:13", "python": "3.13.15", "torch": "2.11.0+cu130", "torchvision": "0.26.0+cu130", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA A100-SXM4-80GB", "vram_gb": 79.3, "git": "e590c1a Add tests and enhancements for OCSD-v2 and ablation variants"}
+ExperimentConfig(backbone='sd15', seeds=[0, 1], tier='paper', eval_detector='owlv2', det_thr=0.3, match_iou=0.1, rel_delta=0.05, fp16=True, skip_jobs='pareto,E3_quickdraw_power', extra_detectors=('owlv2', 'owlv2d', 'detr'), detr_thr=0.5)
+
+==================== STAGE A_data ====================
+[skip] A_data: benchmarks for tier 'paper' already built (/content/drive/MyDrive/KLTN_OCSD/data/benchmarks/.done_paper.json)
+==================== STAGE A_data OK (0.0 min) ====================
+
+==================== STAGE T_tune ====================
+/usr/local/lib/python3.13/dist-packages/huggingface_hub/utils/_validators.py:206: UserWarning: The `local_dir_use_symlinks` argument is deprecated and ignored in `hf_hub_download`. Downloading to a local directory does not use symlinks anymore.
+  warnings.warn(
+An error occurred while trying to fetch TencentARC/t2iadapter_sketch_sd15v2: TencentARC/t2iadapter_sketch_sd15v2 does not appear to have a file named diffusion_pytorch_model.safetensors.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+[transformers] The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+[tune:tuning_m5] 15 settings, 16 scenes, seeds [0, 1]: 180 images to generate
+[1/6] quickdraw/qd_8p_medium_001 (n=10): 30 ảnh | 0 phút
+[2/6] quickdraw/qd_8p_simple_002 (n=10): 30 ảnh | 7 phút
+[3/6] coco/coco_000000190756 (n=2): 30 ảnh | 13 phút
+[4/6] coco/coco_000000315492 (n=4): 30 ảnh | 17 phút
+[5/6] coco/coco_000000386210 (n=6): 30 ảnh | 23 phút
+[6/6] coco/coco_000000478721 (n=1): 30 ảnh | 29 phút
+Tổng kết: {'done': 180, 'skipped': 0, 'failed': 0} - 31.5 phút
+quickdraw/tune_m5_both_a0.1: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_both_a0.3: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_both_a0.4: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_both_a0.5: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_both_a0.6: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_energy_a0.1: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_energy_a0.3: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_energy_a0.4: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_energy_a0.5: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_energy_a0.6: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_region_a0.1: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_region_a0.3: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_region_a0.4: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_region_a0.5: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_m5_region_a0.6: 24 ảnh đã đánh giá (+24)
+coco/tune_m5_both_a0.1: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_both_a0.3: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_both_a0.4: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_both_a0.5: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_both_a0.6: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_energy_a0.1: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_energy_a0.3: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_energy_a0.4: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_energy_a0.5: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_energy_a0.6: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_region_a0.1: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_region_a0.3: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_region_a0.4: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_region_a0.5: 8 ảnh đã đánh giá (+8)
+coco/tune_m5_region_a0.6: 8 ảnh đã đánh giá (+8)
+[tune:tuning_m5] results (scene means):
+                       opr   miou     ra  oce_c    clip  id_sim  score
+method                                                                
+tune_m5_both_a0.1    0.714  0.526  0.535  1.406  27.428   0.413  1.774
+tune_m5_both_a0.3    0.714  0.514  0.538  1.281  27.401   0.394  1.765
+tune_m5_region_a0.1  0.707  0.525  0.530  1.438  27.097   0.429  1.762
+tune_m5_energy_a0.3  0.682  0.487  0.475  1.375  27.050   0.385  1.644
+tune_m5_region_a0.3  0.676  0.487  0.480  1.531  27.178   0.408  1.642
+tune_m5_energy_a0.4  0.697  0.494  0.446  1.594  27.456   0.384  1.637
+tune_m5_both_a0.4    0.676  0.483  0.467  1.688  27.791   0.394  1.627
+tune_m5_energy_a0.1  0.664  0.489  0.454  1.500  27.208   0.423  1.607
+tune_m5_both_a0.5    0.673  0.456  0.454  1.438  27.722   0.381  1.583
+tune_m5_both_a0.6    0.657  0.426  0.419  1.719  27.676   0.355  1.503
+tune_m5_energy_a0.5  0.653  0.432  0.380  1.750  27.313   0.353  1.465
+tune_m5_region_a0.4  0.636  0.457  0.337  1.844  27.374   0.371  1.430
+tune_m5_region_a0.5  0.625  0.438  0.296  1.938  26.896   0.353  1.359
+tune_m5_energy_a0.6  0.592  0.380  0.322  1.844  26.989   0.334  1.294
+tune_m5_region_a0.6  0.505  0.336  0.236  2.188  26.774   0.294  1.077
+[tune:tuning_m5] best: tune_m5_both_a0.1
+[tune:tuning_v2] 6 settings, 16 scenes, seeds [0, 1]: 192 images to generate
+[1/16] quickdraw/qd_1_complex_001 (n=1): 12 ảnh | 0 phút
+[2/16] quickdraw/qd_1_medium_002 (n=1): 12 ảnh | 1 phút
+[3/16] quickdraw/qd_1_simple_000 (n=1): 12 ảnh | 2 phút
+[4/16] quickdraw/qd_3_complex_000 (n=3): 12 ảnh | 3 phút
+[5/16] quickdraw/qd_3_medium_001 (n=3): 12 ảnh | 4 phút
+[6/16] quickdraw/qd_3_simple_002 (n=3): 12 ảnh | 6 phút
+[7/16] quickdraw/qd_5_complex_000 (n=5): 12 ảnh | 8 phút
+[8/16] quickdraw/qd_5_medium_001 (n=5): 12 ảnh | 10 phút
+[9/16] quickdraw/qd_5_simple_000 (n=5): 12 ảnh | 12 phút
+[10/16] quickdraw/qd_8p_complex_002 (n=10): 12 ảnh | 14 phút
+[11/16] quickdraw/qd_8p_medium_001 (n=10): 12 ảnh | 16 phút
+[12/16] quickdraw/qd_8p_simple_002 (n=10): 12 ảnh | 18 phút
+[13/16] coco/coco_000000190756 (n=2): 12 ảnh | 21 phút
+[14/16] coco/coco_000000315492 (n=4): 12 ảnh | 22 phút
+[15/16] coco/coco_000000386210 (n=6): 12 ảnh | 24 phút
+[16/16] coco/coco_000000478721 (n=1): 12 ảnh | 26 phút
+Tổng kết: {'done': 192, 'skipped': 0, 'failed': 0} - 26.5 phút
+quickdraw/tune_v2_a0.2_s0.0: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_v2_a0.2_s0.3: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_v2_a0.4_s0.0: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_v2_a0.4_s0.3: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_v2_a0.6_s0.0: 24 ảnh đã đánh giá (+24)
+quickdraw/tune_v2_a0.6_s0.3: 24 ảnh đã đánh giá (+24)
+coco/tune_v2_a0.2_s0.0: 8 ảnh đã đánh giá (+8)
+coco/tune_v2_a0.2_s0.3: 8 ảnh đã đánh giá (+8)
+coco/tune_v2_a0.4_s0.0: 8 ảnh đã đánh giá (+8)
+coco/tune_v2_a0.4_s0.3: 8 ảnh đã đánh giá (+8)
+coco/tune_v2_a0.6_s0.0: 8 ảnh đã đánh giá (+8)
+coco/tune_v2_a0.6_s0.3: 8 ảnh đã đánh giá (+8)
+[tune:tuning_v2] results (scene means):
+                     opr   miou     ra  oce_c    clip  id_sim  score
+method                                                              
+tune_v2_a0.4_s0.0  0.803  0.481  0.488  1.969  27.840   0.350  1.771
+tune_v2_a0.2_s0.3  0.790  0.445  0.473  2.000  28.086   0.360  1.708
+tune_v2_a0.6_s0.0  0.795  0.448  0.455  1.500  27.702   0.313  1.699
+tune_v2_a0.2_s0.0  0.777  0.466  0.432  2.312  28.046   0.386  1.675
+tune_v2_a0.4_s0.3  0.710  0.389  0.356  2.188  27.567   0.341  1.454
+tune_v2_a0.6_s0.3  0.707  0.367  0.372  2.156  27.509   0.312  1.446
+[tune:tuning_v2] best: tune_v2_a0.4_s0.0
+[tune:tuning_bl_controlnet] 4 settings, 16 scenes, seeds [0, 1]: 128 images to generate
+[1/16] quickdraw/qd_1_complex_001 (n=1): 8 ảnh | 0 phút
+[2/16] quickdraw/qd_1_medium_002 (n=1): 8 ảnh | 0 phút
+[3/16] quickdraw/qd_1_simple_000 (n=1): 8 ảnh | 1 phút
+[4/16] quickdraw/qd_3_complex_000 (n=3): 8 ảnh | 1 phút
+[5/16] quickdraw/qd_3_medium_001 (n=3): 8 ảnh | 1 phút
+[6/16] quickdraw/qd_3_simple_002 (n=3): 8 ảnh | 1 phút
+[7/16] quickdraw/qd_5_complex_000 (n=5): 8 ảnh | 2 phút
+[8/16] quickdraw/qd_5_medium_001 (n=5): 8 ảnh | 2 phút
+[9/16] quickdraw/qd_5_simple_000 (n=5): 8 ảnh | 2 phút
+[10/16] quickdraw/qd_8p_complex_002 (n=10): 8 ảnh | 3 phút
+[11/16] quickdraw/qd_8p_medium_001 (n=10): 8 ảnh | 3 phút
+[12/16] quickdraw/qd_8p_simple_002 (n=10): 8 ảnh | 3 phút
+[13/16] coco/coco_000000190756 (n=2): 8 ảnh | 3 phút
+[14/16] coco/coco_000000315492 (n=4): 8 ảnh | 4 phút
+[15/16] coco/coco_000000386210 (n=6): 8 ảnh | 4 phút
+[16/16] coco/coco_000000478721 (n=1): 8 ảnh | 4 phút
+Tổng kết: {'done': 128, 'skipped': 0, 'failed': 0} - 4.6 phút
+quickdraw/tunebl_controlnet_cn_scale0.6: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_controlnet_cn_scale0.8: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_controlnet_cn_scale1: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_controlnet_cn_scale1.2: 24 ảnh đã đánh giá (+24)
+coco/tunebl_controlnet_cn_scale0.6: 8 ảnh đã đánh giá (+8)
+coco/tunebl_controlnet_cn_scale0.8: 8 ảnh đã đánh giá (+8)
+coco/tunebl_controlnet_cn_scale1: 8 ảnh đã đánh giá (+8)
+coco/tunebl_controlnet_cn_scale1.2: 8 ảnh đã đánh giá (+8)
+[tune:tuning_bl_controlnet] results (scene means):
+                                 opr   miou     ra  oce_c    clip  id_sim  score
+method                                                                          
+tunebl_controlnet_cn_scale1    0.627  0.456  0.353  1.969  27.975     NaN  1.435
+tunebl_controlnet_cn_scale1.2  0.614  0.486  0.322  2.125  28.040     NaN  1.421
+tunebl_controlnet_cn_scale0.8  0.610  0.410  0.301  2.281  28.409     NaN  1.321
+tunebl_controlnet_cn_scale0.6  0.529  0.337  0.269  2.844  28.343     NaN  1.135
+[tune:tuning_bl_controlnet] best: tunebl_controlnet_cn_scale1
+[tune:tuning_bl_t2i_adapter] 3 settings, 16 scenes, seeds [0, 1]: 96 images to generate
+[1/16] quickdraw/qd_1_complex_001 (n=1): 6 ảnh | 0 phút
+[2/16] quickdraw/qd_1_medium_002 (n=1): 6 ảnh | 0 phút
+[3/16] quickdraw/qd_1_simple_000 (n=1): 6 ảnh | 0 phút
+[4/16] quickdraw/qd_3_complex_000 (n=3): 6 ảnh | 0 phút
+[5/16] quickdraw/qd_3_medium_001 (n=3): 6 ảnh | 1 phút
+[6/16] quickdraw/qd_3_simple_002 (n=3): 6 ảnh | 1 phút
+[7/16] quickdraw/qd_5_complex_000 (n=5): 6 ảnh | 1 phút
+[8/16] quickdraw/qd_5_medium_001 (n=5): 6 ảnh | 1 phút
+[9/16] quickdraw/qd_5_simple_000 (n=5): 6 ảnh | 1 phút
+[10/16] quickdraw/qd_8p_complex_002 (n=10): 6 ảnh | 1 phút
+[11/16] quickdraw/qd_8p_medium_001 (n=10): 6 ảnh | 2 phút
+[12/16] quickdraw/qd_8p_simple_002 (n=10): 6 ảnh | 2 phút
+[13/16] coco/coco_000000190756 (n=2): 6 ảnh | 2 phút
+[14/16] coco/coco_000000315492 (n=4): 6 ảnh | 2 phút
+[15/16] coco/coco_000000386210 (n=6): 6 ảnh | 2 phút
+[16/16] coco/coco_000000478721 (n=1): 6 ảnh | 2 phút
+Tổng kết: {'done': 96, 'skipped': 0, 'failed': 0} - 2.5 phút
+quickdraw/tunebl_t2i_adapter_adapter_scale0.6: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_t2i_adapter_adapter_scale0.8: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_t2i_adapter_adapter_scale1: 24 ảnh đã đánh giá (+24)
+coco/tunebl_t2i_adapter_adapter_scale0.6: 8 ảnh đã đánh giá (+8)
+coco/tunebl_t2i_adapter_adapter_scale0.8: 8 ảnh đã đánh giá (+8)
+coco/tunebl_t2i_adapter_adapter_scale1: 8 ảnh đã đánh giá (+8)
+[tune:tuning_bl_t2i_adapter] results (scene means):
+                                       opr   miou     ra  oce_c    clip  id_sim  score
+method                                                                                
+tunebl_t2i_adapter_adapter_scale0.8  0.611  0.437  0.350  2.375  28.618     NaN  1.397
+tunebl_t2i_adapter_adapter_scale1    0.596  0.482  0.309  2.406  27.464     NaN  1.387
+tunebl_t2i_adapter_adapter_scale0.6  0.467  0.283  0.187  2.906  29.102     NaN  0.937
+[tune:tuning_bl_t2i_adapter] best: tunebl_t2i_adapter_adapter_scale0.8
+[tune:tuning_bl_gligen] 4 settings, 16 scenes, seeds [0, 1]: 128 images to generate
+[1/16] quickdraw/qd_1_complex_001 (n=1): 8 ảnh | 0 phút
+/usr/local/lib/python3.13/dist-packages/diffusers/utils/deprecation_utils.py:23: FutureWarning: `torch_dtype` is deprecated and will be removed in version 1.0.0. Please use `dtype` instead.
+  deprecate("torch_dtype", "1.0.0", _TORCH_DTYPE_DEPRECATION_MESSAGE)
+An error occurred while trying to fetch /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/unet: Error no file named diffusion_pytorch_model.safetensors found in directory /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/unet.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+CLIPFeatureExtractor appears to have been deprecated in transformers. Using CLIPImageProcessor instead.
+An error occurred while trying to fetch /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/vae: Error no file named diffusion_pytorch_model.safetensors found in directory /content/hf_cache/models--masterful--gligen-1-4-generation-text-box/snapshots/d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83/vae.
+Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead.
+The StableDiffusionGLIGENPipeline has been deprecated and will not receive bug fixes or feature updates after Diffusers version 0.33.1. 
+[2/16] quickdraw/qd_1_medium_002 (n=1): 8 ảnh | 1 phút
+[3/16] quickdraw/qd_1_simple_000 (n=1): 8 ảnh | 1 phút
+[4/16] quickdraw/qd_3_complex_000 (n=3): 8 ảnh | 1 phút
+[5/16] quickdraw/qd_3_medium_001 (n=3): 8 ảnh | 1 phút
+[6/16] quickdraw/qd_3_simple_002 (n=3): 8 ảnh | 1 phút
+[7/16] quickdraw/qd_5_complex_000 (n=5): 8 ảnh | 2 phút
+[8/16] quickdraw/qd_5_medium_001 (n=5): 8 ảnh | 2 phút
+[9/16] quickdraw/qd_5_simple_000 (n=5): 8 ảnh | 2 phút
+[10/16] quickdraw/qd_8p_complex_002 (n=10): 8 ảnh | 2 phút
+[11/16] quickdraw/qd_8p_medium_001 (n=10): 8 ảnh | 3 phút
+[12/16] quickdraw/qd_8p_simple_002 (n=10): 8 ảnh | 3 phút
+[13/16] coco/coco_000000190756 (n=2): 8 ảnh | 3 phút
+[14/16] coco/coco_000000315492 (n=4): 8 ảnh | 3 phút
+[15/16] coco/coco_000000386210 (n=6): 8 ảnh | 3 phút
+[16/16] coco/coco_000000478721 (n=1): 8 ảnh | 4 phút
+Tổng kết: {'done': 128, 'skipped': 0, 'failed': 0} - 3.9 phút
+quickdraw/tunebl_gligen_gligen_beta0.2: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_gligen_gligen_beta0.3: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_gligen_gligen_beta0.5: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_gligen_gligen_beta1: 24 ảnh đã đánh giá (+24)
+coco/tunebl_gligen_gligen_beta0.2: 8 ảnh đã đánh giá (+8)
+coco/tunebl_gligen_gligen_beta0.3: 8 ảnh đã đánh giá (+8)
+coco/tunebl_gligen_gligen_beta0.5: 8 ảnh đã đánh giá (+8)
+coco/tunebl_gligen_gligen_beta1: 8 ảnh đã đánh giá (+8)
+[tune:tuning_bl_gligen] results (scene means):
+                                opr   miou     ra  oce_c    clip  id_sim  score
+method                                                                         
+tunebl_gligen_gligen_beta1    0.752  0.631  0.511  1.969  28.151     NaN  1.894
+tunebl_gligen_gligen_beta0.5  0.760  0.634  0.452  2.094  27.886     NaN  1.846
+tunebl_gligen_gligen_beta0.3  0.662  0.536  0.314  2.344  28.141     NaN  1.511
+tunebl_gligen_gligen_beta0.2  0.652  0.477  0.296  2.188  27.667     NaN  1.425
+[tune:tuning_bl_gligen] best: tunebl_gligen_gligen_beta1
+[tune:tuning_bl_cn_region] 3 settings, 16 scenes, seeds [0, 1]: 96 images to generate
+[1/16] quickdraw/qd_1_complex_001 (n=1): 6 ảnh | 0 phút
+[2/16] quickdraw/qd_1_medium_002 (n=1): 6 ảnh | 0 phút
+[3/16] quickdraw/qd_1_simple_000 (n=1): 6 ảnh | 0 phút
+[4/16] quickdraw/qd_3_complex_000 (n=3): 6 ảnh | 1 phút
+[5/16] quickdraw/qd_3_medium_001 (n=3): 6 ảnh | 1 phút
+[6/16] quickdraw/qd_3_simple_002 (n=3): 6 ảnh | 1 phút
+[7/16] quickdraw/qd_5_complex_000 (n=5): 6 ảnh | 1 phút
+[8/16] quickdraw/qd_5_medium_001 (n=5): 6 ảnh | 2 phút
+[9/16] quickdraw/qd_5_simple_000 (n=5): 6 ảnh | 2 phút
+[10/16] quickdraw/qd_8p_complex_002 (n=10): 6 ảnh | 2 phút
+[11/16] quickdraw/qd_8p_medium_001 (n=10): 6 ảnh | 2 phút
+[12/16] quickdraw/qd_8p_simple_002 (n=10): 6 ảnh | 2 phút
+[13/16] coco/coco_000000190756 (n=2): 6 ảnh | 3 phút
+[14/16] coco/coco_000000315492 (n=4): 6 ảnh | 3 phút
+[15/16] coco/coco_000000386210 (n=6): 6 ảnh | 3 phút
+[16/16] coco/coco_000000478721 (n=1): 6 ảnh | 3 phút
+Tổng kết: {'done': 96, 'skipped': 0, 'failed': 0} - 3.6 phút
+quickdraw/tunebl_cn_region_lambda012: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_cn_region_lambda04: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_cn_region_lambda08: 24 ảnh đã đánh giá (+24)
+coco/tunebl_cn_region_lambda012: 8 ảnh đã đánh giá (+8)
+coco/tunebl_cn_region_lambda04: 8 ảnh đã đánh giá (+8)
+coco/tunebl_cn_region_lambda08: 8 ảnh đã đánh giá (+8)
+[tune:tuning_bl_cn_region] results (scene means):
+                              opr   miou     ra  oce_c    clip  id_sim  score
+method                                                                       
+tunebl_cn_region_lambda012  0.648  0.495  0.354  2.094  27.415     NaN  1.498
+tunebl_cn_region_lambda08   0.642  0.490  0.338  2.250  27.410     NaN  1.469
+tunebl_cn_region_lambda04   0.624  0.477  0.313  2.312  27.352     NaN  1.414
+[tune:tuning_bl_cn_region] best: tunebl_cn_region_lambda012
+[tune:tuning_bl_cn_energy] 3 settings, 16 scenes, seeds [0, 1]: 96 images to generate
+[1/16] quickdraw/qd_1_complex_001 (n=1): 6 ảnh | 0 phút
+[2/16] quickdraw/qd_1_medium_002 (n=1): 6 ảnh | 0 phút
+[3/16] quickdraw/qd_1_simple_000 (n=1): 6 ảnh | 1 phút
+[4/16] quickdraw/qd_3_complex_000 (n=3): 6 ảnh | 1 phút
+[5/16] quickdraw/qd_3_medium_001 (n=3): 6 ảnh | 1 phút
+[6/16] quickdraw/qd_3_simple_002 (n=3): 6 ảnh | 2 phút
+[7/16] quickdraw/qd_5_complex_000 (n=5): 6 ảnh | 2 phút
+[8/16] quickdraw/qd_5_medium_001 (n=5): 6 ảnh | 2 phút
+[9/16] quickdraw/qd_5_simple_000 (n=5): 6 ảnh | 3 phút
+[10/16] quickdraw/qd_8p_complex_002 (n=10): 6 ảnh | 3 phút
+[11/16] quickdraw/qd_8p_medium_001 (n=10): 6 ảnh | 3 phút
+[12/16] quickdraw/qd_8p_simple_002 (n=10): 6 ảnh | 4 phút
+[13/16] coco/coco_000000190756 (n=2): 6 ảnh | 4 phút
+[14/16] coco/coco_000000315492 (n=4): 6 ảnh | 4 phút
+[15/16] coco/coco_000000386210 (n=6): 6 ảnh | 5 phút
+[16/16] coco/coco_000000478721 (n=1): 6 ảnh | 5 phút
+Tổng kết: {'done': 96, 'skipped': 0, 'failed': 0} - 5.1 phút
+quickdraw/tunebl_cn_energy_eta10: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_cn_energy_eta20: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_cn_energy_eta40: 24 ảnh đã đánh giá (+24)
+coco/tunebl_cn_energy_eta10: 8 ảnh đã đánh giá (+8)
+coco/tunebl_cn_energy_eta20: 8 ảnh đã đánh giá (+8)
+coco/tunebl_cn_energy_eta40: 8 ảnh đã đánh giá (+8)
+[tune:tuning_bl_cn_energy] results (scene means):
+                          opr   miou     ra  oce_c    clip  id_sim  score
+method                                                                   
+tunebl_cn_energy_eta10  0.709  0.513  0.394  2.969  28.405     NaN  1.617
+tunebl_cn_energy_eta40  0.715  0.517  0.357  2.031  27.594     NaN  1.590
+tunebl_cn_energy_eta20  0.682  0.532  0.341  1.812  27.942     NaN  1.555
+[tune:tuning_bl_cn_energy] best: tunebl_cn_energy_eta10
+[tune:tuning_bl_collage] 3 settings, 16 scenes, seeds [0, 1]: 96 images to generate
+[1/16] quickdraw/qd_1_complex_001 (n=1): 6 ảnh | 0 phút
+[2/16] quickdraw/qd_1_medium_002 (n=1): 6 ảnh | 0 phút
+[3/16] quickdraw/qd_1_simple_000 (n=1): 6 ảnh | 1 phút
+[4/16] quickdraw/qd_3_complex_000 (n=3): 6 ảnh | 1 phút
+[5/16] quickdraw/qd_3_medium_001 (n=3): 6 ảnh | 1 phút
+[6/16] quickdraw/qd_3_simple_002 (n=3): 6 ảnh | 2 phút
+[7/16] quickdraw/qd_5_complex_000 (n=5): 6 ảnh | 2 phút
+[8/16] quickdraw/qd_5_medium_001 (n=5): 6 ảnh | 2 phút
+[9/16] quickdraw/qd_5_simple_000 (n=5): 6 ảnh | 3 phút
+[10/16] quickdraw/qd_8p_complex_002 (n=10): 6 ảnh | 3 phút
+[11/16] quickdraw/qd_8p_medium_001 (n=10): 6 ảnh | 3 phút
+[12/16] quickdraw/qd_8p_simple_002 (n=10): 6 ảnh | 4 phút
+[13/16] coco/coco_000000190756 (n=2): 6 ảnh | 4 phút
+[14/16] coco/coco_000000315492 (n=4): 6 ảnh | 4 phút
+[15/16] coco/coco_000000386210 (n=6): 6 ảnh | 5 phút
+[16/16] coco/coco_000000478721 (n=1): 6 ảnh | 5 phút
+Tổng kết: {'done': 96, 'skipped': 0, 'failed': 0} - 5.3 phút
+quickdraw/tunebl_collage_collage_strength0.2: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_collage_collage_strength0.3: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_collage_collage_strength0.5: 24 ảnh đã đánh giá (+24)
+coco/tunebl_collage_collage_strength0.2: 8 ảnh đã đánh giá (+8)
+coco/tunebl_collage_collage_strength0.3: 8 ảnh đã đánh giá (+8)
+coco/tunebl_collage_collage_strength0.5: 8 ảnh đã đánh giá (+8)
+[tune:tuning_bl_collage] results (scene means):
+                                      opr   miou     ra  oce_c    clip  id_sim  score
+method                                                                               
+tunebl_collage_collage_strength0.2  0.760  0.593  0.602  1.531  28.721   0.493  1.956
+tunebl_collage_collage_strength0.3  0.754  0.585  0.516  1.719  28.687   0.465  1.855
+tunebl_collage_collage_strength0.5  0.722  0.532  0.463  1.656  28.471   0.383  1.717
+[tune:tuning_bl_collage] best: tunebl_collage_collage_strength0.2
+[tune:tuning_bl_zhang2025] 3 settings, 16 scenes, seeds [0, 1]: 96 images to generate
+[1/16] quickdraw/qd_1_complex_001 (n=1): 6 ảnh | 0 phút
+[2/16] quickdraw/qd_1_medium_002 (n=1): 6 ảnh | 1 phút
+[3/16] quickdraw/qd_1_simple_000 (n=1): 6 ảnh | 2 phút
+[4/16] quickdraw/qd_3_complex_000 (n=3): 6 ảnh | 3 phút
+[5/16] quickdraw/qd_3_medium_001 (n=3): 6 ảnh | 4 phút
+[6/16] quickdraw/qd_3_simple_002 (n=3): 6 ảnh | 5 phút
+[7/16] quickdraw/qd_5_complex_000 (n=5): 6 ảnh | 6 phút
+[8/16] quickdraw/qd_5_medium_001 (n=5): 6 ảnh | 7 phút
+[9/16] quickdraw/qd_5_simple_000 (n=5): 6 ảnh | 8 phút
+[10/16] quickdraw/qd_8p_complex_002 (n=10): 6 ảnh | 9 phút
+[11/16] quickdraw/qd_8p_medium_001 (n=10): 6 ảnh | 10 phút
+[12/16] quickdraw/qd_8p_simple_002 (n=10): 6 ảnh | 11 phút
+[13/16] coco/coco_000000190756 (n=2): 6 ảnh | 12 phút
+[14/16] coco/coco_000000315492 (n=4): 6 ảnh | 13 phút
+[15/16] coco/coco_000000386210 (n=6): 6 ảnh | 14 phút
+[16/16] coco/coco_000000478721 (n=1): 6 ảnh | 15 phút
+Tổng kết: {'done': 96, 'skipped': 0, 'failed': 0} - 16.1 phút
+quickdraw/tunebl_zhang2025_alpha0.1: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_zhang2025_alpha0.3: 24 ảnh đã đánh giá (+24)
+quickdraw/tunebl_zhang2025_alpha0.5: 24 ảnh đã đánh giá (+24)
+coco/tunebl_zhang2025_alpha0.1: 8 ảnh đã đánh giá (+8)
+coco/tunebl_zhang2025_alpha0.3: 8 ảnh đã đánh giá (+8)
+coco/tunebl_zhang2025_alpha0.5: 8 ảnh đã đánh giá (+8)
+[tune:tuning_bl_zhang2025] results (scene means):
+                             opr   miou     ra  oce_c    clip  id_sim  score
+method                                                                      
+tunebl_zhang2025_alpha0.1  0.606  0.419  0.385  1.719  25.176   0.402  1.410
+tunebl_zhang2025_alpha0.3  0.554  0.364  0.222  2.219  24.855   0.342  1.140
+tunebl_zhang2025_alpha0.5  0.512  0.273  0.129  2.844  24.250   0.268  0.914
+[tune:tuning_bl_zhang2025] best: tunebl_zhang2025_alpha0.1
+[tune] chosen: {'alpha': 0.1, 'lora_scale': 0.5, 'use_energy': True, 'energy_tokens': 'phrase', 'eta': 20.0, 'use_region_attn': True}; OCSD-v2: {'alpha': 0.4, 'anchor_shrink': 0.0}; baselines: {'controlnet': {'cn_scale': 1.0}, 't2i_adapter': {'adapter_scale': 0.8}, 'gligen': {'gligen_beta': 1.0}, 'cn_region': {'lambda0': 12.0}, 'cn_energy': {'eta': 10.0}, 'collage': {'collage_strength': 0.2}, 'zhang2025': {'alpha': 0.1}}
+==================== STAGE T_tune OK (127.5 min) ====================
+E3_quickdraw_free        72 scenes x 12 methods x 1 seeds -> 402 images left
+E3_quickdraw_free_seeds   36 scenes x 12 methods x 1 seeds -> 186 images left
+E3_quickdraw_trained     36 scenes x  2 methods x 2 seeds -> 12 images left
+E3_coco_free             32 scenes x 12 methods x 1 seeds -> 192 images left
+E3_coco_trained          16 scenes x  2 methods x 1 seeds -> 16 images left
+E4_ablation              18 scenes x 12 methods x 1 seeds -> 18 images left
+E4v2_ablation            18 scenes x  9 methods x 1 seeds -> 162 images left
+E4v2_coco                32 scenes x  2 methods x 1 seeds -> 64 images left
+alpha                    12 scenes x  6 methods x 1 seeds -> 0 images left
+
+==================== STAGE B_generate ====================
+[tune] settings changed for 12 output folders, moved to outputs/_stale/20261004_161617 and generated again: coco/cn_energy, coco/cn_region, coco/gligen, coco/ocsd, coco/ocsd_lite, coco/t2i_adapter, coco/zhang2025, quickdraw/cn_energy, quickdraw/cn_region, quickdraw/gligen, quickdraw/t2i_adapter, quickdraw/zhang2025
+Còn 1700 ảnh trên 104 cảnh
+[1/104] quickdraw/qd_1_complex_005 (n=1): 20 ảnh | 0 phút
+[2/104] quickdraw/qd_1_complex_006 (n=1): 20 ảnh | 2 phút
+[3/104] quickdraw/qd_1_complex_008 (n=1): 20 ảnh | 3 phút
+[4/104] quickdraw/qd_1_medium_003 (n=1): 20 ảnh | 5 phút
+[5/104] quickdraw/qd_1_medium_004 (n=1): 20 ảnh | 7 phút
+[6/104] quickdraw/qd_1_medium_005 (n=1): 20 ảnh | 8 phút
+[7/104] quickdraw/qd_1_simple_005 (n=1): 20 ảnh | 10 phút
+[8/104] quickdraw/qd_1_simple_007 (n=1): 20 ảnh | 12 phút
+[9/104] quickdraw/qd_1_simple_008 (n=1): 20 ảnh | 14 phút
+[10/104] quickdraw/qd_3_complex_004 (n=3): 30 ảnh | 16 phút
+[11/104] quickdraw/qd_3_complex_005 (n=3): 30 ảnh | 21 phút
+[12/104] quickdraw/qd_3_complex_008 (n=3): 30 ảnh | 26 phút
+[13/104] quickdraw/qd_3_medium_006 (n=3): 30 ảnh | 31 phút
+[14/104] quickdraw/qd_3_medium_007 (n=3): 30 ảnh | 35 phút
+[15/104] quickdraw/qd_3_medium_008 (n=3): 30 ảnh | 41 phút
+[16/104] quickdraw/qd_3_simple_004 (n=3): 30 ảnh | 45 phút
+[17/104] quickdraw/qd_3_simple_005 (n=3): 30 ảnh | 49 phút
+[18/104] quickdraw/qd_3_simple_006 (n=3): 30 ảnh | 55 phút
+[19/104] quickdraw/qd_5_complex_005 (n=5): 30 ảnh | 60 phút
+[20/104] quickdraw/qd_5_complex_007 (n=5): 30 ảnh | 66 phút
+[21/104] quickdraw/qd_5_complex_008 (n=5): 30 ảnh | 71 phút
+[22/104] quickdraw/qd_5_medium_003 (n=5): 30 ảnh | 77 phút
+[23/104] quickdraw/qd_5_medium_006 (n=5): 30 ảnh | 84 phút
+[24/104] quickdraw/qd_5_medium_008 (n=5): 30 ảnh | 88 phút
+[25/104] quickdraw/qd_5_simple_004 (n=5): 30 ảnh | 94 phút
+[26/104] quickdraw/qd_5_simple_007 (n=5): 30 ảnh | 98 phút
+[27/104] quickdraw/qd_5_simple_008 (n=5): 30 ảnh | 104 phút
+[28/104] quickdraw/qd_8p_complex_006 (n=8): 20 ảnh | 109 phút
+[29/104] quickdraw/qd_8p_complex_007 (n=10): 20 ảnh | 114 phút
+[30/104] quickdraw/qd_8p_complex_008 (n=9): 20 ảnh | 118 phút
+[31/104] quickdraw/qd_8p_medium_003 (n=9): 24 ảnh | 123 phút
+[32/104] quickdraw/qd_8p_medium_004 (n=9): 24 ảnh | 128 phút
+[33/104] quickdraw/qd_8p_medium_005 (n=8): 24 ảnh | 134 phút
+[34/104] quickdraw/qd_8p_simple_003 (n=9): 24 ảnh | 139 phút
+[35/104] quickdraw/qd_8p_simple_004 (n=8): 24 ảnh | 145 phút
+[36/104] quickdraw/qd_8p_simple_007 (n=9): 24 ảnh | 149 phút
+[37/104] quickdraw/qd_1_complex_003 (n=1): 10 ảnh | 154 phút
+[38/104] quickdraw/qd_1_complex_004 (n=1): 10 ảnh | 154 phút
+[39/104] quickdraw/qd_1_complex_007 (n=1): 10 ảnh | 155 phút
+[40/104] quickdraw/qd_1_medium_006 (n=1): 10 ảnh | 156 phút
+[41/104] quickdraw/qd_1_medium_007 (n=1): 10 ảnh | 156 phút
+[42/104] quickdraw/qd_1_medium_008 (n=1): 10 ảnh | 157 phút
+[43/104] quickdraw/qd_1_simple_003 (n=1): 10 ảnh | 157 phút
+[44/104] quickdraw/qd_1_simple_004 (n=1): 10 ảnh | 158 phút
+[45/104] quickdraw/qd_1_simple_006 (n=1): 10 ảnh | 158 phút
+[46/104] quickdraw/qd_3_complex_003 (n=3): 10 ảnh | 159 phút
+[47/104] quickdraw/qd_3_complex_006 (n=3): 10 ảnh | 160 phút
+[48/104] quickdraw/qd_3_complex_007 (n=3): 10 ảnh | 161 phút
+[49/104] quickdraw/qd_3_medium_003 (n=3): 10 ảnh | 163 phút
+[50/104] quickdraw/qd_3_medium_004 (n=3): 10 ảnh | 164 phút
+[51/104] quickdraw/qd_3_medium_005 (n=3): 10 ảnh | 165 phút
+[52/104] quickdraw/qd_3_simple_003 (n=3): 10 ảnh | 166 phút
+[53/104] quickdraw/qd_3_simple_007 (n=3): 10 ảnh | 167 phút
+[54/104] quickdraw/qd_3_simple_008 (n=3): 10 ảnh | 168 phút
+[55/104] quickdraw/qd_5_complex_003 (n=5): 10 ảnh | 169 phút
+[56/104] quickdraw/qd_5_complex_004 (n=5): 10 ảnh | 171 phút
+[57/104] quickdraw/qd_5_complex_006 (n=5): 10 ảnh | 172 phút
+[58/104] quickdraw/qd_5_medium_004 (n=5): 10 ảnh | 174 phút
+[59/104] quickdraw/qd_5_medium_005 (n=5): 10 ảnh | 175 phút
+[60/104] quickdraw/qd_5_medium_007 (n=5): 10 ảnh | 177 phút
+[61/104] quickdraw/qd_5_simple_003 (n=5): 10 ảnh | 178 phút
+[62/104] quickdraw/qd_5_simple_005 (n=5): 10 ảnh | 179 phút
+[63/104] quickdraw/qd_5_simple_006 (n=5): 10 ảnh | 180 phút
+[64/104] quickdraw/qd_8p_complex_003 (n=9): 10 ảnh | 182 phút
+[65/104] quickdraw/qd_8p_complex_004 (n=10): 10 ảnh | 184 phút
+[66/104] quickdraw/qd_8p_complex_005 (n=10): 10 ảnh | 186 phút
+[67/104] quickdraw/qd_8p_medium_006 (n=8): 10 ảnh | 188 phút
+[68/104] quickdraw/qd_8p_medium_007 (n=10): 10 ảnh | 189 phút
+[69/104] quickdraw/qd_8p_medium_008 (n=9): 10 ảnh | 191 phút
+[70/104] quickdraw/qd_8p_simple_005 (n=9): 10 ảnh | 193 phút
+[71/104] quickdraw/qd_8p_simple_006 (n=10): 10 ảnh | 195 phút
+[72/104] quickdraw/qd_8p_simple_008 (n=8): 10 ảnh | 197 phút
+[73/104] coco/coco_000000008629 (n=6): 14 ảnh | 199 phút
+[74/104] coco/coco_000000115898 (n=2): 14 ảnh | 202 phút
+[75/104] coco/coco_000000162092 (n=7): 14 ảnh | 205 phút
+[76/104] coco/coco_000000172856 (n=1): 14 ảnh | 208 phút
+[77/104] coco/coco_000000175387 (n=1): 14 ảnh | 210 phút
+[78/104] coco/coco_000000210789 (n=4): 14 ảnh | 212 phút
+[79/104] coco/coco_000000237118 (n=2): 14 ảnh | 215 phút
+[80/104] coco/coco_000000239717 (n=4): 14 ảnh | 218 phút
+[81/104] coco/coco_000000297084 (n=6): 14 ảnh | 221 phút
+[82/104] coco/coco_000000367818 (n=2): 14 ảnh | 225 phút
+[83/104] coco/coco_000000407646 (n=1): 14 ảnh | 227 phút
+[84/104] coco/coco_000000408830 (n=2): 14 ảnh | 229 phút
+[85/104] coco/coco_000000414638 (n=6): 14 ảnh | 232 phút
+[86/104] coco/coco_000000479248 (n=4): 14 ảnh | 235 phút
+[87/104] coco/coco_000000549738 (n=1): 14 ảnh | 238 phút
+[88/104] coco/coco_000000574823 (n=4): 14 ảnh | 240 phút
+[89/104] coco/coco_000000006012 (n=2): 12 ảnh | 243 phút
+[90/104] coco/coco_000000016502 (n=1): 12 ảnh | 244 phút
+[91/104] coco/coco_000000054592 (n=4): 12 ảnh | 245 phút
+[92/104] coco/coco_000000078170 (n=5): 12 ảnh | 246 phút
+[93/104] coco/coco_000000158660 (n=7): 12 ảnh | 248 phút
+[94/104] coco/coco_000000166426 (n=5): 12 ảnh | 250 phút
+[95/104] coco/coco_000000190753 (n=3): 12 ảnh | 251 phút
+[96/104] coco/coco_000000245576 (n=4): 12 ảnh | 253 phút
+[97/104] coco/coco_000000293858 (n=7): 12 ảnh | 254 phút
+[98/104] coco/coco_000000345385 (n=3): 12 ảnh | 256 phút
+[99/104] coco/coco_000000380203 (n=1): 12 ảnh | 258 phút
+[100/104] coco/coco_000000389381 (n=6): 12 ảnh | 259 phút
+[101/104] coco/coco_000000400044 (n=1): 12 ảnh | 261 phút
+[102/104] coco/coco_000000498032 (n=1): 12 ảnh | 261 phút
+[103/104] coco/coco_000000527784 (n=7): 12 ảnh | 262 phút
+[104/104] coco/coco_000000551794 (n=2): 12 ảnh | 264 phút
+Tổng kết: {'done': 1700, 'skipped': 0, 'failed': 0} - 265.0 phút
+E3_quickdraw_free           864/864 ảnh
+E3_quickdraw_free_seeds     432/432 ảnh
+E3_quickdraw_trained        144/144 ảnh
+E3_coco_free                384/384 ảnh
+E3_coco_trained              32/32 ảnh
+E4_ablation                 216/216 ảnh
+E4v2_ablation               162/162 ảnh
+E4v2_coco                    64/64 ảnh
+alpha                        72/72 ảnh
+Ước tính giờ GPU (theo thời gian đo trên GPU hiện tại, chưa gồm đánh giá ~10-15%): {'pilot': 1.3, 'paper': 8.6, 'full': 36.7}
+==================== STAGE B_generate OK (281.7 min) ====================
+
+==================== STAGE C_evaluate ====================
+quickdraw/abl_alpha0: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_bg_only: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_global_only: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_k1: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_m3_long: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_attsep: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_blend: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_energy: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_m5: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_region: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_scenecn: 18 ảnh đã đánh giá (+18)
+quickdraw/abl_no_verify: 18 ảnh đã đánh giá (+18)
+quickdraw/alpha_0.0: 12 ảnh đã đánh giá (+12)
+quickdraw/alpha_0.2: 12 ảnh đã đánh giá (+12)
+quickdraw/alpha_0.4: 12 ảnh đã đánh giá (+12)
+quickdraw/alpha_0.6: 12 ảnh đã đánh giá (+12)
+quickdraw/alpha_0.8: 12 ảnh đã đánh giá (+12)
+quickdraw/alpha_1.0: 12 ảnh đã đánh giá (+12)
+quickdraw/cn_energy: 108 ảnh đã đánh giá (+108)
+quickdraw/cn_region: 108 ảnh đã đánh giá (+108)
+quickdraw/collage: 108 ảnh đã đánh giá (+108)
+quickdraw/collage_bo3: 108 ảnh đã đánh giá (+108)
+quickdraw/controlnet: 118 ảnh đã đánh giá (+0)
+quickdraw/controlnet_bo3: 118 ảnh đã đánh giá (+0)
+quickdraw/controlnet_bon: 108 ảnh đã đánh giá (+108)
+quickdraw/gligen: 108 ảnh đã đánh giá (+108)
+quickdraw/gligen_bon: 108 ảnh đã đánh giá (+108)
+quickdraw/ocsd: 72 ảnh đã đánh giá (+72)
+quickdraw/ocsd_lite: 108 ảnh đã đánh giá (+108)
+quickdraw/ocsd_v2: 108 ảnh đã đánh giá (+108)
+quickdraw/t2i_adapter: 108 ảnh đã đánh giá (+108)
+quickdraw/v2abl_energy_sum: 18 ảnh đã đánh giá (+18)
+quickdraw/v2abl_no_anchor: 18 ảnh đã đánh giá (+18)
+quickdraw/v2abl_no_energy: 18 ảnh đã đánh giá (+18)
+quickdraw/v2abl_no_m5: 18 ảnh đã đánh giá (+18)
+quickdraw/v2abl_no_mincell: 18 ảnh đã đánh giá (+18)
+quickdraw/v2abl_no_region: 18 ảnh đã đánh giá (+18)
+quickdraw/v2abl_no_repair: 18 ảnh đã đánh giá (+18)
+quickdraw/v2abl_no_verify: 18 ảnh đã đánh giá (+18)
+quickdraw/v2abl_separate: 18 ảnh đã đánh giá (+18)
+quickdraw/zhang2025: 72 ảnh đã đánh giá (+72)
+/content/KLTN_OCSD/ocsd/metrics.py:77: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  return pd.concat(all_rows, ignore_index=True) if all_rows else pd.DataFrame()
+quickdraw/owlv2/cn_energy: 108 images (+108)
+quickdraw/owlv2/cn_region: 108 images (+108)
+quickdraw/owlv2/collage: 108 images (+108)
+quickdraw/owlv2/collage_bo3: 108 images (+108)
+quickdraw/owlv2/controlnet: 108 images (+108)
+quickdraw/owlv2/controlnet_bo3: 108 images (+108)
+quickdraw/owlv2/controlnet_bon: 108 images (+108)
+quickdraw/owlv2/gligen: 108 images (+108)
+quickdraw/owlv2/gligen_bon: 108 images (+108)
+quickdraw/owlv2/ocsd: 72 images (+72)
+quickdraw/owlv2/ocsd_lite: 108 images (+108)
+quickdraw/owlv2/ocsd_v2: 108 images (+108)
+quickdraw/owlv2/t2i_adapter: 108 images (+108)
+quickdraw/owlv2/zhang2025: 72 images (+72)
+quickdraw/owlv2d/cn_energy: 108 images (+108)
+quickdraw/owlv2d/cn_region: 108 images (+108)
+quickdraw/owlv2d/collage: 108 images (+108)
+quickdraw/owlv2d/collage_bo3: 108 images (+108)
+quickdraw/owlv2d/controlnet: 108 images (+108)
+quickdraw/owlv2d/controlnet_bo3: 108 images (+108)
+quickdraw/owlv2d/controlnet_bon: 108 images (+108)
+quickdraw/owlv2d/gligen: 108 images (+108)
+quickdraw/owlv2d/gligen_bon: 108 images (+108)
+quickdraw/owlv2d/ocsd: 72 images (+72)
+quickdraw/owlv2d/ocsd_lite: 108 images (+108)
+quickdraw/owlv2d/ocsd_v2: 108 images (+108)
+quickdraw/owlv2d/t2i_adapter: 108 images (+108)
+quickdraw/owlv2d/zhang2025: 72 images (+72)
+[transformers] [1mDetrForObjectDetection LOAD REPORT[0m from: facebook/detr-resnet-50
+Key                                                            | Status     |  | 
+---------------------------------------------------------------+------------+--+-
+model.backbone.model.layer1.0.downsample.1.num_batches_tracked | UNEXPECTED |  | 
+model.backbone.model.layer2.0.downsample.1.num_batches_tracked | UNEXPECTED |  | 
+model.backbone.model.layer3.0.downsample.1.num_batches_tracked | UNEXPECTED |  | 
+model.backbone.model.layer4.0.downsample.1.num_batches_tracked | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+quickdraw/detr/cn_energy: 101 images (+101)
+quickdraw/detr/cn_region: 101 images (+101)
+quickdraw/detr/collage: 101 images (+101)
+quickdraw/detr/collage_bo3: 101 images (+101)
+quickdraw/detr/controlnet: 101 images (+101)
+quickdraw/detr/controlnet_bo3: 101 images (+101)
+quickdraw/detr/controlnet_bon: 101 images (+101)
+quickdraw/detr/gligen: 101 images (+101)
+quickdraw/detr/gligen_bon: 101 images (+101)
+quickdraw/detr/ocsd: 68 images (+68)
+quickdraw/detr/ocsd_lite: 101 images (+101)
+quickdraw/detr/ocsd_v2: 101 images (+101)
+quickdraw/detr/t2i_adapter: 101 images (+101)
+quickdraw/detr/zhang2025: 68 images (+68)
+Downloading: "https://github.com/toshas/torch-fidelity/releases/download/v0.2.0/weights-inception-2015-12-05-6726825d.pth" to /root/.cache/torch/hub/checkpoints/weights-inception-2015-12-05-6726825d.pth
+  0%|          | 0.00/91.2M [00:00<?, ?B/s] 57%|█████▋    | 52.2M/91.2M [00:00<00:00, 548MB/s]100%|██████████| 91.2M/91.2M [00:00<00:00, 606MB/s]
+/usr/local/lib/python3.13/dist-packages/torchmetrics/utilities/prints.py:43: UserWarning: Metric `Kernel Inception Distance` will save all extracted features in buffer. For large datasets this may lead to large memory footprint.
+  warnings.warn(*args, **kwargs)
+{'method': 'abl_alpha0', 'split': 'quickdraw', 'fid': 387.3944396972656, 'kid': 98.59298169612885, 'kid_std': 21.346991881728172, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_bg_only', 'split': 'quickdraw', 'fid': 380.73394775390625, 'kid': 83.62366259098053, 'kid_std': 18.33203248679638, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_global_only', 'split': 'quickdraw', 'fid': 318.03326416015625, 'kid': 28.572052717208862, 'kid_std': 9.830928407609463, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_k1', 'split': 'quickdraw', 'fid': 378.6266784667969, 'kid': 95.8198830485344, 'kid_std': 19.788259640336037, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_m3_long', 'split': 'quickdraw', 'fid': 397.1177062988281, 'kid': 119.51252073049545, 'kid_std': 23.121217265725136, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_no_attsep', 'split': 'quickdraw', 'fid': 407.2107238769531, 'kid': 111.86583340167999, 'kid_std': 21.369069814682007, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_no_blend', 'split': 'quickdraw', 'fid': 311.3011779785156, 'kid': 23.995889350771904, 'kid_std': 8.01721028983593, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_no_energy', 'split': 'quickdraw', 'fid': 398.59442138671875, 'kid': 108.52526128292084, 'kid_std': 19.479168578982353, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_no_m5', 'split': 'quickdraw', 'fid': 392.4527893066406, 'kid': 110.23058742284775, 'kid_std': 20.62179334461689, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_no_region', 'split': 'quickdraw', 'fid': 402.477294921875, 'kid': 122.87994474172592, 'kid_std': 22.187966853380203, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_no_scenecn', 'split': 'quickdraw', 'fid': 384.4609069824219, 'kid': 95.89345753192902, 'kid_std': 20.794570446014404, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'abl_no_verify', 'split': 'quickdraw', 'fid': 388.2845764160156, 'kid': 119.31046843528748, 'kid_std': 22.84168265759945, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'alpha_0.0', 'split': 'quickdraw', 'fid': 406.8743591308594, 'kid': 94.01264041662216, 'kid_std': 22.507334128022194, 'n_gen': 12, 'sel': '5c7dd19f7ed5'}
+{'method': 'alpha_0.2', 'split': 'quickdraw', 'fid': 404.51531982421875, 'kid': 82.41300284862518, 'kid_std': 21.74699306488037, 'n_gen': 12, 'sel': '5c7dd19f7ed5'}
+{'method': 'alpha_0.4', 'split': 'quickdraw', 'fid': 380.5830993652344, 'kid': 70.40675729513168, 'kid_std': 18.04010570049286, 'n_gen': 12, 'sel': '5c7dd19f7ed5'}
+{'method': 'alpha_0.6', 'split': 'quickdraw', 'fid': 380.0574951171875, 'kid': 78.88416945934296, 'kid_std': 22.39922247827053, 'n_gen': 12, 'sel': '5c7dd19f7ed5'}
+{'method': 'alpha_0.8', 'split': 'quickdraw', 'fid': 342.0007019042969, 'kid': 47.8760190308094, 'kid_std': 16.71835035085678, 'n_gen': 12, 'sel': '5c7dd19f7ed5'}
+{'method': 'alpha_1.0', 'split': 'quickdraw', 'fid': 322.2223815917969, 'kid': 22.563884034752846, 'kid_std': 8.267419412732124, 'n_gen': 12, 'sel': '5c7dd19f7ed5'}
+Downloading: "https://download.pytorch.org/models/alexnet-owt-7be5be79.pth" to /root/.cache/torch/hub/checkpoints/alexnet-owt-7be5be79.pth
+  0%|          | 0.00/233M [00:00<?, ?B/s] 10%|▉         | 22.8M/233M [00:00<00:00, 238MB/s] 20%|█▉        | 46.4M/233M [00:00<00:00, 243MB/s] 30%|███       | 70.0M/233M [00:00<00:00, 245MB/s] 40%|████      | 93.5M/233M [00:00<00:00, 245MB/s] 50%|█████     | 117M/233M [00:00<00:00, 246MB/s]  60%|██████    | 141M/233M [00:00<00:00, 246MB/s] 70%|███████   | 164M/233M [00:00<00:00, 246MB/s] 81%|████████  | 188M/233M [00:00<00:00, 246MB/s] 91%|█████████ | 211M/233M [00:00<00:00, 246MB/s]100%|██████████| 233M/233M [00:00<00:00, 246MB/s]
+{'method': 'cn_energy', 'split': 'quickdraw', 'fid': 258.7541198730469, 'kid': 32.481323927640915, 'kid_std': 4.69272630289197, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.6518688243296411}
+{'method': 'cn_region', 'split': 'quickdraw', 'fid': 258.851318359375, 'kid': 30.371487140655518, 'kid_std': 3.865989623591304, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.6498573728733592}
+{'method': 'collage', 'split': 'quickdraw', 'fid': 260.6100769042969, 'kid': 41.78016260266304, 'kid_std': 5.465613212436438, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.6325713122884432}
+{'method': 'collage_bo3', 'split': 'quickdraw', 'fid': 264.1382141113281, 'kid': 47.18012362718582, 'kid_std': 5.9172422625124454, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.6748128202226427}
+{'method': 'controlnet', 'split': 'quickdraw', 'fid': 254.9353790283203, 'kid': 28.21393869817257, 'kid_std': 4.791799932718277, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.6537620317604806}
+{'method': 'controlnet_bo3', 'split': 'quickdraw', 'fid': 257.9120178222656, 'kid': 29.717499390244484, 'kid_std': 4.136720672249794, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.700743687649568}
+{'method': 'controlnet_bon', 'split': 'quickdraw', 'fid': 260.7371520996094, 'kid': 32.32063353061676, 'kid_std': 4.978845361620188, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.6828142387999429}
+{'method': 'gligen', 'split': 'quickdraw', 'fid': 249.62100219726562, 'kid': 29.0223378688097, 'kid_std': 2.7893322985619307, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.5886522051360872}
+{'method': 'gligen_bon', 'split': 'quickdraw', 'fid': 258.08526611328125, 'kid': 38.58073428273201, 'kid_std': 3.7584169767796993, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.6377657370434867}
+{'method': 'ocsd', 'split': 'quickdraw', 'fid': 280.20166015625, 'kid': 74.3219256401062, 'kid_std': 6.290537305176258, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.6972137772374682}
+{'method': 'ocsd_lite', 'split': 'quickdraw', 'fid': 283.0240478515625, 'kid': 74.82609152793884, 'kid_std': 8.854483254253864, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.7055552245842086}
+{'method': 'ocsd_v2', 'split': 'quickdraw', 'fid': 242.2575225830078, 'kid': 33.22102874517441, 'kid_std': 3.9138831198215485, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.6881311121914122}
+{'method': 't2i_adapter', 'split': 'quickdraw', 'fid': 254.75743103027344, 'kid': 35.99104285240173, 'kid_std': 3.646455006673932, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.644515920844343}
+{'method': 'v2abl_energy_sum', 'split': 'quickdraw', 'fid': 346.2970886230469, 'kid': 58.783672749996185, 'kid_std': 15.307086519896984, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'v2abl_no_anchor', 'split': 'quickdraw', 'fid': 298.3217468261719, 'kid': 22.29694463312626, 'kid_std': 8.036473765969276, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'v2abl_no_energy', 'split': 'quickdraw', 'fid': 321.1268615722656, 'kid': 38.009319454431534, 'kid_std': 11.068440973758698, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'v2abl_no_m5', 'split': 'quickdraw', 'fid': 323.58154296875, 'kid': 32.7003188431263, 'kid_std': 8.788223378360271, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'v2abl_no_mincell', 'split': 'quickdraw', 'fid': 318.5975646972656, 'kid': 40.52269458770752, 'kid_std': 11.516504921019077, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'v2abl_no_region', 'split': 'quickdraw', 'fid': 316.7777404785156, 'kid': 28.351541608572006, 'kid_std': 9.775840677320957, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'v2abl_no_repair', 'split': 'quickdraw', 'fid': 319.2583312988281, 'kid': 47.00386896729469, 'kid_std': 12.932092882692814, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'v2abl_no_verify', 'split': 'quickdraw', 'fid': 316.6914367675781, 'kid': 39.23792764544487, 'kid_std': 9.695584885776043, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'v2abl_separate', 'split': 'quickdraw', 'fid': 357.2614440917969, 'kid': 63.450418412685394, 'kid_std': 14.553164131939411, 'n_gen': 18, 'sel': 'acc6600161ab'}
+{'method': 'zhang2025', 'split': 'quickdraw', 'fid': 272.67486572265625, 'kid': 62.13724613189697, 'kid_std': 7.048705127090216, 'n_gen': 72, 'sel': '7674909fc805', 'lpips_div': 0.6793333772155974}
+coco/cn_energy: 32 ảnh đã đánh giá (+32)
+coco/cn_region: 32 ảnh đã đánh giá (+32)
+coco/collage: 32 ảnh đã đánh giá (+32)
+coco/collage_bo3: 32 ảnh đã đánh giá (+32)
+coco/controlnet: 35 ảnh đã đánh giá (+0)
+coco/controlnet_bo3: 35 ảnh đã đánh giá (+0)
+coco/controlnet_bon: 32 ảnh đã đánh giá (+32)
+coco/gligen: 32 ảnh đã đánh giá (+32)
+coco/gligen_bon: 32 ảnh đã đánh giá (+32)
+coco/ocsd: 16 ảnh đã đánh giá (+16)
+coco/ocsd_lite: 32 ảnh đã đánh giá (+32)
+coco/ocsd_v2: 32 ảnh đã đánh giá (+32)
+coco/t2i_adapter: 32 ảnh đã đánh giá (+32)
+coco/v2abl_no_capmask: 32 ảnh đã đánh giá (+32)
+coco/v2abl_no_caption: 32 ảnh đã đánh giá (+32)
+coco/zhang2025: 16 ảnh đã đánh giá (+16)
+coco/real: 35 ảnh đã đánh giá (+0)
+/content/KLTN_OCSD/ocsd/metrics.py:77: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  return pd.concat(all_rows, ignore_index=True) if all_rows else pd.DataFrame()
+coco/owlv2/cn_energy: 32 images (+32)
+coco/owlv2/cn_region: 32 images (+32)
+coco/owlv2/collage: 32 images (+32)
+coco/owlv2/collage_bo3: 32 images (+32)
+coco/owlv2/controlnet: 32 images (+32)
+coco/owlv2/controlnet_bo3: 32 images (+32)
+coco/owlv2/controlnet_bon: 32 images (+32)
+coco/owlv2/gligen: 32 images (+32)
+coco/owlv2/gligen_bon: 32 images (+32)
+coco/owlv2/ocsd: 16 images (+16)
+coco/owlv2/ocsd_lite: 32 images (+32)
+coco/owlv2/ocsd_v2: 32 images (+32)
+coco/owlv2/t2i_adapter: 32 images (+32)
+coco/owlv2/zhang2025: 16 images (+16)
+coco/owlv2/real: 32 images (+32)
+coco/owlv2d/cn_energy: 32 images (+32)
+coco/owlv2d/cn_region: 32 images (+32)
+coco/owlv2d/collage: 32 images (+32)
+coco/owlv2d/collage_bo3: 32 images (+32)
+coco/owlv2d/controlnet: 32 images (+32)
+coco/owlv2d/controlnet_bo3: 32 images (+32)
+coco/owlv2d/controlnet_bon: 32 images (+32)
+coco/owlv2d/gligen: 32 images (+32)
+coco/owlv2d/gligen_bon: 32 images (+32)
+coco/owlv2d/ocsd: 16 images (+16)
+coco/owlv2d/ocsd_lite: 32 images (+32)
+coco/owlv2d/ocsd_v2: 32 images (+32)
+coco/owlv2d/t2i_adapter: 32 images (+32)
+coco/owlv2d/zhang2025: 16 images (+16)
+coco/owlv2d/real: 32 images (+32)
+[transformers] [1mDetrForObjectDetection LOAD REPORT[0m from: facebook/detr-resnet-50
+Key                                                            | Status     |  | 
+---------------------------------------------------------------+------------+--+-
+model.backbone.model.layer1.0.downsample.1.num_batches_tracked | UNEXPECTED |  | 
+model.backbone.model.layer2.0.downsample.1.num_batches_tracked | UNEXPECTED |  | 
+model.backbone.model.layer3.0.downsample.1.num_batches_tracked | UNEXPECTED |  | 
+model.backbone.model.layer4.0.downsample.1.num_batches_tracked | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+coco/detr/cn_energy: 32 images (+32)
+coco/detr/cn_region: 32 images (+32)
+coco/detr/collage: 32 images (+32)
+coco/detr/collage_bo3: 32 images (+32)
+coco/detr/controlnet: 32 images (+32)
+coco/detr/controlnet_bo3: 32 images (+32)
+coco/detr/controlnet_bon: 32 images (+32)
+coco/detr/gligen: 32 images (+32)
+coco/detr/gligen_bon: 32 images (+32)
+coco/detr/ocsd: 16 images (+16)
+coco/detr/ocsd_lite: 32 images (+32)
+coco/detr/ocsd_v2: 32 images (+32)
+coco/detr/t2i_adapter: 32 images (+32)
+coco/detr/zhang2025: 16 images (+16)
+coco/detr/real: 32 images (+32)
+/usr/local/lib/python3.13/dist-packages/torchmetrics/utilities/prints.py:43: UserWarning: Metric `Kernel Inception Distance` will save all extracted features in buffer. For large datasets this may lead to large memory footprint.
+  warnings.warn(*args, **kwargs)
+{'method': 'cn_energy', 'split': 'coco', 'fid': 313.1464538574219, 'kid': 2.919588005170226, 'kid_std': 6.47314265370369, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'cn_region', 'split': 'coco', 'fid': 301.29437255859375, 'kid': 4.034044686704874, 'kid_std': 6.252763327211142, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'collage', 'split': 'coco', 'fid': 286.36956787109375, 'kid': 12.286600656807423, 'kid_std': 5.038760602474213, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'collage_bo3', 'split': 'coco', 'fid': 285.4187316894531, 'kid': 12.986154295504093, 'kid_std': 4.995222203433514, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'controlnet', 'split': 'coco', 'fid': 294.8562316894531, 'kid': 3.071603598073125, 'kid_std': 5.179261323064566, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'controlnet_bo3', 'split': 'coco', 'fid': 292.58868408203125, 'kid': 6.783871445804834, 'kid_std': 4.872702993452549, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'controlnet_bon', 'split': 'coco', 'fid': 304.7872314453125, 'kid': 6.8382378667593, 'kid_std': 6.842560134828091, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'gligen', 'split': 'coco', 'fid': 282.8943786621094, 'kid': 5.608875770121813, 'kid_std': 6.73158373683691, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'gligen_bon', 'split': 'coco', 'fid': 282.63970947265625, 'kid': 3.041400806978345, 'kid_std': 5.086265504360199, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'ocsd', 'split': 'coco', 'fid': 315.05035400390625, 'kid': 18.97863671183586, 'kid_std': 9.728152304887772, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'ocsd_lite', 'split': 'coco', 'fid': 316.0780944824219, 'kid': 20.527128130197525, 'kid_std': 10.280360467731953, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'ocsd_v2', 'split': 'coco', 'fid': 296.6825866699219, 'kid': 8.198652416467667, 'kid_std': 6.626790855079889, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 't2i_adapter', 'split': 'coco', 'fid': 306.9096984863281, 'kid': 5.501346662640572, 'kid_std': 6.286354269832373, 'n_gen': 16, 'sel': '62553390b3db'}
+{'method': 'v2abl_no_capmask', 'split': 'coco', 'fid': 261.4239501953125, 'kid': 8.755557239055634, 'kid_std': 3.334362292662263, 'n_gen': 32, 'sel': '92a3a39d7366'}
+{'method': 'v2abl_no_caption', 'split': 'coco', 'fid': 266.8807067871094, 'kid': 8.249929174780846, 'kid_std': 3.3239764161407948, 'n_gen': 32, 'sel': '92a3a39d7366'}
+{'method': 'zhang2025', 'split': 'coco', 'fid': 324.6463317871094, 'kid': 37.331677973270416, 'kid_std': 11.913185007870197, 'n_gen': 16, 'sel': '62553390b3db'}
+==================== STAGE C_evaluate OK (45.5 min) ====================
+
+==================== STAGE D_report ====================
+E3_quickdraw_free           864/864 ảnh
+E3_quickdraw_free_seeds     432/432 ảnh
+E3_quickdraw_trained        144/144 ảnh
+E3_coco_free                384/384 ảnh
+E3_coco_trained              32/32 ảnh
+E4_ablation                 216/216 ảnh
+E4v2_ablation               162/162 ảnh
+E4v2_coco                    64/64 ảnh
+alpha                        72/72 ảnh
+# Kết quả thực nghiệm OCSD (2026-10-04 21:46:11)
+
+Tier: paper; backbone: sd15; seeds: [0, 1]; bộ phát hiện đánh giá: owlv2
+
+Phần cứng: {"python": "3.13.15", "torch": "2.11.0+cu130", "gpu": "NVIDIA A100-SXM4-80GB", "vram_gb": 79.3, "diffusers": "0.40.0", "transformers": "5.17.0", "cpu": "Intel(R) Xeon(R) CPU @ 2.20GHz", "ram_gb": 167.1}
+
+## E1_coco
+
+**OPR (%) / OCE-lớp theo count_bin trên coco**
+
+| Phương pháp                                           | 1           | 2-3         | 4-5         | 6-8         |
+|:------------------------------------------------------|:------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 50.0 / 0.50 | 37.5 / 1.25 | 12.5 / 3.75 | 41.7 / 5.00 |
+| SD + T2I-Adapter                                      | 50.0 / 0.50 | 37.5 / 1.25 | 12.5 / 3.50 | 45.8 / 4.50 |
+| GLIGEN (hộp + văn bản)                                | 75.0 / 0.25 | 50.0 / 0.75 | 31.2 / 3.25 | 57.7 / 3.25 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 50.0 / 0.50 | 37.5 / 1.25 | 12.5 / 3.50 | 50.0 / 3.75 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 50.0 / 0.50 | 37.5 / 1.00 | 18.8 / 3.25 | 45.8 / 4.50 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 50.0 / 0.50 | 37.5 / 1.25 | 6.2 / 3.75  | 41.7 / 5.00 |
+| ControlNet, best of N (same check, compute-matched)   | 50.0 / 0.50 | 37.5 / 1.25 | 6.2 / 3.75  | 50.0 / 4.00 |
+| GLIGEN, best of N (same check, compute-matched)       | 75.0 / 0.25 | 50.0 / 0.75 | 31.2 / 3.25 | 78.6 / 1.50 |
+| Collage: M2 objects pasted + SDEdit                   | 75.0 / 0.75 | 50.0 / 1.00 | 18.8 / 3.25 | 66.1 / 3.25 |
+| Collage, best of 3 (same check)                       | 75.0 / 0.75 | 62.5 / 0.75 | 18.8 / 3.25 | 70.2 / 3.00 |
+| Zhang et al. (2025) - cài đặt lại                     | 25.0 / 0.75 | 62.5 / 0.75 | 18.8 / 3.25 | 53.6 / 3.50 |
+| OCSD-lite (không học định danh)                       | 75.0 / 0.25 | 62.5 / 0.75 | 18.8 / 3.25 | 53.6 / 3.25 |
+| OCSD (đề xuất)                                        | 50.0 / 0.50 | 62.5 / 1.00 | 18.8 / 3.25 | 53.6 / 3.25 |
+| OCSD-v2 (joint trajectory, training-free)             | 75.0 / 0.25 | 50.0 / 1.25 | 18.8 / 3.25 | 57.7 / 3.75 |
+
+## E1_quickdraw
+
+**OPR (%) / OCE-lớp theo count_bin trên quickdraw**
+
+| Phương pháp                                           | 1            | 3           | 5           | 8+          |
+|:------------------------------------------------------|:-------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 94.4 / 0.28  | 63.0 / 2.00 | 72.2 / 2.22 | 40.1 / 5.33 |
+| SD + T2I-Adapter                                      | 100.0 / 0.11 | 51.9 / 2.39 | 66.7 / 2.56 | 42.6 / 5.44 |
+| GLIGEN (hộp + văn bản)                                | 100.0 / 0.11 | 85.2 / 0.67 | 80.0 / 1.50 | 63.5 / 5.11 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 94.4 / 0.39  | 64.8 / 2.56 | 72.2 / 2.22 | 40.8 / 6.06 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 94.4 / 0.28  | 74.1 / 2.50 | 76.7 / 1.78 | 46.2 / 7.17 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 94.4 / 0.22  | 64.8 / 2.44 | 75.6 / 1.56 | 45.8 / 5.67 |
+| ControlNet, best of N (same check, compute-matched)   | 94.4 / 0.17  | 64.8 / 1.94 | 75.6 / 1.72 | 52.5 / 5.11 |
+| GLIGEN, best of N (same check, compute-matched)       | 100.0 / 0.11 | 81.5 / 0.89 | 87.8 / 1.00 | 71.8 / 3.06 |
+| Collage: M2 objects pasted + SDEdit                   | 94.4 / 0.17  | 77.8 / 1.39 | 92.2 / 1.22 | 72.4 / 3.06 |
+| Collage, best of 3 (same check)                       | 100.0 / 0.06 | 75.9 / 1.33 | 91.1 / 1.28 | 77.6 / 2.94 |
+| Zhang et al. (2025) - cài đặt lại                     | 66.7 / 0.78  | 61.1 / 1.56 | 66.7 / 1.83 | 51.9 / 5.50 |
+| OCSD-lite (không học định danh)                       | 88.9 / 0.56  | 79.6 / 0.78 | 62.2 / 2.28 | 58.1 / 5.17 |
+| OCSD (đề xuất)                                        | 88.9 / 0.61  | 75.9 / 0.78 | 72.2 / 1.72 | 58.9 / 5.11 |
+| OCSD-v2 (joint trajectory, training-free)             | 88.9 / 0.50  | 72.2 / 1.94 | 75.6 / 2.22 | 56.2 / 8.44 |
+
+## E2_coco
+
+**OPR (%) / OCE-lớp theo complexity trên coco**
+
+| Phương pháp                                           | real        |
+|:------------------------------------------------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 35.4 / 2.62 |
+| SD + T2I-Adapter                                      | 36.5 / 2.44 |
+| GLIGEN (hộp + văn bản)                                | 53.5 / 1.88 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 37.5 / 2.25 |
+| ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)      | 38.0 / 2.31 |
+| ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra) | 33.9 / 2.62 |
+| ControlNet, best of N (same check, compute-matched)   | 35.9 / 2.38 |
+| GLIGEN, best of N (same check, compute-matched)       | 58.7 / 1.44 |
+| Collage: M2 objects pasted + SDEdit                   | 52.5 / 2.06 |
+| Collage, best of 3 (same check)                       | 56.6 / 1.94 |
+| Zhang et al. (2025) - cài đặt lại                     | 40.0 / 2.06 |
+| OCSD-lite (không học định danh)                       | 52.5 / 1.88 |
+| OCSD (đề xuất)                                        | 46.2 / 2.00 |
+| OCSD-v2 (joint trajectory, training-free)             | 50.4 / 2.12 |
+
+## E2_quickdraw
+
+**OPR (%) / OCE-lớp theo complexity trên quickdraw**
+
+| Phương pháp                                           | simple      | medium      | complex     |
+|:------------------------------------------------------|:------------|:------------|:------------|
+| SD + ControlNet (mô hình nền)                         | 65.6 / 2.33 | 74.4 / 2.42 | 62.3 / 2.62 |
+| SD + T2I-Adapter                                      | 57.1 / 3.04 | 75.8 / 1.92 | 62.9 / 2.92 |
+| GLIGEN (hộp + văn bản)                                | 81.1 / 1.71 | 83.9 / 2.17 | 81.5 / 1.67 |
+| ControlNet + chú ý vùng (kiểu DenseDiffusion)         | 71.7 / 2.79 | 73.9 / 2
+==================== STAGE D_report OK (2.8 min) ====================
+
+Stage status:
+  A_data                   ok              0.0 min  benchmarks for tier 'paper' already built (/content/drive/MyDrive/KLTN_OCSD/data/benchmarks/.done_paper.json)
+  B_generate               ok            281.7 min  
+  C_evaluate               ok             45.5 min  
+  D_report                 ok              2.8 min  
+  T_tune                   ok            127.5 min  
+
+Most recent error:
+stage: B_generate
+context: 
+time: 20260928_195254
+log: /content/drive/MyDrive/KLTN_OCSD/results/logs/run_20260928_195017.log
+
+Traceback (most recent call last):
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 108, in run_items
+    self._run_scene(scene, todo, split, stats)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 174, in _run_scene
+    id_tokens = learn_identity(eng, scene, objs, c3, seed=0, log=prep_log)
+  File "/content/KLTN_OCSD/ocsd/method.py", line 202, in learn_identity
+    eng.add_lora(cfg.lora_rank)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/engine.py", line 185, in add_lora
+    self.unet.add_adapter(cfg, adapter_name="ocsd")
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/diffusers/loaders/peft.py", line 517, in add_adapter
+    elif adapter_name in self.peft_config:
+                         ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/diffusers/models/modeling_utils.py", line 286, in __getattr__
+    return super().__getattr__(name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/local/lib/python3.13/dist-packages/torch/nn/modules/module.py", line 1968, in __getattr__
+    raise AttributeError(
+        f"'{type(self).__name__}' object has no attribute '{name}'"
+    )
+AttributeError: 'UNet2DConditionModel' object has no attribute 'peft_config'. Did you mean: 'from_config'?
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/content/KLTN_OCSD/ocsd/runlog.py", line 132, in stage
+    yield
+  File "/tmp/ipykernel_3720/256484334.py", line 5, in <cell line: 0>
+    eng, vis = stages.generate(P, E, max_minutes=MAX_MINUTES)
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/stages.py", line 168, in generate
+    runner.run_items(todo, max_minutes=max_minutes)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/KLTN_OCSD/ocsd/runner.py", line 115, in run_items
+    raise RuntimeError("The first 3 scenes all failed; stopping so the error can be fixed "
+                       "(see results/logs/LATEST_ERROR.txt)") from e
+RuntimeError: The first 3 scenes all failed; stopping so the error can be fixed (see results/logs/LATEST_ERROR.txt)
+
+
+env: {"time": "2026-09-28 19:52:54", "python": "3.13.15", "torch": "2.11.0+cu128", "torchvision": "0.26.0+cu128", "diffusers": "0.40.0", "transformers": "5.17.0", "peft": "0.21.0", "accelerate": "1.15.0", "huggingface_hub": "1.33.0", "torchmetrics": "1.9.0", "controlnet_aux": "0.0.10", "numpy": "2.1.3", "gpu": "NVIDIA A100-SXM4-80GB", "vram_gb": 79.3}
+
