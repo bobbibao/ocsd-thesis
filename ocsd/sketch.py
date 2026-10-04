@@ -383,6 +383,45 @@ def build_grouped_prompt(tokenizer, pieces: Sequence[Tuple[str, Optional[str]]],
     return GroupedPrompt(" ".join(text_parts), groups)
 
 
+# caption words that name an object class (COCO captions say "man", not "person"); used to limit those words to the
+# masks of that class (OCSDConfig.caption_class_masks)
+CLASS_SYNONYMS = {
+    "person": ["person", "people", "man", "men", "woman", "women", "boy", "boys", "girl", "girls", "child",
+               "children", "kid", "kids", "guy", "guys", "lady", "ladies", "player", "players"],
+    "airplane": ["plane", "planes", "jet", "jets"],
+    "bicycle": ["bike", "bikes"],
+    "motorcycle": ["motorbike", "motorbikes"],
+    "couch": ["sofa", "sofas"],
+    "tv": ["television", "televisions"],
+    "cell phone": ["phone", "phones", "cellphone"],
+    "dining table": ["table", "tables"],
+    "sailboat": ["boat", "boats"],
+}
+
+
+def class_word_forms(cls: str) -> List[str]:
+    return sorted({cls, plural(cls), *CLASS_SYNONYMS.get(cls, [])}, key=len, reverse=True)
+
+
+def _caption_class_groups(tokenizer, scene: "Scene", gp: "GroupedPrompt") -> None:
+    """Add a group 'cls:<class>' with the caption tokens that name each object class of the scene."""
+    cap = gp.groups.get("cap", [])
+    if not cap:
+        return
+    allowed = set(cap)
+    ids = tokenizer(scene.caption.strip().rstrip("."), add_special_tokens=False).input_ids
+    for c in sorted({o.cls for o in scene.objects}):
+        pos = set()
+        for w in class_word_forms(c):
+            wid = tokenizer(w, add_special_tokens=False).input_ids
+            for p in range(len(ids) - len(wid) + 1):
+                if ids[p:p + len(wid)] == wid:
+                    pos.update(cap[0] + p + q for q in range(len(wid)))
+        pos &= allowed
+        if pos:
+            gp.groups[f"cls:{c}"] = sorted(pos)
+
+
 def caption_adds_info(scene: Scene) -> bool:
     """True when the caption says more than the object phrases + background (COCO captions). QuickDraw-Scenes
     captions are built from the phrases by make_caption, so appending them would only repeat P_g."""
@@ -392,7 +431,7 @@ def caption_adds_info(scene: Scene) -> bool:
 
 def scene_global_prompt(tokenizer, scene: Scene, id_tokens: Optional[Sequence[str]] = None,
                         use_phrase: bool = True, prefix: str = "a photo of",
-                        caption: bool = False) -> GroupedPrompt:
+                        caption: bool = False, class_groups: bool = False) -> GroupedPrompt:
     """P_g = 'a photo of <o0> brown dog, <o1> red car and ... on the beach'.
 
     Nhóm 'obj{i}' gồm token định danh + thuộc tính + tên lớp của đối tượng i, nhóm 'id{i}' chỉ gồm token
@@ -400,7 +439,8 @@ def scene_global_prompt(tokenizer, scene: Scene, id_tokens: Optional[Sequence[st
 
     caption=True appends the scene caption after the background ('... on the beach. a man riding a horse ...') when
     caption_adds_info(scene), as group 'cap'. Those tokens get no region bias and no energy, so they only restore the
-    global semantics; the object/background token positions are the same as without the caption."""
+    global semantics; the object/background token positions are the same as without the caption.
+    class_groups=True also adds 'cls:<class>' groups: the caption words naming each object class (class_word_forms)."""
     pieces: List[Tuple[str, Optional[str]]] = [(prefix, None)]
     n = scene.n
     for i, o in enumerate(scene.objects):
@@ -419,4 +459,35 @@ def scene_global_prompt(tokenizer, scene: Scene, id_tokens: Optional[Sequence[st
     if caption and caption_adds_info(scene):
         pieces.append((".", None))
         pieces.append((scene.caption.strip().rstrip("."), "cap"))
-    return build_grouped_prompt(tokenizer, pieces)
+    gp = build_grouped_prompt(tokenizer, pieces)
+    if class_groups:
+        _caption_class_groups(tokenizer, scene, gp)
+    return gp
+
+
+# ----------------------------------------------------------------------------- instances drawn in colours (app)
+def square_resize(img: np.ndarray, size: int = 512) -> np.ndarray:
+    """Pad to a white square, then resize (keeps colour channels)."""
+    h, w = img.shape[:2]
+    m = max(h, w)
+    pad = np.full((m, m) + img.shape[2:], 255, img.dtype)
+    pad[(m - h) // 2:(m - h) // 2 + h, (m - w) // 2:(m - w) // 2 + w] = img
+    return cv2.resize(pad, (size, size), interpolation=cv2.INTER_AREA)
+
+
+def decompose_by_color(sketch_rgb: np.ndarray, min_pixels: int = 30, hue_bins: int = 12) -> List[np.ndarray]:
+    """One object per stroke colour: black/grey strokes form one group, coloured strokes are grouped by hue.
+    Returns per-object sketches (black on white, same frame), or [] when fewer than two groups are found, so the
+    caller can fall back to auto_decompose."""
+    if sketch_rgb.ndim != 3 or sketch_rgb.shape[2] < 3:
+        return []
+    hsv = cv2.cvtColor(np.ascontiguousarray(sketch_rgb[..., :3]).astype(np.uint8), cv2.COLOR_RGB2HSV)
+    hue, sat, val = (hsv[..., k].astype(np.int32) for k in range(3))
+    colored = (sat > 60) & (val > 40)
+    ink = colored | (val < 200)
+    labels = np.full(hue.shape, -1, np.int32)
+    labels[ink & ~colored] = hue_bins                               # black / grey strokes
+    labels[colored] = np.minimum(hue[colored] * hue_bins // 180, hue_bins - 1)   # OpenCV hue is in [0, 180)
+    groups = [np.where(labels == g, 0, 255).astype(np.uint8) for g in range(hue_bins + 1)
+              if (labels == g).sum() >= min_pixels]
+    return groups if len(groups) >= 2 else []

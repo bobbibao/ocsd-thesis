@@ -18,7 +18,7 @@ from typing import Dict, List, Optional
 from .config import TIERS, ExperimentConfig, Paths
 from .data import (COCO_URLS, build_coco_sketch, build_quickdraw_scenes, download_quickdraw, list_scenes)
 from .methods import BASELINES, OCSD_VARIANTS
-from .report import ABLATION, ALPHAS, MAIN
+from .report import ABLATION, ABLATION_V2, ABLATION_V2_COCO, ALPHAS, MAIN, PARETO_METHODS
 
 
 def _sh(cmd):
@@ -34,8 +34,18 @@ def setup_data(P: Paths, tier: str = "paper", with_coco: bool = True, force: boo
     t = TIERS[tier]
     marker = os.path.join(P.benchmarks, f".done_{tier}.json")
     if os.path.exists(marker) and not force:
-        mark_skipped("A_data", f"benchmarks for tier '{tier}' already built ({marker})")
-        return json.load(open(marker))
+        done = json.load(open(marker))
+        need = max(t["qd_per_cell"], t.get("power_per_cell", 0))
+        if done.get("qd_per_cell", t["qd_per_cell"]) >= need:
+            mark_skipped("A_data", f"benchmarks for tier '{tier}' already built ({marker})")
+            return done
+        # a larger power set: only the extra QuickDraw scenes are built; existing scenes and COCO are kept
+        extra_qd = _max_per_cell(P, freeze_tuning_split(P).get("quickdraw", [])) if t.get("tune") else 0
+        download_quickdraw(P.quickdraw_raw, per_class=3000)
+        build_quickdraw_scenes(P.quickdraw_raw, os.path.join(P.benchmarks, "quickdraw"), per_cell=need + extra_qd)
+        done.update(qd_per_cell=need, counts=preview_benchmark(P), time=time.strftime("%Y-%m-%d %H:%M:%S"))
+        json.dump(done, open(marker, "w"), indent=1)
+        return done
     extra_qd, extra_coco = 0, 0
     if t.get("tune"):
         # the pilot scenes become the tuning split; build extra scenes so the evaluation keeps its full size
@@ -44,7 +54,7 @@ def setup_data(P: Paths, tier: str = "paper", with_coco: bool = True, force: boo
         extra_coco = 4 * _max_per_cell(P, split.get("coco", []))
     download_quickdraw(P.quickdraw_raw, per_class=3000)
     build_quickdraw_scenes(P.quickdraw_raw, os.path.join(P.benchmarks, "quickdraw"),
-                           per_cell=t["qd_per_cell"] + extra_qd)
+                           per_cell=max(t["qd_per_cell"], t.get("power_per_cell", 0)) + extra_qd)
     if with_coco:
         local = "/content/coco"   # giải nén ra đĩa cục bộ (nhanh hơn Drive), chỉ lưu kết quả lên Drive
         os.makedirs(local, exist_ok=True)
@@ -55,7 +65,8 @@ def setup_data(P: Paths, tier: str = "paper", with_coco: bool = True, force: boo
         build_coco_sketch(local, os.path.join(P.benchmarks, "coco"), n_scenes=t["coco_n"] + extra_coco,
                           ref_dir=os.path.join(P.data, "coco_ref"), n_ref=2000)
     counts = preview_benchmark(P)
-    json.dump(dict(tier=tier, counts=counts, time=time.strftime("%Y-%m-%d %H:%M:%S")), open(marker, "w"), indent=1)
+    json.dump(dict(tier=tier, counts=counts, qd_per_cell=max(t["qd_per_cell"], t.get("power_per_cell", 0)),
+                   time=time.strftime("%Y-%m-%d %H:%M:%S")), open(marker, "w"), indent=1)
     return counts
 
 
@@ -136,7 +147,12 @@ def _tuned_path(P: Paths) -> str:
     return os.path.join(P.results, "tuning", "tuned.json")
 
 
-TUNE_PHASES = ("alpha_lora", "energy", "m5_alpha")
+TUNE_PHASES = ("alpha_lora", "energy", "m5_alpha", "v2", "baselines")
+
+
+def tune_phases(E: ExperimentConfig) -> List[str]:
+    """Phases of stage T for this tier (the baseline phase only with tune_baselines)."""
+    return [p for p in TUNE_PHASES if p != "baselines" or TIERS[E.tier].get("tune_baselines")]
 
 
 def _phases_done(tuned: Optional[Dict]) -> List[str]:
@@ -149,10 +165,14 @@ def _phases_done(tuned: Optional[Dict]) -> List[str]:
     return [p for p, k in zip(TUNE_PHASES, ("alpha", "use_energy", "use_region_attn")) if k in c]
 
 
-def tuning_finished(P: Paths) -> bool:
-    if not os.path.exists(_tuned_path(P)):
-        return False
-    return set(_phases_done(json.load(open(_tuned_path(P))))) >= set(TUNE_PHASES)
+def _load_tuned(P: Optional[Paths], E: ExperimentConfig) -> Dict:
+    if P is None or not TIERS[E.tier].get("tune") or not os.path.exists(_tuned_path(P)):
+        return {}
+    return json.load(open(_tuned_path(P)))
+
+
+def tuning_finished(P: Paths, E: ExperimentConfig) -> bool:
+    return set(_phases_done(_load_tuned(P, E) or None)) >= set(tune_phases(E))
 
 
 def _legacy_ocsd(E: ExperimentConfig):
@@ -186,6 +206,31 @@ def _tune_m5_variants(E: ExperimentConfig, chosen: Dict):
     return var, f"tune_m5_{mode}_a{float(chosen['alpha']):.1f}"
 
 
+def _tune_v2_variants(E: ExperimentConfig):
+    """Phase "v2": OCSD-v2 alpha x anchor_shrink (TUNE_V2). Reference: the methods.V2 defaults."""
+    from .config import TUNE_V2
+    var, _ = tier_variants(E, apply_tuned=False)
+    base = var["ocsd_v2"]
+    alphas = sorted(set(TUNE_V2["alpha"]) | {base.alpha})
+    shrinks = sorted(set(TUNE_V2["anchor_shrink"]) | {base.anchor_shrink})
+    grid = {f"tune_v2_a{a:.1f}_s{sh:.1f}": base.replace(alpha=a, anchor_shrink=sh) for a in alphas for sh in shrinks}
+    return grid, f"tune_v2_a{base.alpha:.1f}_s{base.anchor_shrink:.1f}"
+
+
+def _tune_baseline_grid(E: ExperimentConfig, bl: str, field: str, values, tuned_bl: Dict):
+    """Phase "baselines", one baseline: (OCSD-family variants, baseline configs, reference name) for its grid; the
+    reference is the current value of the knob (always part of the grid)."""
+    if bl == "zhang2025":
+        z = tier_variants(E, apply_tuned=False)[0]["zhang2025"]
+        vals = sorted(set(values) | {getattr(z, field)})
+        return ({f"tunebl_{bl}_{field}{v:g}": z.replace(**{field: v}) for v in vals}, {},
+                f"tunebl_{bl}_{field}{getattr(z, field):g}")
+    kind, cfg = tier_baselines(E, tuned_bl=tuned_bl)[bl]
+    vals = sorted(set(values) | {getattr(cfg, field)})
+    return ({}, {f"tunebl_{bl}_{field}{v:g}": (kind, cfg.replace(**{field: v})) for v in vals},
+            f"tunebl_{bl}_{field}{getattr(cfg, field):g}")
+
+
 def _tuning_jobs(P: Paths):
     split = json.load(open(_tuning_split_path(P)))
     jobs = []
@@ -200,17 +245,19 @@ def _tuning_jobs(P: Paths):
     return jobs
 
 
-def _run_grid(P, E, eng, vis, variants, ref, name, max_minutes):
-    """Generate + evaluate every variant on the tuning split; return (table, best variant name)."""
+def _run_grid(P, E, eng, vis, variants, ref, name, max_minutes, baselines=None):
+    """Generate + evaluate every variant (OCSD family) / baseline config on the tuning split; return (table, best)."""
     import pandas as pd
     from .config import TUNE_CLIP_TOL, TUNE_SEEDS
     from .metrics import evaluate_images
     from .runner import Runner
     jobs = _tuning_jobs(P)
-    names = sorted(variants)
+    baselines = baselines or {}
+    names = sorted(variants) + sorted(baselines)
     out_res = os.path.join(P.results, "tuning")
     _, base = tier_variants(E, apply_tuned=False)
-    runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base, cache_dir=P.cache)
+    runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base, cache_dir=P.cache,
+                    baselines=baselines)
     todo = [(sp, d, [(m, s) for m in names for s in TUNE_SEEDS
                      if not os.path.exists(runner.img_path(sp, m, os.path.basename(d), s))])
             for sp, ds in jobs for d in ds]
@@ -244,11 +291,13 @@ def _run_grid(P, E, eng, vis, variants, ref, name, max_minutes):
 
 
 def tune(P: Paths, E: ExperimentConfig, eng=None, vis=None, max_minutes: Optional[float] = None):
-    """Tune OCSD on the tuning split (pilot scenes), with the tier's own M2/M3 settings, in three phases:
+    """Tune on the tuning split (pilot scenes), with the tier's own M2/M3 settings, in phases:
     (1) alpha x lora_scale (TUNE_GRID), (2) how M5(b) energy guidance is applied (TUNE_ENERGY),
-    (3) which of M5(a) / M5(b) to keep, jointly with alpha (TUNE_M5 x TUNE_M5_ALPHA).
-    Each phase keeps the highest OPR + mIoU + RA (scene means) among settings whose global CLIP score is within
-    TUNE_CLIP_TOL of that phase's reference setting. Result: results/tuning/tuned.json; finished phases are skipped."""
+    (3) which of M5(a) / M5(b) to keep, jointly with alpha (TUNE_M5 x TUNE_M5_ALPHA) - thesis OCSD;
+    (v2) OCSD-v2 alpha x anchor_shrink (TUNE_V2); (baselines, with tune_baselines) one knob per baseline
+    (TUNE_BASELINES), so the baselines get the same rule as OCSD.
+    Each grid keeps the highest OPR + mIoU + RA (scene means) among settings whose global CLIP score is within
+    TUNE_CLIP_TOL of that grid's reference setting. Result: results/tuning/tuned.json; finished phases are skipped."""
     from .config import TUNE_CLIP_TOL, TUNE_SEEDS
     from .engine import Engine
     from .runlog import mark_skipped
@@ -259,7 +308,7 @@ def tune(P: Paths, E: ExperimentConfig, eng=None, vis=None, max_minutes: Optiona
         return eng, vis
     tuned = json.load(open(_tuned_path(P))) if os.path.exists(_tuned_path(P)) else None
     done = _phases_done(tuned)
-    if set(done) >= set(TUNE_PHASES):
+    if set(done) >= set(tune_phases(E)):
         mark_skipped("T_tune", f"already tuned: {tuned['chosen']}")
         return eng, vis
     if not os.path.exists(_tuning_split_path(P)):
@@ -298,30 +347,60 @@ def tune(P: Paths, E: ExperimentConfig, eng=None, vis=None, max_minutes: Optiona
         tuned["chosen"].update(alpha=v.alpha, use_region_attn=v.use_region_attn, use_energy=v.use_energy)
         tuned.update(method_m5=best, reference_m5=ref, time_m5=time.strftime("%Y-%m-%d %H:%M:%S"))
         save("m5_alpha")
-    print(f"[tune] chosen: {tuned['chosen']}")
+    if "v2" not in done:
+        variants, ref = _tune_v2_variants(E)
+        _, best = _run_grid(P, E, eng, vis, variants, ref, "tuning_v2", max_minutes)
+        v = variants[best]
+        tuned.update(chosen_v2=dict(alpha=v.alpha, anchor_shrink=v.anchor_shrink), method_v2=best, reference_v2=ref,
+                     time_v2=time.strftime("%Y-%m-%d %H:%M:%S"))
+        save("v2")
+    if "baselines" in tune_phases(E) and "baselines" not in done:
+        from .config import TUNE_BASELINES
+        bl_done = tuned.setdefault("baselines", {})
+        for bl, field, values in TUNE_BASELINES:
+            if bl in bl_done or (bl in ("gligen", "t2i_adapter") and E.backbone != "sd15"):
+                continue
+            variants, cfgs, ref = _tune_baseline_grid(E, bl, field, values, bl_done)
+            _, best = _run_grid(P, E, eng, vis, variants, ref, f"tuning_bl_{bl}", max_minutes, baselines=cfgs)
+            c = variants[best] if best in variants else cfgs[best][1]
+            bl_done[bl] = {field: getattr(c, field)}
+            json.dump(tuned, open(_tuned_path(P), "w"), indent=1)
+        tuned.update(time_baselines=time.strftime("%Y-%m-%d %H:%M:%S"))
+        save("baselines")
+    print(f"[tune] chosen: {tuned['chosen']}; OCSD-v2: {tuned.get('chosen_v2')}; baselines: {tuned.get('baselines')}")
     return eng, vis
 
 
-PROMPT_BASELINES = ("cn_region", "cn_energy")   # baselines built on P_g (scene_global_prompt)
-
-
 def _gen_signatures(E: ExperimentConfig, tuned: Optional[Dict] = None, defaults: Optional[Dict] = None,
-                    P: Optional[Paths] = None) -> Dict[str, Dict[str, Dict]]:
-    """split -> method -> the settings its images depend on, for the OCSD family and the P_g-based baselines.
-    use_caption is left out on QuickDraw, where the caption never adds anything to P_g (sketch.caption_adds_info)."""
-    var, base = tier_variants(E, P=P, tuned=tuned, defaults=defaults)
+                    P: Optional[Paths] = None, legacy: bool = False) -> Dict[str, Dict[str, Dict]]:
+    """split -> method -> the settings its images depend on: the whole config of every OCSD-family variant, and the
+    BASELINE_FIELDS of every baseline. use_caption is left out on QuickDraw, where the caption never adds anything to
+    P_g (sketch.caption_adds_info). legacy=True describes outputs made before the baselines had their own settings."""
+    from .methods import BASELINE_FIELDS
+    var, _ = tier_variants(E, P=P, tuned=tuned, defaults=defaults,
+                           tuned_v2={} if legacy else None, tuned_zhang={} if legacy else None)
+    bls = tier_baselines(E, P=P, defaults=defaults, baseline_defaults={} if legacy else None,
+                         tuned_bl={} if legacy else None)
     out = {}
     for sp in ("quickdraw", "coco"):
-        sig = {}
-        for m, c in var.items():
+        sig = {m: c.to_dict() for m, c in var.items()}
+        for m, (kind, c) in bls.items():
             d = c.to_dict()
+            sig[m] = {f: d[f] for f in BASELINE_FIELDS[kind]}
+        for d in sig.values():
             if sp == "quickdraw":
-                d.pop("use_caption")
-            sig[m] = d
-        for m in PROMPT_BASELINES:
-            sig[m] = dict(use_caption=base.use_caption) if sp == "coco" else {}
+                d.pop("use_caption", None)
         out[sp] = json.loads(json.dumps(sig))   # tuples -> lists, as read back from the marker
     return out
+
+
+def _complete(old: Dict, new: Dict) -> Dict:
+    """`old` with every key of `new` it lacks filled with the OCSDConfig default (new fields default to the behaviour
+    from before they existed, see config.LEGACY_DEFAULTS)."""
+    import dataclasses
+    from .config import OCSDConfig
+    dflt = json.loads(json.dumps({f.name: f.default for f in dataclasses.fields(OCSDConfig)}))
+    return {k: old.get(k, dflt.get(k)) for k in new}
 
 
 def _archive_stale(P: Paths, E: ExperimentConfig):
@@ -338,10 +417,13 @@ def _archive_stale(P: Paths, E: ExperimentConfig):
     if os.path.exists(marker):
         old = json.load(open(marker))
     elif os.path.exists(legacy):
-        old = _gen_signatures(E, tuned=json.load(open(legacy)), defaults=LEGACY_DEFAULTS)
+        old = _gen_signatures(E, tuned=json.load(open(legacy)), defaults=LEGACY_DEFAULTS, legacy=True)
     else:
         old = new   # nothing generated with a tuned configuration yet
-    stale = [(sp, m) for sp in new for m in new[sp] if m in old.get(sp, {}) and old[sp][m] != new[sp][m]]
+    # a method without stored settings was generated with the defaults of its fields (baselines before this marker)
+    stale = [(sp, m) for sp in new for m in new[sp]
+             if _complete(old.get(sp, {}).get(m, {}), new[sp][m]) != new[sp][m]
+             and (os.path.isdir(os.path.join(P.outputs, sp, m)) or m in old.get(sp, {}))]
     ts = time.strftime("%Y%m%d_%H%M%S")
     moved = []
     for sp, m in stale:
@@ -351,11 +433,14 @@ def _archive_stale(P: Paths, E: ExperimentConfig):
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             os.rename(src, dst)
             moved.append(f"{sp}/{m}")
-        csv = os.path.join(P.results, sp, f"per_image_{m}.csv")
-        if os.path.exists(csv):
-            dst = os.path.join(P.results, "_stale", ts, sp)
-            os.makedirs(dst, exist_ok=True)
-            os.rename(csv, os.path.join(dst, os.path.basename(csv)))
+        # its scores: main evaluator and every extra evaluator (results/<split>/det_<name>/)
+        for csv in [os.path.join(P.results, sp, f"per_image_{m}.csv")] + \
+                glob.glob(os.path.join(P.results, sp, "det_*", f"per_image_{m}.csv")):
+            if os.path.exists(csv):
+                sub = os.path.relpath(os.path.dirname(csv), os.path.join(P.results, sp))
+                dst = os.path.normpath(os.path.join(P.results, "_stale", ts, sp, sub))
+                os.makedirs(dst, exist_ok=True)
+                os.rename(csv, os.path.join(dst, os.path.basename(csv)))
     for sp in {sp for sp, _ in stale}:
         q = os.path.join(P.results, sp, "quality_fid_kid.csv")
         if os.path.exists(q):
@@ -370,24 +455,35 @@ def _archive_stale(P: Paths, E: ExperimentConfig):
 
 # ============================================================================ 2. generate
 def experiment_plan(P: Paths, E: ExperimentConfig) -> List[Dict]:
-    """Danh sách công việc (E3 QuickDraw, E3 COCO, E4 cắt bỏ, alpha). Tập cảnh của E4/alpha nằm trong tập cảnh đã
-    học định danh để dùng lại M2/M3 (tiết kiệm GPU)."""
+    """Danh sách công việc (E3 QuickDraw, E3 COCO, E4 cắt bỏ, alpha, OCSD-v2 ablations, power, pareto). Tập cảnh của
+    E4/alpha nằm trong tập cảnh đã học định danh để dùng lại M2/M3 (tiết kiệm GPU). priority: 0 = main tables, then
+    the power job (1) and the sweeps (2), which run after everything else. E.skip_jobs drops jobs by name prefix."""
     t = TIERS[E.tier]
-    main = [m for m in MAIN if not (m in ("gligen", "t2i_adapter") and E.backbone != "sd15")]
+    main = [m for m in MAIN if not (m in ("gligen", "t2i_adapter", "gligen_bon") and E.backbone != "sd15")]
     free = [m for m in main if m not in ("ocsd", "zhang2025")]
     ex = excluded_scenes(P, E)
-    qd_all = list_scenes(P.benchmarks, "quickdraw", limit=12 * t["qd_per_cell"], exclude=ex)
-    qd_tr = list_scenes(P.benchmarks, "quickdraw", limit=t["trained_n"], seed=1, exclude=ex)
+    # QuickDraw scenes are numbered per cell; the main jobs only see the first qd_per_cell (+ tuning scenes) of each
+    # cell, so scenes built later for a larger power set never change the E3 / E4 scenes
+    n_tune = _max_per_cell(P, sorted(s for s in ex if s.startswith("qd_")))
+    ex_main = ex | _qd_from(P, t["qd_per_cell"] + n_tune)
+    qd_all = list_scenes(P.benchmarks, "quickdraw", limit=12 * t["qd_per_cell"], exclude=ex_main)
+    pp = t.get("power_per_cell", t["qd_per_cell"])
+    qd_power = list_scenes(P.benchmarks, "quickdraw", limit=12 * pp, exclude=ex | _qd_from(P, pp + n_tune)) \
+        if pp > t["qd_per_cell"] else qd_all
+    qd_tr = list_scenes(P.benchmarks, "quickdraw", limit=t["trained_n"], seed=1, exclude=ex_main)
     qd_tr = [d for d in qd_tr if d in qd_all] or qd_all[: t["trained_n"]]
     coco_all = list_scenes(P.benchmarks, "coco", limit=t["coco_n"], seed=1, exclude=ex)
     coco_tr = list_scenes(P.benchmarks, "coco", limit=t["coco_trained_n"], seed=1, exclude=ex)
     coco_tr = [d for d in coco_tr if d in coco_all] or coco_all[: t["coco_trained_n"]]
     mid = [d for d in qd_tr if os.path.basename(d).split("_")[1] in ("3", "5")]
-    # ablation rows that tuning made identical to OCSD (e.g. "no M5(b)" when M5(b) is off) would only repeat its row
+    # ablation rows that tuning made identical to their method (e.g. "no M5(b)" when M5(b) is off) only repeat its row
     var, _ = tier_variants(E, P=P)
     abl = [m for m in ABLATION if m in OCSD_VARIANTS and m not in ("ocsd", "zhang2025", "ocsd_lite")
            and var[m] != var["ocsd"]]
+    abl_v2 = [m for m in ABLATION_V2[1:] if var[m] != var["ocsd_v2"]]
+    abl_v2_coco = [m for m in ABLATION_V2_COCO[1:] if var[m] != var["ocsd_v2"]]
     power = [m for m in t.get("power", []) if m in main]
+    pareto = [m for m in PARETO_METHODS if not (m.startswith("pgl_") and E.backbone != "sd15")] if t.get("pareto") else []
     plan = [
         dict(name="E3_quickdraw_free", split="quickdraw", scenes=qd_all, seeds=E.seeds[: t.get("seeds_all", 99)],
              methods=free),
@@ -398,34 +494,80 @@ def experiment_plan(P: Paths, E: ExperimentConfig) -> List[Dict]:
         dict(name="E3_coco_free", split="coco", scenes=coco_all, seeds=E.seeds[:1], methods=free),
         dict(name="E3_coco_trained", split="coco", scenes=coco_tr, seeds=E.seeds[:1], methods=["ocsd", "zhang2025"]),
         dict(name="E4_ablation", split="quickdraw", scenes=mid[: t["ablation_n"]], seeds=E.seeds[:1], methods=abl),
+        dict(name="E4v2_ablation", split="quickdraw", scenes=mid[: t["ablation_n"]], seeds=E.seeds[:1], methods=abl_v2),
+        dict(name="E4v2_coco", split="coco", scenes=coco_all, seeds=E.seeds[:1], methods=abl_v2_coco),
         dict(name="alpha", split="quickdraw", scenes=mid[: t["alpha_n"]], seeds=E.seeds[:1], methods=ALPHAS),
         # every seed on every QuickDraw scene for the pre-registered tests (docs/PREREGISTRATION.md)
-        dict(name="E3_quickdraw_power", split="quickdraw", scenes=qd_all, seeds=E.seeds, methods=power),
+        dict(name="E3_quickdraw_power", split="quickdraw", scenes=qd_power, seeds=E.seeds, methods=power, priority=1),
+        # control-vs-quality sweeps: every QuickDraw scene, first seed (KID needs many images per point)
+        dict(name="pareto", split="quickdraw", scenes=qd_all, seeds=E.seeds[:1], methods=pareto, priority=2),
     ]
-    return [p for p in plan if p["scenes"] and p["seeds"] and p["methods"]]
+    skip = [x.strip() for x in (E.skip_jobs or "").split(",") if x.strip()]
+    return [dict(p, priority=p.get("priority", 0)) for p in plan
+            if p["scenes"] and p["seeds"] and p["methods"] and not any(p["name"].startswith(k) for k in skip)]
+
+
+def _qd_from(P: Paths, k: int) -> set:
+    """QuickDraw scene ids whose number within their cell is k or more (qd_<count>_<complexity>_<number>)."""
+    return {os.path.basename(d) for d in list_scenes(P.benchmarks, "quickdraw")
+            if int(os.path.basename(d).rsplit("_", 1)[1]) >= k}
 
 
 def tier_variants(E: ExperimentConfig, apply_tuned: bool = True, P: Optional[Paths] = None,
-                  tuned: Optional[Dict] = None, defaults: Optional[Dict] = None):
+                  tuned: Optional[Dict] = None, defaults: Optional[Dict] = None, tuned_v2: Optional[Dict] = None,
+                  tuned_zhang: Optional[Dict] = None):
     """Áp siêu tham số của tier cho mọi phương pháp.
-    The tier settings and the tuned values (results/tuning/tuned.json, or `tuned`) apply to every field a variant does
-    not set itself (methods.VARIANT_OVERRIDES): the alpha sweep keeps its alpha, Zhang et al. keeps K = 1 and its own
-    setup, and the tuned values never reach Zhang et al. `defaults` replaces OCSDConfig defaults (e.g. LEGACY_DEFAULTS)."""
+    The tier settings apply to every field a variant does not set itself (methods.VARIANT_OVERRIDES). The tuned
+    values (results/tuning/tuned.json, or the arguments) apply to the fields outside methods.VARIANT_OWN: "chosen" to
+    the thesis family, "chosen_v2" to the OCSD-v2 family, and only the baseline phase's value to Zhang et al.
+    `defaults` replaces OCSDConfig defaults (e.g. LEGACY_DEFAULTS)."""
     from .config import OCSDConfig
-    from .methods import VARIANT_OVERRIDES
+    from .methods import VARIANT_FAMILY, VARIANT_OVERRIDES, VARIANT_OWN
     ov = TIERS[E.tier].get("cfg", {})
     base = OCSDConfig(**(defaults or {}))
-    if tuned is None:
-        tuned = {}
-        if apply_tuned and P is not None and TIERS[E.tier].get("tune") and os.path.exists(_tuned_path(P)):
-            tuned = json.load(open(_tuned_path(P)))["chosen"]
+    t = _load_tuned(P, E) if apply_tuned else {}
+    tuned = t.get("chosen", {}) if tuned is None else tuned
+    tuned_v2 = t.get("chosen_v2", {}) if tuned_v2 is None else tuned_v2
+    tuned_zhang = t.get("baselines", {}).get("zhang2025", {}) if tuned_zhang is None else tuned_zhang
     var = {}
-    for k, own in VARIANT_OVERRIDES.items():
-        o = {f: v for f, v in ov.items() if f not in own}
-        if k != "zhang2025":
-            o.update({f: v for f, v in tuned.items() if f not in own})
-        var[k] = base.replace(**o).replace(**own)
+    for k, over in VARIANT_OVERRIDES.items():
+        own = VARIANT_OWN.get(k, over)
+        c = base.replace(**{f: v for f, v in ov.items() if f not in over}).replace(**over)
+        if k == "zhang2025":
+            c = c.replace(**tuned_zhang)
+        else:
+            fam = tuned_v2 if VARIANT_FAMILY.get(k) == "v2" else tuned
+            c = c.replace(**{f: v for f, v in fam.items() if f not in own})
+        var[k] = c
     return var, base.replace(**ov)
+
+
+def tier_baselines(E: ExperimentConfig, P: Optional[Paths] = None, tuned_bl: Optional[Dict] = None,
+                   defaults: Optional[Dict] = None, baseline_defaults: Optional[Dict] = None) -> Dict[str, tuple]:
+    """method -> (baseline kind, config) for every baseline and every baseline sweep point: the tier settings, the
+    BASELINE_DEFAULTS fixes, and the values of the baseline tuning phase (tuned.json "baselines", or `tuned_bl`).
+    cn_region / cn_energy / collage use ControlNet's tuned scale; bo3 / boN variants use their base method's values;
+    the collage baselines draw their M2 objects like OCSD-v2 (per seed); sweep points are not tuned."""
+    from .config import BASELINE_DEFAULTS
+    from .methods import BASELINE_TUNED_FROM, COLLAGE_BASELINES, PARETO_BASELINES
+    _, base = tier_variants(E, apply_tuned=False, defaults=defaults)
+    base = base.replace(**(BASELINE_DEFAULTS if baseline_defaults is None else baseline_defaults))
+    if tuned_bl is None:
+        tuned_bl = _load_tuned(P, E).get("baselines", {})
+    v2 = tier_variants(E, apply_tuned=False)[0]["ocsd_v2"]
+    out = {}
+    for b in BASELINES:
+        src = BASELINE_TUNED_FROM.get(b, b)
+        c = base
+        if src in ("cn_region", "cn_energy", "collage"):
+            c = c.replace(**tuned_bl.get("controlnet", {}))
+        c = c.replace(**tuned_bl.get(src, {}))
+        if b in COLLAGE_BASELINES:
+            c = c.replace(m2_per_seed=v2.m2_per_seed)
+        out[b] = (b, c)
+    for name, (b, field, value) in PARETO_BASELINES.items():
+        out[name] = (b, base.replace(**{field: value}))
+    return out
 
 
 def _count_todo(P, job):
@@ -441,23 +583,22 @@ def _count_todo(P, job):
 
 def work_items(P: Paths, E: ExperimentConfig):
     """Gộp mọi công việc theo cảnh: mỗi cảnh được xử lý một lần với mọi phương pháp/seed của nó, nên M2/M3 chỉ làm
-    một lần cho mỗi cảnh. Thứ tự: cảnh có học định danh trước (bảng E3/E4 đầy đủ sớm nhất), rồi phần còn lại."""
-    items: Dict[tuple, List] = {}
-    order: List[tuple] = []
+    một lần cho mỗi cảnh. Thứ tự: theo priority của job (bảng chính trước, rồi power, rồi pareto), trong mỗi mức cảnh
+    có học định danh trước (bảng E3/E4 đầy đủ sớm nhất), rồi phần còn lại. Each image goes to its lowest priority."""
+    prio: Dict[tuple, int] = {}
     plan = experiment_plan(P, E)
     trained = {d for j in plan if "trained" in j["name"] for d in j["scenes"]}
     for j in plan:
         for d in j["scenes"]:
-            key = (j["split"], d)
-            if key not in items:
-                items[key] = []
-                order.append(key)
             for m in j["methods"]:
                 for s in j["seeds"]:
-                    if (m, s) not in items[key]:
-                        items[key].append((m, s))
-    order.sort(key=lambda k: (k[0] != "quickdraw", k[1] not in trained))
-    return [(split, d, items[(split, d)]) for split, d in order]
+                    k = (j["split"], d, m, s)
+                    prio[k] = min(prio.get(k, 99), j["priority"])
+    items: Dict[tuple, List] = {}
+    for (split, d, m, s), pr in prio.items():
+        items.setdefault((pr, split, d), []).append((m, s))
+    order = sorted(items, key=lambda k: (k[0], k[1] != "quickdraw", k[2] not in trained, k[2]))
+    return [(split, d, items[(pr, split, d)]) for pr, split, d in order]
 
 
 def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None, eng=None, vis=None):
@@ -469,11 +610,12 @@ def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None,
     if vis is None:
         vis = Vision("cuda", cache_dir=P.cache)
     if TIERS[E.tier].get("tune"):
-        if not tuning_finished(P):
+        if not tuning_finished(P, E):
             raise RuntimeError("stage T (tuning) has not finished: run it before generating images for this tier")
         _archive_stale(P, E)
     variants, base = tier_variants(E, P=P)
-    runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base, cache_dir=P.cache)
+    runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base, cache_dir=P.cache,
+                    baselines=tier_baselines(E, P=P))
     items = work_items(P, E)
     todo = [(sp, d, [(m, s) for m, s in ms if not os.path.exists(runner.img_path(sp, m, os.path.basename(d), s))])
             for sp, d, ms in items]
@@ -534,6 +676,11 @@ def estimate(P: Paths, E: ExperimentConfig, tiers=("pilot", "paper", "full")) ->
                 sec += rest * (S * T(m) + t_m3)
             elif m in free:
                 sec += rest * (S - Sa) * T(m)
+        # OCSD-v2 / collage draw M2 objects per seed; OCSD-v2 ablations; sweeps
+        sec += t_m2 * (S - 1) * (n_qd + t["coco_n"])
+        sec += t["ablation_n"] * sum(T(m) for m in ABLATION_V2[1:]) + t["coco_n"] * sum(T(m) for m in ABLATION_V2_COCO[1:])
+        if t.get("pareto"):
+            sec += n_qd * sum(T(m) for m in PARETO_METHODS)
         out["tiers"][tier] = dict(gpu_hours=round(sec / 3600, 1))
     json.dump(out, open(os.path.join(P.results, "budget_estimate.json"), "w"), indent=1)
     print("Ước tính giờ GPU (theo thời gian đo trên GPU hiện tại, chưa gồm đánh giá ~10-15%):",
@@ -553,7 +700,7 @@ def log_progress(P: Paths, E: ExperimentConfig):
 # ============================================================================ 3. evaluate
 def evaluate(P: Paths, E: ExperimentConfig, vis=None, fid: bool = True):
     import torch
-    from .metrics import evaluate_images, image_level_quality
+    from .metrics import evaluate_detectors, evaluate_images, image_level_quality
     from .vision import Vision
     vis = vis or Vision("cuda", cache_dir=P.cache)
     plan = experiment_plan(P, E)
@@ -566,6 +713,12 @@ def evaluate(P: Paths, E: ExperimentConfig, vis=None, fid: bool = True):
         scenes = sorted({d for j in jobs for d in j["scenes"]})
         evaluate_images(P.outputs, P.benchmarks, split, methods, seeds, vis, P.results, detector=E.eval_detector,
                         det_thr=E.det_thr, iou_thr=E.match_iou, scene_dirs=scenes)
+        e3 = [j for j in jobs if j["name"].startswith("E3_")]
+        if E.extra_detectors and e3:   # robustness table: the main comparison's images (E3 jobs), other evaluators
+            evaluate_detectors(P.outputs, P.benchmarks, split, sorted({m for j in e3 for m in j["methods"]}),
+                               sorted({s for j in e3 for s in j["seeds"]}), vis, P.results,
+                               detectors=E.extra_detectors, det_thr=E.det_thr, detr_thr=E.detr_thr,
+                               iou_thr=E.match_iou, scene_dirs=sorted({d for j in e3 for d in j["scenes"]}))
         # (scene, seed) pairs of this plan per method: the report ignores per-image rows outside it
         # (e.g. pilot-tier rows of the tuning scenes)
         plan_pairs = {}
@@ -610,15 +763,21 @@ def report(P: Paths, E: ExperimentConfig):
         if split == "quickdraw":
             figs.append(R.plot_curves(P.results, split))
             figs.append(R.plot_alpha(P.results, split))
+            figs.append(R.plot_pareto(P.results, split))
         try:
             sids = R.pick_showcase(P.results, split, k=6)
             figs.append(R.qualitative_grid(P.outputs, P.benchmarks, split, sids,
-                                           ["controlnet", "t2i_adapter", "gligen", "zhang2025", "ocsd"],
+                                           ["controlnet", "t2i_adapter", "gligen", "collage", "zhang2025", "ocsd",
+                                            "ocsd_v2"],
                                            out=os.path.join(P.results, "figures", f"qualitative_{split}.png")))
             if split == "quickdraw":
                 R.user_study_pack(P.outputs, P.benchmarks, split, R.pick_showcase(P.results, split, k=10),
-                                  ["controlnet", "t2i_adapter", "gligen", "zhang2025", "ocsd"],
+                                  ["controlnet", "t2i_adapter", "gligen", "zhang2025", "ocsd", "ocsd_v2"],
                                   os.path.join(P.results, "user_study"))
+                # realism A/B on randomly drawn scenes (not the showcase, which favours OCSD)
+                R.realism_pairs_pack(P.outputs, split, _random_scenes(P, E, split, 12),
+                                     [("ocsd_v2", "controlnet"), ("ocsd_v2", "gligen"), ("ocsd_v2", "ocsd"),
+                                      ("ocsd_v2", "collage")], os.path.join(P.results, "user_study_realism"))
         except Exception as e:  # thiếu ảnh của một phương pháp -> bỏ qua hình
             print("Bỏ qua hình định tính:", e)
     summary = dict(generated_at=time.strftime("%Y-%m-%d %H:%M:%S"), tier=E.tier, backbone=E.backbone,
@@ -635,6 +794,18 @@ def report(P: Paths, E: ExperimentConfig):
                 f.write(f"## {name}\n\n" + open(p).read() + "\n\n")
     print(open(os.path.join(P.results, "summary.md")).read()[:6000])
     return summary
+
+
+def _random_scenes(P: Paths, E: ExperimentConfig, split: str, k: int, seed: int = 0) -> List[str]:
+    """k scenes drawn at random (fixed seed) from the scenes every main method generated."""
+    import random
+    jobs = [j for j in experiment_plan(P, E) if j["split"] == split and j["name"].startswith("E3_")]
+    if not jobs:
+        return []
+    common = set.intersection(*[{os.path.basename(d) for d in j["scenes"]} for j in jobs])
+    sids = sorted(common)
+    random.Random(seed).shuffle(sids)
+    return sorted(sids[:k])
 
 
 def hardware_info():

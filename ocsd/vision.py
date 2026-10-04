@@ -1,4 +1,4 @@
-"""Các mô hình thị giác phụ trợ: Grounding DINO, OWLv2, SAM, CLIP, DINOv2 (nạp lười, dùng chung)."""
+"""Các mô hình thị giác phụ trợ: Grounding DINO, OWLv2, SAM, CLIP, DINOv2, DETR (nạp lười, dùng chung)."""
 from __future__ import annotations
 
 from typing import Dict, List, Optional, Sequence
@@ -63,20 +63,67 @@ class OWLv2:
         self.device = device
 
     @torch.no_grad()
-    def __call__(self, img: np.ndarray, classes: Sequence[str], thr: float = 0.3) -> List[Det]:
+    def __call__(self, img: np.ndarray, classes: Sequence[str], thr: float = 0.3,
+                 distractors: Sequence[str] = ()) -> List[Det]:
+        """Detections of `classes`. `distractors` are extra queries that compete for the same boxes (each box keeps
+        its best-scoring query) and are then dropped, so a blob is not called a dog just because "dog" was the only
+        animal asked for."""
         classes = sorted(set(classes))
-        queries = [f"a photo of a {c}" for c in classes]
+        queries = classes + sorted(set(distractors) - set(classes))
         pil = Image.fromarray(img)
-        inp = self.proc(text=[queries], images=pil, return_tensors="pt").to(self.device)
+        inp = self.proc(text=[[f"a photo of a {c}" for c in queries]], images=pil, return_tensors="pt").to(self.device)
         out = self.model(**inp)
         H, W = img.shape[:2]
         side = max(H, W)  # OWLv2 đệm ảnh thành hình vuông
         res = self.proc.post_process_grounded_object_detection(out, threshold=thr, target_sizes=[(side, side)])[0]
         dets = []
         for box, score, lab in zip(res["boxes"].tolist(), res["scores"].tolist(), res["labels"].tolist()):
+            if int(lab) >= len(classes):
+                continue
             x0, y0, x1, y1 = box
             dets.append(dict(cls=classes[int(lab)], box=(max(0, x0), max(0, y0), min(W, x1), min(H, y1)),
                              score=float(score)))
+        return _nms(dets)
+
+
+# COCO categories (names as in the COCO annotations and the DETR config) and the benchmark classes that map onto them
+COCO80 = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+          "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
+          "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+          "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+          "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+          "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
+          "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+          "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
+          "hair drier", "toothbrush"]
+TO_COCO = {c: c for c in COCO80}
+TO_COCO.update({"sailboat": "boat", "duck": "bird"})   # tree, house and rabbit have no COCO category
+
+
+class COCODetector:
+    """Closed-set detector trained on COCO only (DETR): a different family and training set from the open-vocabulary
+    detectors used inside the method (Grounding DINO) and for the main evaluation (OWLv2)."""
+
+    def __init__(self, device="cuda", model_id=AUX_MODELS["detr"], cache_dir=None):
+        from transformers import AutoImageProcessor, AutoModelForObjectDetection
+        self.proc = AutoImageProcessor.from_pretrained(model_id, cache_dir=cache_dir)
+        self.model = AutoModelForObjectDetection.from_pretrained(model_id, cache_dir=cache_dir).to(device).eval()
+        self.device = device
+
+    @torch.no_grad()
+    def __call__(self, img: np.ndarray, classes: Sequence[str], thr: float = 0.5) -> List[Det]:
+        """Detections whose COCO label is in `classes` (COCO names)."""
+        pil = Image.fromarray(img)
+        inp = self.proc(images=pil, return_tensors="pt").to(self.device)
+        out = self.model(**inp)
+        res = self.proc.post_process_object_detection(out, threshold=thr, target_sizes=[img.shape[:2]])[0]
+        id2label = self.model.config.id2label
+        want = set(classes)
+        dets = []
+        for box, score, lab in zip(res["boxes"].tolist(), res["scores"].tolist(), res["labels"].tolist()):
+            name = str(id2label.get(int(lab), id2label.get(str(int(lab)), ""))).lower()
+            if name in want:
+                dets.append(dict(cls=name, box=tuple(box), score=float(score)))
         return _nms(dets)
 
 
@@ -171,6 +218,10 @@ class Vision:
     @property
     def dino(self) -> DINOv2:
         return self._get("dino", DINOv2)
+
+    @property
+    def detr(self) -> COCODetector:
+        return self._get("detr", COCODetector)
 
     def unload(self, *keys):
         for k in keys or list(self._m):

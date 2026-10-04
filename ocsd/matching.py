@@ -37,14 +37,22 @@ def consistency(scene: Scene, dets: Sequence[dict], iou_thr: float = 0.1, size: 
     oce = abs(n_gen - n_in)
     oce_c = sum(abs(counts_gen[c] - counts_in[c]) for c in counts_in)
     miou = float(np.mean([iou if j >= 0 else 0.0 for j, iou in m])) if n_in else 0.0
-    rel_ok = []
+    matched_iou = [iou for j, iou in m if j >= 0]
+    rel_ok, rel_cond = [], []
     for i, j, r in scene.relations:
         di, dj = m[i][0], m[j][0]
-        rel_ok.append(di >= 0 and dj >= 0 and relation_holds(dets[di]["box"], dets[dj]["box"], r, size))
+        ok = di >= 0 and dj >= 0 and relation_holds(dets[di]["box"], dets[dj]["box"], r, size)
+        rel_ok.append(ok)
+        if di >= 0 and dj >= 0:
+            rel_cond.append(ok)
     ra = float(np.mean(rel_ok)) if rel_ok else float("nan")
     per_obj_missing = [scene.objects[i].cls for i, (j, _) in enumerate(m) if j < 0]
+    # ra / miou count a missing object as a failure; ra_cond / miou_matched only look at detected objects, so they
+    # measure geometry independently of OPR
     return dict(opr=preserved / max(n_in, 1), oce=oce, oce_c=oce_c, count_acc=float(oce_c == 0), miou=miou,
-                ra=ra, n_in=n_in, n_gen=n_gen, n_preserved=preserved, missing=per_obj_missing,
+                ra=ra, ra_cond=float(np.mean(rel_cond)) if rel_cond else float("nan"),
+                miou_matched=float(np.mean(matched_iou)) if matched_iou else float("nan"),
+                n_in=n_in, n_gen=n_gen, n_preserved=preserved, missing=per_obj_missing,
                 matched=[(j, iou) for j, iou in m])
 
 

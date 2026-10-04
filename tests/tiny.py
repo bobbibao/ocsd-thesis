@@ -73,14 +73,18 @@ def make_engine(tok_dir: str, bpe_gz: str, image_size: int = 64):
 class _FakeDet:
     """Trả về hộp của đối tượng thật (có nhiễu, đôi khi bỏ sót / nhân bản) - chỉ để kiểm thử luồng."""
 
-    def __init__(self, vis):
-        self.vis = vis
+    def __init__(self, vis, coco=False):
+        self.vis, self.coco = vis, coco
 
     def __call__(self, img, classes, thr=0.3, **kw):
         rng = random.Random(int(img.astype(np.int64).sum()) % 100003)
         H = img.shape[0]
         dets = []
-        for c, box in self.vis.current_gt:
+        gt = self.vis.current_gt
+        if self.coco:   # closed-set COCO detector: COCO names only
+            from ocsd.vision import TO_COCO
+            gt = [(TO_COCO[c], b) for c, b in gt if c in TO_COCO]
+        for c, box in gt:
             if c not in classes or rng.random() < 0.2:
                 continue
             j = [v + rng.gauss(0, 0.03 * H) for v in box]
@@ -108,6 +112,7 @@ class FakeVision:
         self.current_gt = []
         self.gdino = _FakeDet(self)
         self.owlv2 = _FakeDet(self)
+        self.detr = _FakeDet(self, coco=True)
         self.clip = _FakeCLIP()
         self.dino = _FakeDINO()
 

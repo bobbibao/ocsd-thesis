@@ -16,10 +16,10 @@ BENCH = os.environ.get("SMOKE_BENCH")
 BPE = os.environ.get("CLIP_BPE")
 eng = make_engine(os.path.join(W, "tok"), BPE, 128)
 vis = FakeVision()
-small = dict(height=128, width=128, steps=6, obj_steps=4, K=2, S1=3, S2=3, tau=2, R=1, lora_rank=4)
+small = dict(height=128, width=128, steps=6, obj_steps=4, K=2, S1=3, S2=3, tau=2, R=1, lora_rank=4, bo_n=2)
 variants = {k: v.replace(**small) for k, v in M.OCSD_VARIANTS.items()}
 base = OCSDConfig().replace(**small)
-methods = [m for m in M.BASELINES if m != "gligen"] + list(variants)
+methods = [m for m in M.BASELINES if not m.startswith("gligen")] + list(variants)   # GLIGEN: no offline weights
 scenes = list_scenes(BENCH, split="quickdraw", limit=int(os.environ.get("SMOKE_N", "3")))
 out = os.path.join(W, "outputs")
 r = Runner(eng, vis, out, variants=variants, base_cfg=base)

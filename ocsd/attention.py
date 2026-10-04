@@ -25,6 +25,7 @@ class OCSDController:
         self.obj_tokens: List[List[int]] = []            # T_i
         self.bg_tokens: List[int] = []                   # T_bg
         self.cond_flags: Optional[Sequence[bool]] = None # phần tử nào trong batch là điều kiện (nhận độ lệch)
+        self.min_cell = False                            # keep each mask's strongest cell at coarse resolutions
         self._cache: Dict[int, torch.Tensor] = {}
         # ---- ghi bản đồ chú ý
         self.store = False
@@ -33,17 +34,19 @@ class OCSDController:
 
     # ------------------------------------------------------------------ regions
     def set_regions(self, obj_masks: torch.Tensor, obj_tokens: List[List[int]], bg_tokens: List[int],
-                    fg_mask: Optional[torch.Tensor] = None):
+                    fg_mask: Optional[torch.Tensor] = None, min_cell: bool = False):
         self.obj_masks = obj_masks.float()
         self.fg_mask = (obj_masks.amax(0) if fg_mask is None else fg_mask).float()
         self.obj_tokens = obj_tokens
         self.bg_tokens = bg_tokens
+        self.min_cell = min_cell
         self._cache = {}
 
     def clear_regions(self):
         self.obj_masks = None
         self.fg_mask = None
         self.obj_tokens, self.bg_tokens = [], []
+        self.min_cell = False
         self._cache = {}
         self.bias_enabled = False
 
@@ -56,8 +59,10 @@ class OCSDController:
         H, W = self.obj_masks.shape[-2:]
         r = int(round((H * W / n_pix) ** 0.5))
         h, w = H // r, W // r
-        om = F.interpolate(self.obj_masks[None], size=(h, w), mode="area")[0] > 0.3     # (N_obj, h, w)
+        om = binarize_masks(F.interpolate(self.obj_masks[None], size=(h, w), mode="area")[0], self.min_cell)
         fg = F.interpolate(self.fg_mask[None, None], size=(h, w), mode="area")[0, 0] > 0.3
+        if self.min_cell:
+            fg = fg | om.any(0)
         pen = torch.zeros(h * w, self.L, device=device)
         for i, toks in enumerate(self.obj_tokens):
             toks = [t for t in toks if t < self.L]
@@ -153,6 +158,20 @@ def install_processors(unet, controller: OCSDController):
     unet.set_attn_processor(procs)
 
 
+def binarize_masks(soft: torch.Tensor, min_cell: bool = False, thr: float = 0.3) -> torch.Tensor:
+    """(N, h, w) area-downsampled masks -> bool. With min_cell, a non-empty mask that covers no cell by `thr` keeps
+    its strongest cell(s), so a small object is not dropped at coarse resolutions."""
+    out = soft > thr
+    if min_cell:
+        flat = soft.flatten(1)
+        top = flat.amax(1)
+        lost = (~out.flatten(1).any(1)) & (top > 0)
+        if lost.any():
+            keep = (flat >= top[:, None] * 0.999) & (flat > 0)
+            out = torch.where(lost[:, None, None], keep.view_as(out), out)
+    return out
+
+
 # ----------------------------------------------------------------------------- attention maps -> energy
 def _gauss_kernel(device, dtype, k: int = 3, sigma: float = 0.5):
     x = torch.arange(k, device=device, dtype=torch.float32) - (k - 1) / 2
@@ -182,15 +201,18 @@ def token_maps(A: torch.Tensor, groups: List[List[int]], eot: int, smooth: bool 
     return torch.stack(out)
 
 
-def attention_energy(maps: torch.Tensor, masks: torch.Tensor, beta: float = 1.0) -> torch.Tensor:
+def attention_energy(maps: torch.Tensor, masks: torch.Tensor, beta: float = 1.0, reduce: str = "sum") -> torch.Tensor:
     """Năng lượng M5(b): sum_i (1 - max_{n in m_i} A_i[n]) + beta * (chú ý ngoài vùng / tổng chú ý).
+    reduce="mean" divides by the number of objects, so the gradient scale does not grow with the object count.
 
     maps: (G, h, w) ; masks: (G, h, w) 0/1 cùng độ phân giải."""
     e = maps.new_zeros(())
+    n = 0
     for Ai, mi in zip(maps, masks):
         if mi.sum() == 0:
             continue
         inside_max = (Ai * mi).max()
         out_frac = (Ai * (1 - mi)).sum() / (Ai.sum() + 1e-8)
         e = e + (1 - inside_max) + beta * out_frac
-    return e
+        n += 1
+    return e / max(n, 1) if reduce == "mean" else e
