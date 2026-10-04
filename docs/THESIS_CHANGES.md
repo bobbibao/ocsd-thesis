@@ -82,3 +82,15 @@ Tệp này dành cho người viết khóa luận: mỗi mục nêu bản thảo
     ablation row that tuning makes identical to OCSD is not generated. The E4 table and `E3all` now average the same
     seeds for every row (before, OCSD rows averaged two seeds and ablation rows one).
     Only the (split, method) folders whose settings changed are regenerated (`outputs/.gen_configs.json`).
+11. **OCSD-v2 and fairer comparisons (04/10/2026; not run yet).** Why: with α = 0.1 the thesis sampler only lets the
+    scene prompt, the LoRA and M5 act on the last 4 of 30 U-Net calls (t ≤ 100), after the background was denoised
+    alone; the paper should say this when it reports the M5 ablation. New method `ocsd_v2` (`blend_mode="joint"`): one
+    trajectory in which the U-Net sees the composite at every step (scene prompt + caption, scene ControlNet), the M2
+    objects are re-imposed inside masks that shrink from each object's border until αT, M5(a)/(b) act from the first
+    step with energy averaged over objects, small objects keep their strongest attention cell, caption words naming a
+    class only attend inside that class's masks, M5(d) re-denoises only the failing regions, there is no per-scene
+    training, and M2 objects are drawn per seed. New baselines: collage (M2 objects + SDEdit) ± best-of-3, and
+    ControlNet / GLIGEN best-of-N with the same check. Stage T gains a `v2` phase and a `baselines` phase (one knob per
+    baseline, same rule). New tables: `E4v2_*`, `robustness_*` (OWLv2 with competing queries, COCO-trained DETR,
+    RA / IoU over detected objects), `pareto_*` + figure `pareto_quickdraw.png`; `stats_*` now has one Holm family per
+    question. The thesis OCSD itself is unchanged (`blend_mode="separate"`), so its numbers stay reproducible.

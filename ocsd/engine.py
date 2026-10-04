@@ -146,9 +146,11 @@ class Engine:
 
     # ------------------------------------------------------------------ attention-energy guidance (M5b)
     def energy_update(self, z, t, emb_c, groups: List[List[int]], masks_lr: torch.Tensor, eot: int,
-                      beta: float, eta: float, control=None, cn_scale: float = 0.0):
+                      beta: float, eta: float, control=None, cn_scale: float = 0.0, reduce: str = "sum",
+                      grad_norm: bool = False):
         """Một bước cập nhật z <- z - eta * dE/dz với E theo công thức năng lượng chú ý.
-        masks_lr: (G, h, w) mặt nạ ở độ phân giải bản đồ chú ý (16x16 với ảnh 512)."""
+        masks_lr: (G, h, w) mặt nạ ở độ phân giải bản đồ chú ý (16x16 với ảnh 512).
+        reduce: "sum" | "mean" over objects; grad_norm: scale the gradient to unit RMS before the step."""
         n_pix = masks_lr.shape[-1] * masks_lr.shape[-2]
         kw = {}
         if control is not None and cn_scale > 0 and self.controlnet is not None:
@@ -167,12 +169,14 @@ class Engine:
                 self.ctrl.store = False
                 return z.detach(), 0.0
             maps = token_maps(A, groups, eot)
-            E = attention_energy(maps, masks_lr.to(maps.dtype), beta)
+            E = attention_energy(maps, masks_lr.to(maps.dtype), beta, reduce)
             grad = torch.autograd.grad(E, z, allow_unused=True)[0] if E.requires_grad else None
         self.ctrl.store = False
         self.ctrl.reset_maps()
         if grad is None:
             return z.detach(), float(E)
+        if grad_norm:
+            grad = grad / (grad.float().pow(2).mean().sqrt().to(grad.dtype) + 1e-8)
         return (z - eta * grad).detach(), float(E)
 
     # ------------------------------------------------------------------ LoRA / identity

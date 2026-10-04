@@ -35,3 +35,36 @@ H1. On the 8+ object scenes (18 scenes), OCSD preserves more objects (OPR) than 
 
 The ablation (E4), the α sweep, COCO-Sketch and FID/KID are descriptive. The choice of the OCSD configuration is made
 by the tuning rule (highest OPR + mIoU + RA with CLIP within 1 point of the reference), not by looking at test scenes.
+
+## Amendment 1 (2026-10-04, added after commit 0889623)
+
+Valid only if made before any image of the power job was generated (check the image timestamps against this commit);
+if the power job had already started, H1 must be reported under the original conditions above and everything below is
+an addendum. H1 and its three secondary tests are unchanged; `report.PREREG` still runs them as families
+`primary:H1`, `secondary:new_scenes_8plus`, `secondary:all_scenes` and `secondary:identity_learning`.
+
+Changes to the conditions:
+
+- The baselines no longer keep the settings of the first paper-tier run: before the power run, stage T tunes one knob
+  per baseline on the tuning split with OCSD's rule (phase `baselines`: ControlNet scale, GLIGEN β, …), so the
+  comparison is not between a tuned method and default baselines.
+- The power job also runs OCSD-v2 (`ocsd_v2`, configured by the `v2` tuning phase on the tuning split) and the
+  compute-matched best-of-N baselines (`gligen_bon`, `controlnet_bon`: up to N = 8 samples with the same Grounding DINO
+  check as OCSD). The power set stays the 72 evaluation scenes (`power_per_cell = 6`); enlarging it needs another
+  amendment before the run.
+
+Added hypothesis (OCSD-v2 had not produced any image when this was written):
+
+H2. On the 8+ object scenes, OCSD-v2 preserves more objects (OPR) than GLIGEN and than ControlNet. Same test as H1
+(one-sided Wilcoxon signed-rank on scene OPR, `zero_method="zsplit"`); its own family of two comparisons,
+Holm-corrected; significance level 0.05. Family `primary:H2`.
+
+Added secondary tests (each family Holm-corrected per metric, reported whatever the outcome):
+
+1. `new_scenes_8plus_v2`: H2 on the 8+ scenes outside the first E3 comparison; one-sided.
+2. `all_scenes_v2`: OCSD-v2 vs GLIGEN and vs ControlNet on all scenes, OPR, OCE-class and RA; two-sided.
+3. `compute_matched`: OCSD-v2 vs GLIGEN best-of-N and ControlNet best-of-N on all scenes, OPR; one-sided.
+4. `v2_vs_thesis`: OCSD-v2 vs thesis OCSD on all scenes, OPR, OCE-class and RA; two-sided.
+
+Also descriptive (not pre-registered): the OCSD-v2 ablation (E4v2), the control-vs-quality sweeps, the robustness
+table (other evaluators) and the human studies.

@@ -75,6 +75,42 @@ Run 2.1 (evaluation only) before pulling this code if the FID/KID numbers of the
   README; Zhang et al. pinned to its own setup; tier/tuned values no longer overwrite a variant's own settings.
 - Report: E4 and E3all rows now average the same seeds for every method.
 
+### 1c. Second batch (2026-10-04): OCSD-v2 and the reviewer-driven fixes, waiting for a GPU run
+
+Why: at the tuned α = 0.1 (30 DDIM steps) the thesis sampler only gives the scene prompt, the identity LoRA, the scene
+ControlNet and M5(a)/(b)/(c) the U-Net calls at t = 100, 67, 34, 1 (checked with the scheduler); the background is
+denoised alone and the M2 objects are pasted back until then. That explains OCSD ≈ OCSD-lite and the "removing M5(a) or
+M5(b) helps" ablation, and it means the M5 findings only hold in that regime. A reviewer will call the method
+"compositing + detector reranking" unless the comparison controls for it.
+
+| What | Plan item | Code |
+|---|---|---|
+| OCSD-v2: one composite-aware trajectory, shrinking anchor masks, M5 from the first step, mean energy, small-object mask fix, caption class words limited to their masks, object-level repair, no M3, M2 objects per seed | 2.3, 2.6, 2.7 | `methods.V2`, `method._denoise`, `anchor_masks`, `repair_scene` |
+| Tuning phase `v2` (α x anchor_shrink) and phase `baselines` (one knob per baseline, same rule as OCSD, incl. Zhang et al.'s α) | fairness | `stages.tune`, `config.TUNE_V2`, `TUNE_BASELINES` |
+| Baselines: naive collage (M2 objects + SDEdit) ± best-of-3; ControlNet / GLIGEN best-of-N (N = 8) with the same check | 2.8 (partly) | `methods.run_collage`, `best_of` |
+| Ablation E4v2 (10 rows) and the COCO caption ablation | 2.6, 2.7 | `methods.V2_ABLATIONS` |
+| Robustness table: OPR at IoU 0.5, OWLv2 with competing queries, COCO-trained DETR, RA / IoU over detected objects only, Kendall τ | evaluation | `metrics.evaluate_detectors`, `report.robustness_table` |
+| `power_per_cell`: a larger power set (e.g. 12 per cell = 144 scenes) without changing the E3 / E4 scenes | 2.4 | `stages.setup_data`, `experiment_plan` |
+| Control-vs-quality sweeps (OPR vs KID / CLIP) | evaluation | job `pareto`, `report.plot_pareto` |
+| Separate Holm families; pre-registration amendment 1: H2 for OCSD-v2, compute-matched and v2-vs-thesis tests, tuned baselines (H1 unchanged) | 2.4 | `report.stats_families`, `PREREG` |
+| Realism A/B kit on random scenes; app: OCSD-v2 default, one colour per object | 2.2, 3.8 | `report.realism_pairs_pack`, `app.py` |
+
+Not done (needs external code, data or a port): InstanceDiffusion / MIGC baselines, real scene sketches (FS-COCO,
+SketchyScene), a modern backbone (SDXL class or newer), a training-free identity module (regional IP-Adapter), and
+running the human studies.
+
+**Cost and order.** Image counts for the `paper` tier: tuning `v2` 192 images, tuning `baselines` 736 (incl. 96 for
+Zhang et al. with M3), five new E3 methods 700 (best-of variants draw up to 3 or 8 samples each), power job +288,
+E4v2 + COCO ablation 244, sweeps 1296. On top come the images whose settings change (the two P_g baselines always; any
+baseline whose tuned knob moves; every thesis-OCSD row if phase 3 moves α or M5). My rough estimate is 6–7 A100 hours
+without thesis-OCSD regeneration and about 3 more with it; `results/budget_estimate.json` gives the measured figure
+after the first run. Suggested order when the budget is tight:
+1. `SKIP_JOBS = "pareto,E3_quickdraw_power"`: tuning, OCSD-v2, the new baselines, E4v2 (decides whether v2 is worth it).
+2. Commit `docs/PREREGISTRATION.md` (amendment 1) before the power job produces any image, then run with
+   `SKIP_JOBS = "pareto"`. For a larger power set, set `power_per_cell = 12` in `config.TIERS["paper"]` (about 3–4 more A100
+   hours, my estimate) and say so in a second amendment before running.
+3. Empty `SKIP_JOBS`: the sweeps.
+
 ---
 
 ## 2. Experiments (open)

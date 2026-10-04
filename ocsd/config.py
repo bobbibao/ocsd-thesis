@@ -77,6 +77,7 @@ AUX_MODELS = dict(
     clip="openai/clip-vit-large-patch14",
     dinov2="facebook/dinov2-base",
     pidinet="lllyasviel/Annotators",
+    detr="facebook/detr-resnet-50",                   # closed-set COCO detector, robustness of the evaluation only
 )
 
 
@@ -118,6 +119,15 @@ class OCSDConfig:
     # append the scene caption to the global prompt P_g when it says more than the object phrases + background
     # (COCO captions; a no-op on QuickDraw-Scenes, whose caption is built from the phrases)
     use_caption: bool = True
+    # "separate" (thesis OCSD): the background is denoised alone and the objects are pasted back while t > alpha*T;
+    # the scene prompt, ControlNet and M5 only act after that. "joint" (OCSD-v2): one trajectory - the U-Net sees the
+    # composite at every step (scene prompt, scene ControlNet, M5 from the first step) and the objects are re-imposed
+    # inside their masks while t > alpha*T.
+    blend_mode: str = "separate"
+    anchor_shrink: float = 0.0        # joint: by the last anchored step, the border band of each object (this fraction
+                                      # of its inner radius) is left to the model, so contact and edges are redrawn
+    m2_per_seed: bool = False         # draw the M2 objects again for every evaluation seed (else once per scene)
+    collage_strength: float = 0.3     # "collage" baseline: SDEdit strength after pasting the M2 objects
 
     # M5 - điều kiện hóa nhận biết đối tượng
     use_region_attn: bool = True      # (a)
@@ -134,6 +144,20 @@ class OCSDConfig:
     R: int = 2                        # số lần sinh lại tối đa
     lambda0_boost: float = 1.5
     verify_thr: float = 0.35
+    repair: bool = False              # (d) joint mode: re-denoise only the regions of missing objects / extra detections
+    repair_strength: float = 0.5      # fraction of the trajectory re-run inside the repair regions
+    region_min_cell: bool = False     # (a)/(b): an object too small to cover 30% of any cell at a coarse attention
+                                      # resolution keeps its strongest cell instead of vanishing (and being penalised
+                                      # everywhere at that resolution)
+    caption_class_masks: bool = False  # (a): caption words that name an object class only attend inside that class's masks
+    energy_reduce: str = "sum"        # (b): "sum" over objects (thesis) or "mean" (scale independent of the object count)
+    energy_grad_norm: bool = False    # (b): normalise the energy gradient to unit RMS (eta is then the RMS step size)
+
+    # baselines (single-branch methods and the collage baseline)
+    cn_scale: float = 1.0             # ControlNet conditioning scale
+    adapter_scale: float = 1.0        # T2I-Adapter scale
+    gligen_beta: float = 0.3          # GLIGEN scheduled-sampling beta (fraction of steps with grounding)
+    bo_n: int = 8                     # best-of-N baselines: samples per image, same Grounding DINO check as M5(d)
 
     # biến thể câu lệnh (cho ablation "chỉ câu lệnh nền / chỉ câu lệnh toàn cục")
     prompt_mode: str = "both"         # both | bg_only | global_only
@@ -151,6 +175,11 @@ class OCSDConfig:
 # caption in P_g). The paper-tier run of 2026-10-01 used these plus results/tuning/tuned.json. Zhang et al. (2025)
 # and tuning phases 1-2 still start from them, and stages._archive_stale uses them to know how older images were made.
 LEGACY_DEFAULTS = dict(alpha=0.5, lora_scale=1.0, energy_tokens="id", eta=20.0, use_caption=False)
+# Convention for fields added later: their default reproduces the behaviour from before they existed, so stored
+# settings without the field (outputs/.gen_configs.json) are read as that default (stages._archive_stale).
+
+# Settings every baseline that uses region attention / energy gets (the fixes OCSD-v2 has), see stages.tier_baselines.
+BASELINE_DEFAULTS = dict(region_min_cell=True, caption_class_masks=True)
 
 
 # ----------------------------------------------------------------------------- experiment
@@ -165,6 +194,12 @@ class ExperimentConfig:
     match_iou: float = 0.10           # ngưỡng IoU để coi là "bảo toàn" (OPR)
     rel_delta: float = 0.05           # ngưỡng delta cho quan hệ trái/phải/trên/dưới
     fp16: bool = True
+    skip_jobs: str = ""               # comma-separated job-name prefixes left out of the plan, e.g. "pareto,E3_quickdraw_power"
+    # extra evaluators for the robustness table (results/<split>/det_<name>/): the main OWLv2 again (OPR at stricter
+    # IoU), OWLv2 with every benchmark class as a competing query, and a COCO-trained closed-set detector (DETR) on the
+    # classes that exist in COCO
+    extra_detectors: tuple = ("owlv2", "owlv2d", "detr")
+    detr_thr: float = 0.5
 
     def __post_init__(self):
         if self.seeds is None:
@@ -184,14 +219,18 @@ TIERS = {
     # seeds_all: how many of `seeds` run on EVERY QuickDraw scene; the rest run only on the trained subset.
     # tune: tune alpha and lora_scale on the pilot scenes first (stages.tune), and leave those scenes out.
     # power: methods that run on EVERY QuickDraw scene with EVERY seed (job E3_quickdraw_power), for the
-    # pre-registered tests in docs/PREREGISTRATION.md (report.PREREG).
+    # pre-registered tests in docs/PREREGISTRATION.md (report.PREREG). power_per_cell (default qd_per_cell) enlarges
+    # the power set only: stage A then builds the extra scenes, and the E3/E4 scenes stay exactly the same.
+    # pareto: control-vs-quality sweeps on every QuickDraw scene, first seed (job pareto, report.PARETO).
+    # tune_baselines: stage T also tunes one knob per baseline with the same rule (TUNE_BASELINES).
     "pilot": dict(qd_per_cell=2, trained_n=8, coco_n=8, coco_trained_n=4, ablation_n=4, alpha_n=4, seeds=[0],
                   seeds_all=1, tune=False, cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
     "paper": dict(qd_per_cell=6, trained_n=36, coco_n=32, coco_trained_n=16, ablation_n=18, alpha_n=12, seeds=[0, 1],
-                  seeds_all=1, tune=True, power=["ocsd", "ocsd_lite", "gligen", "controlnet"],
-                  cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
+                  seeds_all=1, tune=True, tune_baselines=True, pareto=True,
+                  power=["ocsd_v2", "ocsd", "ocsd_lite", "gligen", "controlnet", "gligen_bon", "controlnet_bon"],
+                  power_per_cell=6, cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
     "full": dict(qd_per_cell=25, trained_n=180, coco_n=200, coco_trained_n=100, ablation_n=60, alpha_n=40,
-                 seeds=[0, 1, 2], seeds_all=3, tune=True, cfg=dict()),
+                 seeds=[0, 1, 2], seeds_all=3, tune=True, tune_baselines=True, cfg=dict()),
 }
 
 
@@ -217,3 +256,20 @@ TUNE_M5 = {
     "energy": dict(use_region_attn=False, use_energy=True),
 }
 TUNE_M5_ALPHA = [0.1, 0.3, 0.4, 0.5, 0.6]
+# OCSD-v2 phase: the anchoring cut-off alpha (at least 20% of the trajectory is joint generation) x border release.
+# Reference: the methods.V2 defaults (alpha 0.4, shrink 0.3).
+TUNE_V2 = dict(alpha=[0.2, 0.4, 0.6], anchor_shrink=[0.0, 0.3])
+# Baseline phase, in this order (cn_region / cn_energy / collage run with the ControlNet scale chosen first; the
+# bo3 / boN variants inherit their base method's value). The reference of each grid is the current default.
+TUNE_BASELINES = [
+    ("controlnet", "cn_scale", [0.6, 0.8, 1.0, 1.2]),
+    ("t2i_adapter", "adapter_scale", [0.6, 0.8, 1.0]),
+    ("gligen", "gligen_beta", [0.2, 0.3, 0.5, 1.0]),
+    ("cn_region", "lambda0", [4.0, 8.0, 12.0]),
+    ("cn_energy", "eta", [10.0, 20.0, 40.0]),
+    ("collage", "collage_strength", [0.2, 0.3, 0.5]),
+    ("zhang2025", "alpha", [0.1, 0.3, 0.5]),
+]
+# Control-vs-quality sweeps (job "pareto"): value lists per sweep family, see report.PARETO.
+PARETO = dict(pv2=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0], pv1lite=[0.0, 0.3, 0.6, 1.0], pcn=[0.4, 0.7, 1.0, 1.3],
+              pgl=[0.1, 0.3, 0.6, 1.0])

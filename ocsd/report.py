@@ -9,20 +9,22 @@ from typing import Dict, List, Optional, Sequence
 import numpy as np
 import pandas as pd
 
-from .methods import LABELS
+from .config import PARETO
+from .methods import LABELS, V2_ABLATIONS, V2_COCO_ABLATIONS
 
 METRICS = ["opr", "oce", "oce_c", "count_acc", "miou", "ra", "clip", "obj_clip", "id_sim"]
 HIGHER = dict(opr=True, oce=False, oce_c=False, count_acc=True, miou=True, ra=True, clip=True, obj_clip=True,
-              id_sim=True, fid=False, kid=False, lpips_div=True)
-PCT = {"opr", "count_acc", "ra"}
+              id_sim=True, fid=False, kid=False, lpips_div=True, ra_cond=True, miou_matched=True)
+PCT = {"opr", "count_acc", "ra", "ra_cond"}
 
 
-def load_per_image(results_dir: str, split: str) -> pd.DataFrame:
+def load_per_image(results_dir: str, split: str, sub: str = "") -> pd.DataFrame:
     """All per-image rows of `split`, limited to the (scene, seed) pairs of the current experiment plan when
-    results/<split>/plan.json exists (rows left over from another tier, e.g. pilot scenes, are ignored)."""
+    results/<split>/plan.json exists (rows left over from another tier, e.g. pilot scenes, are ignored).
+    sub: a sub-folder with another evaluator's rows, e.g. "det_detr"."""
     import glob
     import json
-    fs = glob.glob(os.path.join(results_dir, split, "per_image_*.csv"))
+    fs = glob.glob(os.path.join(results_dir, split, sub, "per_image_*.csv"))
     if not fs:
         return pd.DataFrame()
     df = pd.concat([pd.read_csv(f) for f in fs], ignore_index=True)
@@ -64,6 +66,21 @@ def summarize(ps: pd.DataFrame, by: Sequence[str] = ("method",), metrics=METRICS
     return pd.DataFrame(rows)
 
 
+def holm(df: pd.DataFrame, by: Sequence[str] = ("metric",)) -> pd.DataFrame:
+    """Holm-adjusted p ("p_holm") within each group of rows (a family of comparisons for one metric)."""
+    df = df.copy()
+    df["p_holm"] = np.nan
+    for _, g in df.groupby(list(by)):
+        order = g.sort_values("p").index
+        k = len(order)
+        prev = 0.0
+        for rank, idx in enumerate(order):
+            v = min(1.0, max(prev, (k - rank) * df.loc[idx, "p"]))
+            df.loc[idx, "p_holm"] = v
+            prev = v
+    return df
+
+
 def paired_tests(ps: pd.DataFrame, ref: str = "ocsd", metrics=("opr", "oce_c", "miou", "ra", "obj_clip"),
                  others: Optional[Sequence[str]] = None, alternative: str = "two-sided") -> pd.DataFrame:
     """Wilcoxon signed-rank giữa `ref` và từng phương pháp trên cùng tập cảnh; p hiệu chỉnh Holm theo độ đo.
@@ -88,17 +105,7 @@ def paired_tests(ps: pd.DataFrame, ref: str = "ocsd", metrics=("opr", "oce_c", "
             rows.append(dict(ref=ref, method=m, metric=met, n=len(x), mean_ref=x.mean(), mean_other=y.mean(),
                              diff=x.mean() - y.mean(), p=p))
     df = pd.DataFrame(rows)
-    if len(df):
-        df["p_holm"] = np.nan
-        for met, g in df.groupby("metric"):
-            order = g.sort_values("p").index
-            k = len(order)
-            prev = 0.0
-            for rank, idx in enumerate(order):
-                v = min(1.0, max(prev, (k - rank) * df.loc[idx, "p"]))
-                df.loc[idx, "p_holm"] = v
-                prev = v
-    return df
+    return holm(df) if len(df) else df
 
 
 def common_seed_rows(df: pd.DataFrame, methods: Sequence[str]) -> pd.DataFrame:
@@ -112,39 +119,55 @@ def common_seed_rows(df: pd.DataFrame, methods: Sequence[str]) -> pd.DataFrame:
     return d[[(s, int(e)) in keep for s, e in zip(d.sid, d.seed.astype(int))]]
 
 
-# Pre-registered hypotheses (docs/PREREGISTRATION.md), tested on the E3_quickdraw_power job: every QuickDraw
-# evaluation scene, every seed, scene means. Primary family: one-sided, Holm over its comparisons.
+# Pre-registered hypotheses (docs/PREREGISTRATION.md), tested on the E3_quickdraw_power job: every QuickDraw scene of
+# the power set, every seed, scene means. Each family is Holm-corrected over its (ref, other) comparisons, per metric.
+# H1 and its secondary tests were committed in 0889623 and are unchanged; amendment 1 added H2 (OCSD-v2) and its tests
+# before OCSD-v2 existed.
+_8P = ("count_bin", "8+")
 PREREG = dict(
-    methods=["ocsd", "gligen", "controlnet", "ocsd_lite"],
-    primary=dict(subset=("count_bin", "8+"), metric="opr", ref="ocsd", others=["gligen", "controlnet"],
-                 alternative="greater"),
-    secondary=[
+    methods=["ocsd_v2", "ocsd", "gligen", "controlnet", "ocsd_lite", "gligen_bon", "controlnet_bon"],
+    families=[
+        dict(name="H1", kind="primary", subset=_8P, metrics=["opr"], refs=["ocsd"], others=["gligen", "controlnet"],
+             alternative="greater"),
         # the 8+ scenes that were not part of the first paper-tier comparison (E3), where the effect was first seen
-        dict(name="new_scenes_8plus", subset=("count_bin", "8+"), new_only=True, metrics=["opr"], ref="ocsd",
+        dict(name="new_scenes_8plus", kind="secondary", subset=_8P, new_only=True, metrics=["opr"], refs=["ocsd"],
              others=["gligen", "controlnet"], alternative="greater"),
-        dict(name="all_scenes", subset=None, metrics=["opr", "oce_c", "ra"], ref="ocsd",
+        dict(name="all_scenes", kind="secondary", subset=None, metrics=["opr", "oce_c", "ra"], refs=["ocsd"],
              others=["gligen", "controlnet"], alternative="two-sided"),
-        dict(name="identity_learning", subset=None, metrics=["opr", "oce_c", "id_sim"], ref="ocsd",
+        dict(name="identity_learning", kind="secondary", subset=None, metrics=["opr", "oce_c", "id_sim"], refs=["ocsd"],
              others=["ocsd_lite"], alternative="two-sided"),
+        # ---- amendment 1
+        dict(name="H2", kind="primary", subset=_8P, metrics=["opr"], refs=["ocsd_v2"], others=["gligen", "controlnet"],
+             alternative="greater"),
+        dict(name="new_scenes_8plus_v2", kind="secondary", subset=_8P, new_only=True, metrics=["opr"],
+             refs=["ocsd_v2"], others=["gligen", "controlnet"], alternative="greater"),
+        dict(name="all_scenes_v2", kind="secondary", subset=None, metrics=["opr", "oce_c", "ra"], refs=["ocsd_v2"],
+             others=["gligen", "controlnet"], alternative="two-sided"),
+        dict(name="compute_matched", kind="secondary", subset=None, metrics=["opr"], refs=["ocsd_v2"],
+             others=["gligen_bon", "controlnet_bon"], alternative="greater"),
+        dict(name="v2_vs_thesis", kind="secondary", subset=None, metrics=["opr", "oce_c", "ra"], refs=["ocsd_v2"],
+             others=["ocsd"], alternative="two-sided"),
     ],
 )
 
 
 def prereg_tests(ps: pd.DataFrame, new_sids: Optional[set] = None) -> pd.DataFrame:
-    """Run the PREREG tests on per-scene means `ps` (already limited to the power job's scenes and seeds).
-    `new_sids`: scenes outside the first E3 comparison (for the tests with new_only)."""
+    """Run the PREREG families on per-scene means `ps` (already limited to the power job's scenes and seeds).
+    `new_sids`: scenes outside the first E3 comparison (for the families with new_only). Column family =
+    "<kind>:<name>", e.g. "primary:H1"."""
     out = []
-    fams = [dict(PREREG["primary"], name="primary", metrics=[PREREG["primary"]["metric"]])] + \
-        [dict(s, name=f"secondary:{s['name']}") for s in PREREG["secondary"]]
-    for f in fams:
+    for f in PREREG["families"]:
         sub = ps if f["subset"] is None else ps[ps[f["subset"][0]] == f["subset"][1]]
         label = "all" if f["subset"] is None else f"{f['subset'][0]}={f['subset'][1]}"
         if f.get("new_only"):
             sub = sub[sub.sid.isin(new_sids or set())]
             label += ", new scenes"
-        t = paired_tests(sub, f["ref"], f["metrics"], f["others"], f["alternative"])
-        if len(t):
-            out.append(t.assign(family=f["name"], subset=label, alternative=f["alternative"]))
+        rows = [paired_tests(sub, r, f["metrics"], f["others"], f["alternative"]) for r in f["refs"]
+                if r in set(sub.method)]
+        rows = [r for r in rows if len(r)]
+        if rows:
+            t = holm(pd.concat(rows, ignore_index=True))
+            out.append(t.assign(family=f"{f['kind']}:{f['name']}", subset=label, alternative=f["alternative"]))
     return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
 
 
@@ -213,12 +236,23 @@ def save_table(df: pd.DataFrame, path_noext: str, caption: str = ""):
 
 
 # ----------------------------------------------------------------------------- experiment tables
-MAIN = ["controlnet", "t2i_adapter", "gligen", "cn_region", "cn_energy", "controlnet_bo3", "zhang2025", "ocsd_lite",
-        "ocsd"]
+MAIN = ["controlnet", "t2i_adapter", "gligen", "cn_region", "cn_energy", "controlnet_bo3", "controlnet_bon", "gligen_bon",
+        "collage", "collage_bo3", "zhang2025", "ocsd_lite", "ocsd", "ocsd_v2"]
 ABLATION = ["ocsd", "abl_no_blend", "abl_alpha0", "ocsd_lite", "abl_no_region", "abl_no_energy", "abl_m5ab_both",
             "abl_no_scenecn", "abl_no_verify", "abl_no_m5", "abl_no_attsep", "abl_k1", "abl_m3_long", "abl_bg_only",
             "abl_global_only", "zhang2025"]
 ALPHAS = [f"alpha_{a:.1f}" for a in (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)]
+ABLATION_V2 = ["ocsd_v2"] + list(V2_ABLATIONS)
+ABLATION_V2_COCO = ["ocsd_v2"] + list(V2_COCO_ABLATIONS)
+# control-vs-quality curves (job "pareto"): label -> methods along the curve
+PARETO_CURVES = {
+    "OCSD-v2 (α)": [f"pv2_a{a:.1f}" for a in PARETO["pv2"]],
+    "OCSD-lite, thesis sampler (α)": [f"pv1lite_a{a:.1f}" for a in PARETO["pv1lite"]],
+    "ControlNet (scale)": [f"pcn_s{v:.1f}" for v in PARETO["pcn"]],
+    "GLIGEN (β)": [f"pgl_b{v:.1f}" for v in PARETO["pgl"]],
+}
+PARETO_METHODS = [m for ms in PARETO_CURVES.values() for m in ms]
+EXTRA_DETECTORS = {"owlv2": "OWLv2", "owlv2d": "OWLv2 + competing queries", "detr": "DETR (COCO, closed set)"}
 
 
 def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[Dict[str, pd.DataFrame]] = None):
@@ -236,7 +270,7 @@ def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[
         # ---- E3: so sánh tổng thể (chỉ trên các cảnh mà mọi phương pháp chính đều có ảnh)
         main = [m for m in MAIN if m in set(ps.method)]
         common = set.intersection(*[set(ps[ps.method == m].sid) for m in main]) if main else set()
-        e3 = summarize(ps[ps.method.isin(main) & ps.sid.isin(common)])
+        e3 = summarize(per_scene(common_seed_rows(df[df.sid.isin(common)], main)))
         if q is not None and len(q):
             e3 = e3.merge(q[["method", "fid", "kid"] + (["lpips_div"] if "lpips_div" in q else [])], on="method", how="left")
         mets = ["opr", "oce_c", "count_acc", "miou", "ra", "clip", "obj_clip", "id_sim", "fid", "kid"]
@@ -264,7 +298,7 @@ def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[
                 out[f"E3power_{split}"] = save_table(
                     table(s, pw, [m for m in mets if m in s]), os.path.join(tdir, f"E3power_{split}"),
                     f"Pre-registered comparison on {split} ({len(cp)} scenes, every seed)")
-                s8 = summarize(pp[pp.count_bin == PREREG["primary"]["subset"][1]])
+                s8 = summarize(pp[pp.count_bin == _8P[1]])
                 if len(s8):
                     out[f"E3power8_{split}"] = save_table(
                         table(s8, pw, [m for m in mets if m in s8]), os.path.join(tdir, f"E3power8_{split}"),
@@ -290,8 +324,8 @@ def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[
             out[f"{name}_{split}"] = save_table(pd.DataFrame(wide), os.path.join(tdir, f"{name}_{split}"),
                                                 f"OPR (%) / OCE-lớp theo {dim} trên {split}")
             s.to_csv(os.path.join(tdir, f"{name}_{split}_long.csv"), index=False)
-        # ---- kiểm định thống kê
-        pt = paired_tests(ps[ps.sid.isin(common) | (ps.method.isin(ABLATION + ALPHAS) & ~ps.method.isin(MAIN))])
+        # ---- kiểm định thống kê: one Holm family per question, each pair on the seeds both methods have
+        pt = stats_families(df, main, common)
         if len(pt):
             pt.to_csv(os.path.join(tdir, f"stats_{split}.csv"), index=False)
             out[f"stats_{split}"] = pt
@@ -304,6 +338,30 @@ def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[
             out[f"E4_{split}"] = save_table(table(s, ab, ["opr", "oce_c", "miou", "ra", "clip", "obj_clip", "id_sim"]),
                                             os.path.join(tdir, f"E4_{split}"),
                                             f"Nghiên cứu cắt bỏ trên {split} ({len(cm)} cảnh)")
+        # ---- E4v2: OCSD-v2 ablations (QuickDraw) and the caption ablations (COCO)
+        abv = [m for m in (ABLATION_V2 if split == "quickdraw" else ABLATION_V2_COCO) if m in set(ps.method)]
+        if len(abv) > 1:
+            cm = set.intersection(*[set(ps[ps.method == m].sid) for m in abv])
+            s = summarize(per_scene(common_seed_rows(df[df.sid.isin(cm)], abv)))
+            out[f"E4v2_{split}"] = save_table(table(s, abv, ["opr", "oce_c", "miou", "ra", "clip", "obj_clip", "id_sim"]),
+                                              os.path.join(tdir, f"E4v2_{split}"),
+                                              f"OCSD-v2 ablation on {split} ({len(cm)} scenes)")
+        # ---- robustness: the same images under other evaluators
+        rb = robustness_table(results_dir, split, df, main, common)
+        if rb is not None:
+            out[f"robustness_{split}"] = save_table(rb, os.path.join(tdir, f"robustness_{split}"),
+                                                    f"OPR under three evaluators on {split} ({len(common)} scenes); "
+                                                    "RA-cond / matched IoU only count detected objects")
+        # ---- control-vs-quality sweeps
+        pm = [m for m in PARETO_METHODS if m in set(ps.method)]
+        if pm:
+            cm = set.intersection(*[set(ps[ps.method == m].sid) for m in pm])
+            s = summarize(per_scene(common_seed_rows(df[df.sid.isin(cm)], pm)), metrics=["opr", "oce_c", "miou", "clip"])
+            if q is not None and len(q):
+                s = s.merge(q[["method", "fid", "kid"]], on="method", how="left")
+            out[f"pareto_{split}"] = save_table(table(s, pm, ["opr", "oce_c", "miou", "clip", "kid", "fid"], bold_best=False),
+                                                os.path.join(tdir, f"pareto_{split}"),
+                                                f"Control vs quality sweeps on {split} ({len(cm)} scenes)")
         # ---- alpha
         al = [m for m in ALPHAS if m in set(ps.method)]
         if al:
@@ -329,13 +387,83 @@ def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[
     return out
 
 
+def stats_families(df: pd.DataFrame, main: Sequence[str], common: set) -> pd.DataFrame:
+    """Wilcoxon tests in separate Holm families: every main method vs OCSD and vs OCSD-v2 on the common scenes, the
+    thesis ablation vs OCSD, the v2 ablation vs OCSD-v2 and the alpha sweep vs OCSD (each pair on shared seeds)."""
+    fams = [("main_vs_ocsd", "ocsd", [m for m in main if m != "ocsd"], common),
+            ("main_vs_ocsd_v2", "ocsd_v2", [m for m in main if m != "ocsd_v2"], common),
+            ("ablation_vs_ocsd", "ocsd", [m for m in ABLATION if m not in ("ocsd", *main)], None),
+            ("ablation_v2_vs_ocsd_v2", "ocsd_v2", [m for m in ABLATION_V2 + ABLATION_V2_COCO if m != "ocsd_v2"], None),
+            ("alpha_vs_ocsd", "ocsd", ALPHAS, None)]
+    have = set(df.method)
+    out = []
+    for name, ref, others, scenes in fams:
+        others = [m for m in others if m in have]
+        if ref not in have or not others:
+            continue
+        d = df if scenes is None else df[df.sid.isin(scenes)]
+        rows = [paired_tests(per_scene(common_seed_rows(d, [ref, m])), ref, others=[m]) for m in others]
+        rows = [r for r in rows if len(r)]
+        if rows:
+            out.append(holm(pd.concat(rows, ignore_index=True)).assign(family=name))
+    return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
+
+
+def robustness_table(results_dir: str, split: str, df: pd.DataFrame, main: Sequence[str], common: set):
+    """OPR of the main methods (and real photos on COCO) under the main evaluator and each extra evaluator
+    (results/<split>/det_<name>), on the same images; RA-cond and matched IoU (only detected objects) from the first
+    extra evaluator found; and Kendall's tau between each evaluator's method ranking and the main one.
+    None when no extra evaluator has rows yet."""
+    from scipy.stats import kendalltau
+    keep = list(main) + ["real"]
+    rows = {m: {"Phương pháp": LABELS.get(m, m)} for m in keep}
+    pick = lambda d: d[d.method.isin(keep) & (d.sid.isin(common) | (d.method == "real"))]
+    ref = per_scene(pick(df)).groupby("method").opr.mean()
+    for m, v in ref.items():
+        rows[m]["OPR (OWLv2)"] = fmt(v, "opr")
+    taus, geo, found = {}, False, False
+    for name, label in EXTRA_DETECTORS.items():
+        d = load_per_image(results_dir, split, f"det_{name}")
+        if not len(d):
+            continue
+        found = True
+        g = per_scene(pick(d)).groupby("method")
+        opr = g.opr.mean()
+        o50 = g.opr50.mean() if "opr50" in d else pd.Series(dtype=float)
+        for m, v in opr.items():
+            if name != "owlv2":     # same detections as the main evaluator: only the stricter IoU is new
+                rows[m][f"OPR ({label})"] = fmt(v, "opr")
+            if m in o50.index:
+                rows[m][f"OPR@0.5 ({label})"] = fmt(o50[m], "opr")
+        if name == "owlv2":
+            continue
+        if not geo:
+            geo = True
+            for m, v in g.ra_cond.mean().items():
+                rows[m][f"RA-cond ({label})"] = fmt(v, "ra_cond")
+            for m, v in g.miou_matched.mean().items():
+                rows[m][f"matched IoU ({label})"] = fmt(v, "miou")
+        both = [m for m in main if m in ref.index and m in opr.index]
+        if len(both) >= 3:
+            taus[label] = kendalltau([ref[m] for m in both], [opr[m] for m in both])[0]
+    if not found:
+        return None
+    tab = pd.DataFrame([r for r in rows.values() if len(r) > 1])
+    if taus:
+        tab = pd.concat([tab, pd.DataFrame([{"Phương pháp": "Kendall τ vs the OWLv2 ranking",
+                                             **{f"OPR ({k})": f"{v:.2f}" for k, v in taus.items()}}])],
+                        ignore_index=True)
+    return tab
+
+
 def _order(vals):
     pref = ["1", "2-3", "3", "4-5", "5", "6-8", "8+", "simple", "medium", "complex", "real"]
     return sorted(vals, key=lambda v: pref.index(v) if v in pref else 99)
 
 
 # ----------------------------------------------------------------------------- figures
-def plot_curves(results_dir: str, split: str = "quickdraw", methods=("controlnet", "gligen", "zhang2025", "ocsd_lite", "ocsd"),
+def plot_curves(results_dir: str, split: str = "quickdraw",
+                methods=("controlnet", "gligen", "zhang2025", "ocsd_lite", "ocsd", "ocsd_v2"),
                 out: Optional[str] = None):
     import matplotlib.pyplot as plt
     ps = per_scene(load_per_image(results_dir, split))
@@ -393,6 +521,70 @@ def plot_alpha(results_dir: str, split: str = "quickdraw", out: Optional[str] = 
     os.makedirs(os.path.dirname(out), exist_ok=True)
     fig.savefig(out, dpi=200)
     return out
+
+
+def plot_pareto(results_dir: str, split: str = "quickdraw", out: Optional[str] = None):
+    """OPR against KID and against global CLIP along each sweep (PARETO_CURVES), same scenes and seed for every
+    point. A method dominates where its curve is up-left (KID) / up-right (CLIP) of the others."""
+    import matplotlib.pyplot as plt
+    df = load_per_image(results_dir, split)
+    if not len(df):
+        return None
+    pm = [m for m in PARETO_METHODS if m in set(df.method)]
+    if not pm:
+        return None
+    cm = set.intersection(*[set(df[df.method == m].sid) for m in pm])
+    s = per_scene(common_seed_rows(df[df.sid.isin(cm)], pm)).groupby("method")[["opr", "clip"]].mean()
+    qp = os.path.join(results_dir, split, "quality_fid_kid.csv")
+    kid = pd.read_csv(qp).set_index("method")["kid"] if os.path.exists(qp) else pd.Series(dtype=float)
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
+    for label, ms in PARETO_CURVES.items():
+        ms = [m for m in ms if m in s.index]
+        if not ms:
+            continue
+        tags = [m.split("_", 1)[1][1:] for m in ms]
+        y = [100 * s.loc[m, "opr"] for m in ms]
+        for ax, x in ((axes[0], [float(kid.get(m, np.nan)) for m in ms]), (axes[1], [s.loc[m, "clip"] for m in ms])):
+            ax.plot(x, y, "o-", label=label)
+            for xi, yi, tg in zip(x, y, tags):
+                if not np.isnan(xi):
+                    ax.annotate(tg, (xi, yi), fontsize=7, xytext=(3, 3), textcoords="offset points")
+    axes[0].set_xlabel("KID ×10³ ↓")
+    axes[1].set_xlabel("global CLIP ↑")
+    for ax in axes:
+        ax.set_ylabel("OPR (%) ↑")
+        ax.grid(alpha=0.3)
+    axes[1].legend(fontsize=8)
+    fig.suptitle(f"Control vs quality on {split} ({len(cm)} scenes; labels = α / scale / β)", fontsize=9)
+    fig.tight_layout()
+    out = out or os.path.join(results_dir, "figures", f"pareto_{split}.png")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    fig.savefig(out, dpi=200)
+    return out
+
+
+def realism_pairs_pack(out_root: str, split: str, sids: Sequence[str], pairs: Sequence[tuple], out_dir: str,
+                       seed: int = 0, rng_seed: int = 0):
+    """Two-alternative realism study: for each scene and pair (a, b), the two images in random left/right order
+    ("Which image looks more like a real photo?"), plus an answer key CSV."""
+    import random
+    import shutil
+    rng = random.Random(rng_seed)
+    os.makedirs(out_dir, exist_ok=True)
+    key = []
+    for sid in sids:
+        for a, b in pairs:
+            src = {m: os.path.join(out_root, split, m, f"{sid}_s{seed}.png") for m in (a, b)}
+            if not all(os.path.exists(v) for v in src.values()):
+                continue
+            left, right = (a, b) if rng.random() < 0.5 else (b, a)
+            qd = os.path.join(out_dir, f"P{len(key) + 1:03d}")
+            os.makedirs(qd, exist_ok=True)
+            shutil.copy(src[left], os.path.join(qd, "left.png"))
+            shutil.copy(src[right], os.path.join(qd, "right.png"))
+            key.append(dict(pair=len(key) + 1, sid=sid, left=left, right=right))
+    pd.DataFrame(key).to_csv(os.path.join(out_dir, "answer_key.csv"), index=False)
+    return out_dir
 
 
 def qualitative_grid(out_root: str, bench_dir: str, split: str, sids: Sequence[str], methods: Sequence[str],

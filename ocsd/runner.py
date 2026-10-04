@@ -11,7 +11,7 @@ import json
 import os
 import time
 import traceback
-from typing import Dict, Iterable, List, Optional, Sequence
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import cv2
 import numpy as np
@@ -21,7 +21,7 @@ from .config import OCSDConfig
 from .data import load_scene
 from .engine import Engine
 from .method import ObjectResult, Prepared, compose_foreground, generate, learn_identity, object_branch
-from .methods import BASELINES, OCSD_VARIANTS, m2_key, m3_key, run_baseline
+from .methods import BASELINES, COLLAGE_BASELINES, OCSD_VARIANTS, m2_dir_key, m3_key, run_baseline, run_collage
 from .sketch import CropInfo, Scene
 
 
@@ -44,11 +44,16 @@ def _jsonable(o):
 
 class Runner:
     def __init__(self, eng: Engine, vis, out_root: str, backbone: str = "sd15", cache_dir: Optional[str] = None,
-                 variants: Optional[Dict[str, OCSDConfig]] = None, base_cfg: Optional[OCSDConfig] = None):
+                 variants: Optional[Dict[str, OCSDConfig]] = None, base_cfg: Optional[OCSDConfig] = None,
+                 baselines: Optional[Dict[str, Tuple[str, OCSDConfig]]] = None):
+        """variants: OCSD-family method -> config. baselines: method -> (baseline kind, config), e.g. a tuned
+        baseline, a sweep point "pcn_s0.7" -> ("controlnet", cfg with cn_scale 0.7) or a tuning-grid entry
+        (default: every kind in methods.BASELINES with base_cfg)."""
         self.eng, self.vis, self.out_root = eng, vis, out_root
         self.backbone, self.cache_dir = backbone, cache_dir
         self.variants = dict(OCSD_VARIANTS if variants is None else variants)
         self.base_cfg = base_cfg or OCSDConfig()
+        self.baselines = dict(baselines) if baselines is not None else {b: (b, self.base_cfg) for b in BASELINES}
 
     # ------------------------------------------------------------------ paths
     def img_path(self, split, method, sid, seed):
@@ -126,38 +131,44 @@ class Runner:
             rec["cfg"] = cfg.to_dict()
         json.dump(_jsonable(rec), open(self.img_path(split, method, scene.sid, seed)[:-4] + ".json", "w"))
 
+    def _objects(self, split, scene: Scene, cfg: OCSDConfig, seed: int):
+        """M2 objects of `cfg` for this scene (cached on disk); drawn again per seed when cfg.m2_per_seed.
+        Returns (cache key, objects, M2 time of the cached set)."""
+        key = m2_dir_key(cfg, seed)
+        objs = self._load_objs(split, key, scene)
+        if objs is None:
+            t0 = time.time()
+            objs = object_branch(self.eng, self.vis, scene, cfg, seed=seed if cfg.m2_per_seed else 0)
+            m2_time = time.time() - t0
+            self._save_objs(split, key, scene, objs, m2_time)
+        else:
+            m2_time = json.load(open(os.path.join(self.obj_dir(split, key, scene.sid), "objects.json"))).get("m2_time")
+        return key, objs, m2_time
+
     def _run_scene(self, scene: Scene, todo, split, stats):
         eng, vis = self.eng, self.vis
         if hasattr(vis, "set_scene"):   # chỉ dùng trong kiểm thử với bộ phát hiện giả
             vis.set_scene(scene)
-        # ---- baseline
-        for m, s in [x for x in todo if x[0] in BASELINES]:
+        unknown = [x for x in todo if x[0] not in self.variants and x[0] not in self.baselines]
+        if unknown:
+            raise KeyError(f"Phương pháp không xác định: {sorted({m for m, _ in unknown})}")
+        two_branch = [x for x in todo if x[0] in self.baselines and self.baselines[x[0]][0] in COLLAGE_BASELINES]
+        # ---- baseline một nhánh
+        for m, s in [x for x in todo if x[0] in self.baselines and x not in two_branch]:
+            kind, cfg = self.baselines[m]
             log = {}
             if torch.cuda.is_available():
                 torch.cuda.reset_peak_memory_stats()
-            img = run_baseline(m, eng, vis, scene, s, self.base_cfg, self.backbone, self.cache_dir, log)
-            self._write(split, m, scene, s, img, log)
+            img = run_baseline(kind, eng, vis, scene, s, cfg, self.backbone, self.cache_dir, log)
+            self._write(split, m, scene, s, img, log, cfg)
             stats["done"] += 1
-        # ---- họ OCSD: nhóm theo khóa M2 rồi khóa M3
-        fam = [x for x in todo if x[0] in self.variants]
-        unknown = [x for x in todo if x[0] not in self.variants and x[0] not in BASELINES]
-        if unknown:
-            raise KeyError(f"Phương pháp không xác định: {sorted({m for m, _ in unknown})}")
+        # ---- họ OCSD: nhóm theo bộ đối tượng M2 (theo seed nếu m2_per_seed) rồi khóa M3
         by_m2: Dict[str, list] = {}
-        for m, s in fam:
-            by_m2.setdefault(m2_key(self.variants[m]), []).append((m, s))
+        for m, s in [x for x in todo if x[0] in self.variants]:
+            by_m2.setdefault(m2_dir_key(self.variants[m], s), []).append((m, s))
         for k2, items in by_m2.items():
             cfg0 = self.variants[items[0][0]]
-            objs = self._load_objs(split, k2, scene)
-            m2_time = None
-            if objs is None:
-                t0 = time.time()
-                objs = object_branch(eng, vis, scene, cfg0, seed=0)
-                m2_time = time.time() - t0
-                self._save_objs(split, k2, scene, objs, m2_time)
-            else:
-                meta = json.load(open(os.path.join(self.obj_dir(split, k2, scene.sid), "objects.json")))
-                m2_time = meta.get("m2_time")
+            _, objs, m2_time = self._objects(split, scene, cfg0, items[0][1])
             fg = compose_foreground(scene, objs, cfg0)
             if not os.path.exists(os.path.join(self.obj_dir(split, k2, scene.sid), "fg.png")):
                 _save_png(os.path.join(self.obj_dir(split, k2, scene.sid), "fg.png"), fg[0])
@@ -183,3 +194,13 @@ class Runner:
                     self._write(split, m, scene, s, img, log, cfg)
                     stats["done"] += 1
                 eng.reset_identity()
+        # ---- baseline hai nhánh (collage): dùng bộ đối tượng M2 của chính cấu hình đó
+        for m, s in two_branch:
+            kind, cfg = self.baselines[m]
+            k2, objs, m2_time = self._objects(split, scene, cfg, s)
+            log = dict(prep_times=dict(m2=m2_time), m2_key=k2)
+            if torch.cuda.is_available():
+                torch.cuda.reset_peak_memory_stats()
+            img = run_collage(kind, eng, vis, scene, objs, s, cfg, log)
+            self._write(split, m, scene, s, img, log, cfg)
+            stats["done"] += 1

@@ -4,6 +4,7 @@ CLIP score toàn ảnh và cấp đối tượng, ID-Sim (DINOv2), FID/KID, LPIP
 Kết quả từng ảnh được ghi dần ra CSV (có thể tiếp tục khi bị ngắt)."""
 from __future__ import annotations
 
+import dataclasses
 import glob
 import json
 import os
@@ -86,12 +87,12 @@ def _eval_one(m, sid, s, sdir, p, split, vis, det_fn, det_thr, iou_thr, out_root
     row = dict(method=m, sid=sid, seed=s, split=split, n_obj=scene.n,
                count_bin=scene.meta["count_bin"], complexity=scene.meta["complexity"],
                opr=c["opr"], oce=c["oce"], oce_c=c["oce_c"], count_acc=c["count_acc"], miou=c["miou"],
-               ra=c["ra"], n_gen=c["n_gen"], n_preserved=c["n_preserved"],
-               missing="|".join(c["missing"]))
+               ra=c["ra"], ra_cond=c["ra_cond"], miou_matched=c["miou_matched"], n_gen=c["n_gen"],
+               n_preserved=c["n_preserved"], missing="|".join(c["missing"]))
     row["clip"] = float(vis.clip.score([img], [scene.caption])[0])
     crops = [_crop(img, o.box) for o in scene.objects]
     row["obj_clip"] = float(np.mean(vis.clip.score(crops, [f"a photo of a {o.phrase}" for o in scene.objects])))
-    row["id_sim"] = _id_sim(out_root, split, m, scene, img, vis)
+    row["id_sim"] = _id_sim(out_root, split, m, scene, img, vis, s)
     lp = os.path.join(out_root, split, m, f"{sid}_s{s}.json")
     if os.path.exists(lp):
         lg = json.load(open(lp))
@@ -104,10 +105,11 @@ def _eval_one(m, sid, s, sdir, p, split, vis, det_fn, det_thr, iou_thr, out_root
     return row
 
 
-def _id_sim(out_root, split, method, scene, img, vis) -> float:
-    """Độ tương đồng DINOv2 giữa vùng đối tượng trong cảnh và ảnh đối tượng ở M2 (chỉ phương pháp hai nhánh)."""
+def _id_sim(out_root, split, method, scene, img, vis, seed: int = 0) -> float:
+    """Độ tương đồng DINOv2 giữa vùng đối tượng trong cảnh và ảnh đối tượng ở M2 (chỉ phương pháp hai nhánh).
+    The M2 set is the one logged with this image (methods with per-seed objects use a different set per seed)."""
     key = None
-    lp = os.path.join(out_root, split, method, f"{scene.sid}_s0.json")
+    lp = os.path.join(out_root, split, method, f"{scene.sid}_s{seed}.json")
     if os.path.exists(lp):
         key = json.load(open(lp)).get("m2_key")
     if key is None and method in OCSD_VARIANTS:
@@ -136,26 +138,134 @@ def _id_sim(out_root, split, method, scene, img, vis) -> float:
     return float((a * b).sum(-1).mean())
 
 
+# ----------------------------------------------------------------------------- robustness: other evaluators
+DET_METRICS = ["opr", "oce_c", "count_acc", "miou", "miou_matched", "ra", "ra_cond"]
+STRICT_IOU = (0.3, 0.5)     # OPR is also reported at these IoU thresholds ("opr30", "opr50")
+
+
+def coco_scene(scene):
+    """The scene restricted to objects whose class exists in COCO, renamed to the COCO name (sailboat -> boat,
+    duck -> bird); relations between kept objects are re-indexed."""
+    from .vision import TO_COCO
+    keep = [i for i, o in enumerate(scene.objects) if o.cls in TO_COCO]
+    idx = {i: k for k, i in enumerate(keep)}
+    objs = [dataclasses.replace(scene.objects[i], cls=TO_COCO[scene.objects[i].cls]) for i in keep]
+    rels = [(idx[i], idx[j], r) for i, j, r in scene.relations if i in idx and j in idx]
+    return dataclasses.replace(scene, objects=objs, relations=rels)
+
+
+def detector_fn(name: str, vis, det_thr: float, detr_thr: float):
+    """function(img, scene) -> (scene used for scoring, detections) of an extra evaluator: "owlv2" = the main
+    evaluator again (for the stricter IoU thresholds), "owlv2d" = OWLv2 with every benchmark and COCO class as
+    competing queries, "detr" = COCO-trained DETR."""
+    from .data import QD_CLASSES
+    from .vision import COCO80
+    if name == "owlv2":
+        return lambda img, sc: (sc, vis.owlv2(img, [o.cls for o in sc.objects], thr=det_thr))
+    if name == "owlv2d":
+        distract = sorted(set(QD_CLASSES.values()) | set(COCO80))
+        return lambda img, sc: (sc, vis.owlv2(img, [o.cls for o in sc.objects], thr=det_thr, distractors=distract))
+    if name == "detr":
+        def f(img, sc):
+            cs = coco_scene(sc)
+            return cs, (vis.detr(img, [o.cls for o in cs.objects], thr=detr_thr) if cs.n else [])
+        return f
+    raise KeyError(name)
+
+
+def evaluate_detectors(out_root: str, bench_dir: str, split: str, methods: Sequence[str], seeds: Sequence[int],
+                       vis, results_dir: str, detectors: Sequence[str] = ("owlv2", "owlv2d", "detr"), det_thr: float = 0.3,
+                       detr_thr: float = 0.5, iou_thr: float = 0.1, include_real: bool = True,
+                       scene_dirs: Optional[Sequence[str]] = None) -> Dict[str, pd.DataFrame]:
+    """Detector-dependent metrics of every image under each extra evaluator, written to
+    results/<split>/det_<name>/per_image_<method>.csv (images already scored are skipped). n_eval = objects the
+    evaluator can score (DETR: COCO classes only); rows with n_eval = 0 are not written."""
+    scene_dirs = scene_dirs or sorted(glob.glob(os.path.join(bench_dir, split, "*")))
+    scenes = {os.path.basename(d): d for d in scene_dirs if os.path.exists(os.path.join(d, "scene.json"))}
+    meths = list(methods) + (["real"] if include_real and split == "coco" else [])
+    out = {}
+    for name in detectors:
+        fn = detector_fn(name, vis, det_thr, detr_thr)
+        ddir = os.path.join(results_dir, split, f"det_{name}")
+        os.makedirs(ddir, exist_ok=True)
+        frames = []
+        for m in meths:
+            csv = os.path.join(ddir, f"per_image_{m}.csv")
+            old = pd.read_csv(csv) if os.path.exists(csv) else pd.DataFrame()
+            done = set(zip(old["sid"], old["seed"])) if len(old) else set()
+            rows = []
+            for sid, sdir in scenes.items():
+                for s in (seeds if m != "real" else [0]):
+                    if (sid, s) in done:
+                        continue
+                    p = os.path.join(sdir, "real.png") if m == "real" else                         os.path.join(out_root, split, m, f"{sid}_s{s}.png")
+                    if not os.path.exists(p):
+                        continue
+                    scene = load_scene(sdir)
+                    if hasattr(vis, "set_scene"):
+                        vis.set_scene(scene)
+                    try:
+                        sc, dets = fn(_read(p), scene)
+                    except Exception as e:
+                        from .runlog import log_exception
+                        log_exception("evaluate_detector", e, context=f"{name}/{split}/{m}/{sid}_s{s}")
+                        continue
+                    if not sc.n:
+                        continue
+                    c = consistency(sc, dets, iou_thr)
+                    strict = {f"opr{int(round(100 * t))}": consistency(sc, dets, t)["opr"] for t in STRICT_IOU}
+                    rows.append(dict(method=m, sid=sid, seed=s, split=split, n_obj=scene.n, n_eval=sc.n,
+                                     count_bin=scene.meta["count_bin"], complexity=scene.meta["complexity"],
+                                     **{k: c[k] for k in DET_METRICS}, **strict))
+            df = pd.concat([old, pd.DataFrame(rows)], ignore_index=True) if len(old) else pd.DataFrame(rows)
+            if len(df):
+                df.to_csv(csv, index=False)
+                frames.append(df)
+            print(f"{split}/{name}/{m}: {len(df)} images (+{len(rows)})")
+        out[name] = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    return out
+
+
 # ----------------------------------------------------------------------------- FID / KID / LPIPS
 def _load_uint8_batch(paths, size=299):
     x = np.stack([cv2.resize(_read(p), (size, size), interpolation=cv2.INTER_AREA) for p in paths])
     return torch.from_numpy(x).permute(0, 3, 1, 2)
 
 
-def fid_kid(gen_paths: Sequence[str], ref_paths: Sequence[str], device="cuda", batch=50) -> Dict[str, float]:
-    """FID và KID (torchmetrics, Inception-v3 2048 chiều). KID ổn định hơn với tập nhỏ."""
+_REF_METRICS: Dict[tuple, tuple] = {}
+
+
+def _ref_metrics(ref_paths: Sequence[str], device, batch: int = 50):
+    """FID / KID metrics holding the reference set's Inception features, computed once per reference set; reset()
+    keeps them (reset_real_features=False), so every method only encodes its own images."""
     from torchmetrics.image.fid import FrechetInceptionDistance
     from torchmetrics.image.kid import KernelInceptionDistance
+    key = (tuple(ref_paths), str(device))
+    if key not in _REF_METRICS:
+        _REF_METRICS.clear()
+        fid = FrechetInceptionDistance(feature=2048, normalize=False, reset_real_features=False).to(device)
+        kid = KernelInceptionDistance(subset_size=100, normalize=False, reset_real_features=False).to(device)
+        for i in range(0, len(ref_paths), batch):
+            x = _load_uint8_batch(ref_paths[i:i + batch]).to(device)
+            fid.update(x, real=True)
+            kid.update(x, real=True)
+        _REF_METRICS[key] = (fid, kid)
+    return _REF_METRICS[key]
+
+
+def fid_kid(gen_paths: Sequence[str], ref_paths: Sequence[str], device="cuda", batch=50) -> Dict[str, float]:
+    """FID và KID (torchmetrics, Inception-v3 2048 chiều). KID ổn định hơn với tập nhỏ."""
     n = min(len(gen_paths), len(ref_paths))
     if n < 10:
         return dict(fid=float("nan"), kid=float("nan"), kid_std=float("nan"), n_gen=len(gen_paths))
-    fid = FrechetInceptionDistance(feature=2048, normalize=False).to(device)
-    kid = KernelInceptionDistance(subset_size=min(100, n), normalize=False).to(device)
-    for paths, real in ((ref_paths, True), (gen_paths, False)):
-        for i in range(0, len(paths), batch):
-            x = _load_uint8_batch(paths[i:i + batch]).to(device)
-            fid.update(x, real=real)
-            kid.update(x, real=real)
+    fid, kid = _ref_metrics(ref_paths, device, batch)
+    fid.reset()
+    kid.reset()
+    kid.subset_size = min(100, n)
+    for i in range(0, len(gen_paths), batch):
+        x = _load_uint8_batch(gen_paths[i:i + batch]).to(device)
+        fid.update(x, real=False)
+        kid.update(x, real=False)
     km, ks = kid.compute()
     return dict(fid=float(fid.compute()), kid=float(km) * 1000, kid_std=float(ks) * 1000, n_gen=len(gen_paths))
 

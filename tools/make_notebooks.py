@@ -14,9 +14,11 @@ DRIVE_ROOT = "/content/drive/MyDrive/KLTN_OCSD"                 #@param {type:"s
 TIER       = "pilot"   #@param ["pilot", "paper", "full"]
 BACKBONE   = "sd15"    #@param ["sd15", "sd21"]
 MAX_MINUTES = 600      #@param {type:"number"}
+SKIP_JOBS  = ""        #@param {type:"string"}
 HF_TOKEN   = ""        #@param {type:"string"}
 # pilot: kiểm tra nhanh (~1-2 giờ GPU); paper: đủ số liệu cho khóa luận; full: cho bài báo (cần thêm GPU).
-# Có thể bấm "Run all" nhiều lần: ảnh/độ đo đã có trên Drive sẽ được bỏ qua và chạy tiếp phần còn lại.'''
+# Có thể bấm "Run all" nhiều lần: ảnh/độ đo đã có trên Drive sẽ được bỏ qua và chạy tiếp phần còn lại.
+# SKIP_JOBS: comma-separated job prefixes to leave out, e.g. "pareto" or "pareto,E3_quickdraw_power" (GPU budget).'''
 
 MOUNT = r'''#@title 2. Gắn Google Drive, kiểm tra GPU, lấy mã nguồn mới nhất
 import os, subprocess, sys
@@ -58,7 +60,7 @@ from ocsd import runlog
 runlog.start(os.path.join(DRIVE_ROOT, "results"), CODE)   # every print below also goes to results/logs/run_*.log
 from ocsd.config import Paths, ExperimentConfig, TIERS
 P = Paths(DRIVE_ROOT); P.makedirs()
-E = ExperimentConfig(backbone=BACKBONE, tier=TIER)
+E = ExperimentConfig(backbone=BACKBONE, tier=TIER, skip_jobs=SKIP_JOBS)
 E.save(os.path.join(P.results, "experiment_config.json"))
 print(E)'''
 
