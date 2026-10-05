@@ -1,0 +1,68 @@
+
+quickdraw seeds [0, 1], 36 scenes
+  opr   collage      - controlnet   +16.771  p=0.0003  p_holm=0.002
+  opr   collage      - gligen        +2.052  p=0.2642  p_holm=0.528
+  opr   collage_bo3  - gligen_bon    +0.891  p=0.8613  p_holm=0.861
+  opr   gligen       - controlnet   +14.718  p=0.0005  p_holm=0.002
+  opr   collage      - ocsd_lite    +11.995  p=0.0298  p_holm=0.089
+  miou  collage      - controlnet    +0.106  p=0.0046  p_holm=0.018
+  miou  collage      - gligen        -0.053  p=0.1115  p_holm=0.167
+  miou  collage_bo3  - gligen_bon    -0.057  p=0.0556  p_holm=0.167
+  miou  gligen       - controlnet    +0.159  p=0.0000  p_holm=0.000
+  miou  collage      - ocsd_lite     +0.072  p=0.0718  p_holm=0.167
+  ra    collage      - controlnet   +28.813  p=0.0001  p_holm=0.000
+  ra    collage      - gligen        +7.126  p=0.1358  p_holm=0.272
+  ra    collage_bo3  - gligen_bon    +2.467  p=0.8474  p_holm=0.847
+  ra    gligen       - controlnet   +21.686  p=0.0007  p_holm=0.003
+  ra    collage      - ocsd_lite    +18.745  p=0.0388  p_holm=0.116
+
+quickdraw seeds [0, 1], 72 scenes
+  opr   collage      - controlnet   +15.345  p=0.0000  p_holm=0.000
+  opr   collage      - gligen        -0.795  p=0.8484  p_holm=0.848
+  opr   collage_bo3  - gligen_bon    -3.756  p=0.4121  p_holm=0.824
+  opr   gligen       - controlnet   +16.140  p=0.0000  p_holm=0.000
+  opr   collage      - ocsd_lite     +9.821  p=0.0041  p_holm=0.012
+  miou  collage      - controlnet    +0.100  p=0.0002  p_holm=0.001
+  miou  collage      - gligen        -0.069  p=0.0034  p_holm=0.007
+  miou  collage_bo3  - gligen_bon    -0.093  p=0.0002  p_holm=0.001
+  miou  gligen       - controlnet    +0.169  p=0.0000  p_holm=0.000
+  miou  collage      - ocsd_lite     +0.066  p=0.0153  p_holm=0.015
+  ra    collage      - controlnet   +24.893  p=0.0000  p_holm=0.000
+  ra    collage      - gligen        -1.964  p=0.9656  p_holm=0.966
+  ra    collage_bo3  - gligen_bon    -7.429  p=0.2299  p_holm=0.460
+  ra    gligen       - controlnet   +26.858  p=0.0000  p_holm=0.000
+  ra    collage      - ocsd_lite    +13.308  p=0.0083  p_holm=0.025
+
+coco seeds [0], 16 scenes
+  opr   collage      - controlnet   +17.039  p=0.0312  p_holm=0.155
+  opr   collage      - gligen        -1.042  p=0.9566  p_holm=1.000
+  opr   collage_bo3  - gligen_bon    -2.083  p=0.4628  p_holm=1.000
+  opr   gligen       - controlnet   +18.080  p=0.0311  p_holm=0.155
+  opr   collage      - ocsd_lite     +0.000  p=0.7676  p_holm=1.000
+  miou  collage      - controlnet    +0.108  p=0.0877  p_holm=0.351
+  miou  collage      - gligen        -0.043  p=0.6414  p_holm=1.000
+  miou  collage_bo3  - gligen_bon    -0.049  p=0.2772  p_holm=0.832
+  miou  gligen       - controlnet    +0.151  p=0.0622  p_holm=0.311
+  miou  collage      - ocsd_lite     +0.006  p=0.5347  p_holm=1.000
+  ra    collage      - controlnet    +7.713  p=0.2500  p_holm=1.000
+  ra    collage      - gligen        -7.518  p=0.7500  p_holm=1.000
+  ra    collage_bo3  - gligen_bon    -9.728  p=0.2500  p_holm=1.000
+  ra    gligen       - controlnet   +15.232  p=0.1250  p_holm=0.625
+  ra    collage      - ocsd_lite     -3.233  p=0.8750  p_holm=1.000
+
+coco seeds [0, 1], 32 scenes
+  opr   collage      - controlnet   +15.082  p=0.0192  p_holm=0.077
+  opr   collage      - gligen        -2.894  p=0.6096  p_holm=0.610
+  opr   collage_bo3  - gligen_bon    -6.540  p=0.0374  p_holm=0.112
+  opr   gligen       - controlnet   +17.976  p=0.0022  p_holm=0.011
+  opr   collage      - ocsd_lite     +7.217  p=0.2843  p_holm=0.569
+  miou  collage      - controlnet    +0.108  p=0.0454  p_holm=0.136
+  miou  collage      - gligen        -0.046  p=0.2171  p_holm=0.217
+  miou  collage_bo3  - gligen_bon    -0.071  p=0.0079  p_holm=0.032
+  miou  gligen       - controlnet    +0.154  p=0.0049  p_holm=0.024
+  miou  collage      - ocsd_lite     +0.067  p=0.1017  p_holm=0.203
+  ra    collage      - controlnet   +11.730  p=0.0542  p_holm=0.163
+  ra    collage      - gligen        -9.371  p=0.4734  p_holm=0.947
+  ra    collage_bo3  - gligen_bon   -17.163  p=0.0043  p_holm=0.022
+  ra    gligen       - controlnet   +21.101  p=0.0084  p_holm=0.034
+  ra    collage      - ocsd_lite     -0.636  p=0.5940  p_holm=0.947

@@ -63,58 +63,73 @@ def style(ax):
     ax.set_axisbelow(True)
 
 
+RESULTS = os.environ.get('OCSD_RESULTS', '/mnt/project-files/results/paper_v2')
+S6 = '#7a5bd6'
+
+
+def read_csv(name):
+    import csv
+    with open(os.path.join(RESULTS, 'tables', name + '.csv'), encoding='utf-8') as f:
+        return list(csv.reader(f))
+
+
+def mean_ci(cell):
+    m, _, ci = cell.replace('**', '').partition('±')
+    return float(m), (float(ci) if ci.strip() else None)
+
+
 def e1_curves():
-    # QuickDraw-Scenes, 36 identity-learning scenes x 2 seeds (summary.md, E1_quickdraw); OCSD rows preliminary.
-    x = [1, 3, 5, 8]
-    rows = [
-        ('SD + ControlNet', S1, 'o', [94.4, 63.0, 72.2, 40.1], [0.28, 2.00, 2.22, 5.33]),
-        ('GLIGEN', S2, 's', [100.0, 70.4, 73.3, 47.8], [0.06, 1.56, 1.83, 6.44]),
-        ('Zhang et al. (re-impl.)', S3, '^', [77.8, 48.1, 32.2, 19.0], [1.11, 1.94, 4.06, 6.56]),
-        ('OCSD-lite', S4, 'D', [88.9, 79.6, 62.2, 61.2], [0.56, 0.78, 2.28, 4.94]),
-        ('OCSD', S5, 'v', [88.9, 75.9, 72.2, 64.4], [0.61, 0.78, 1.72, 4.56]),
-    ]
-    fig, axs = plt.subplots(1, 2, figsize=(9.6, 3.5), dpi=220)
-    for ax, k, yl in ((axs[0], 3, 'OPR (%)  ↑'), (axs[1], 4, 'Class-wise OCE  ↓')):
+    # QuickDraw-Scenes E3 subset (36 scenes x 2 seeds), read from E1_quickdraw_long.csv.
+    show = [('controlnet', 'SD + ControlNet', S1, 'o'), ('gligen', 'GLIGEN', S2, 's'),
+            ('gligen_bon', 'GLIGEN best-of-N', S4, 'P'), ('collage', 'Collage', S3, '^'),
+            ('ocsd', 'OCSD', S5, 'v'), ('ocsd_v2', 'OCSD-v2', S6, 'D')]
+    rows = read_csv('E1_quickdraw_long')
+    h = rows[0]; data = {}
+    for r in rows[1:]:
+        if r[0] == 'method':
+            continue
+        data.setdefault(r[0], {})[r[1]] = (100 * float(r[h.index('opr')]), float(r[h.index('oce_c')]))
+    bins = ['1', '3', '5', '8+']; x = [1, 3, 5, 8]
+    fig, axs = plt.subplots(1, 2, figsize=(9.6, 3.6), dpi=220)
+    for ax, k, yl in ((axs[0], 0, 'OPR (%)  ↑'), (axs[1], 1, 'Class-wise OCE  ↓')):
         style(ax)
-        for r in rows:
-            ax.plot(x, r[k], color=r[1], marker=r[2], ms=6, lw=2, label=r[0],
+        for key, name, c, mk in show:
+            ax.plot(x, [data[key][b][k] for b in bins], color=c, marker=mk, ms=6, lw=2, label=name,
                     markeredgecolor='white', markeredgewidth=1)
-        ax.set_xticks(x); ax.set_xticklabels(['1', '3', '5', '8+'])
+        ax.set_xticks(x); ax.set_xticklabels(bins)
         ax.set_xlabel('Objects per scene', color=INK2); ax.set_ylabel(yl, color=INK2)
-    axs[0].set_ylim(0, 105); axs[1].set_ylim(0, 7.2)
-    h, l = axs[0].get_legend_handles_labels()
-    fig.legend(h, l, loc='upper center', ncol=5, frameon=False, fontsize=9)
+    axs[0].set_ylim(30, 102); axs[1].set_ylim(0, 9)
+    hh, ll = axs[0].get_legend_handles_labels()
+    fig.legend(hh, ll, loc='upper center', ncol=6, frameon=False, fontsize=9)
     fig.tight_layout(rect=(0, 0, 1, 0.9))
     fig.savefig(os.path.join(OUT, 'fig2_e1.png'), facecolor='white'); plt.close(fig)
 
 
+ABL = [('OCSD (', 'Full OCSD'), ('- bỏ suy luận trộn', 'w/o blended inference (α = 1)'),
+       ('- trộn tiềm ẩn toàn bộ', 'blend whole trajectory (α = 0)'), ('OCSD-lite', 'w/o identity learning (OCSD-lite)'),
+       ('- bỏ L_att', 'w/o L_att in M3'), ('- M2 chỉ 1', 'M2 with K = 1'), ('+ M3 with the full', 'M3 with full 200 + 200 steps'),
+       ('- bỏ chú ý giới hạn', 'w/o region attention M5(a)'), ('- bỏ dẫn hướng', 'w/o energy guidance M5(b)'),
+       ('- bỏ ControlNet cấp cảnh', 'w/o scene ControlNet M5(c)'), ('- bỏ kiểm tra', 'w/o verification M5(d)'),
+       ('- bỏ toàn bộ M5', 'w/o all of M5'), ('- chỉ câu lệnh nền', 'background prompt only'),
+       ('- chỉ câu lệnh toàn cục', 'global prompt only')]
+
+
 def ablation():
-    # QuickDraw-Scenes, 18 scenes (3 and 5 objects), 1 seed; preliminary (run 1, before M5(b) re-tuning).
-    rows = [
-        ('Full OCSD', 74.1, 11.3),
-        ('w/o blended inference (α = 1)', 63.0, 11.9),
-        ('blend whole trajectory (α = 0)', 60.4, 12.0),
-        ('w/o identity learning (OCSD-lite)', 70.9, 10.9),
-        ('w/o L_att in M3', 72.6, 11.7),
-        ('M2 with K = 1', 63.7, 17.2),
-        ('w/o region attention M5(a)', 78.5, 13.1),
-        ('w/o energy guidance M5(b)', 81.1, 9.3),
-        ('w/o scene ControlNet M5(c)', 70.7, 11.9),
-        ('w/o verification M5(d)', 70.7, 13.3),
-        ('w/o all of M5', 70.7, 12.8),
-        ('background prompt only', 64.1, 13.1),
-        ('global prompt only', 70.4, 13.9),
-        ('Zhang et al. (re-impl.)', 40.2, 9.2),
-    ]
+    # QuickDraw-Scenes, 18 scenes (3 and 5 objects), seed 0, read from E4_quickdraw.csv.
+    body = read_csv('E4_quickdraw')[1:]
+    rows = []
+    for pre, name in ABL:
+        r = next(r for r in body if r[0].replace('**', '').startswith(pre))
+        rows.append((name,) + mean_ci(r[1]))
     fig, ax = plt.subplots(figsize=(7.2, 4.6), dpi=220)
     style(ax); ax.grid(axis='y', visible=False); ax.grid(axis='x', color=GRID, lw=0.8)
     y = np.arange(len(rows))[::-1]
     full = rows[0][1]
     for yi, (name, m, ci) in zip(y, rows):
-        c = S1 if name == 'Full OCSD' else ('#b9b8b2' if 'Zhang' in name else '#8fb8ea')
+        c = S1 if name == 'Full OCSD' else '#8fb8ea'
         ax.barh(yi, m, height=0.62, color=c, edgecolor='white', linewidth=2)
         ax.errorbar(m, yi, xerr=ci, color=INK2, lw=1, capsize=2)
-        ax.text(m + ci + 1.2, yi, f'{m:.1f}', va='center', fontsize=8, color=INK)
+        ax.text(min(m + ci + 1.2, 96), yi, f'{m:.1f}', va='center', fontsize=8, color=INK)
     ax.axvline(full, color=S1, lw=1, ls='--')
     ax.set_yticks(y); ax.set_yticklabels([r[0] for r in rows], fontsize=8.5, color=INK)
     ax.set_xlim(0, 100); ax.set_xlabel('OPR (%) with 95% bootstrap CI', color=INK2)
@@ -123,10 +138,11 @@ def ablation():
 
 
 def alpha():
-    a = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
-    opr = [57.8, 70.0, 72.2, 77.8, 63.3, 70.6]; opr_ci = [15.3, 15.8, 13.6, 12.8, 13.1, 14.2]
-    miou = [0.417, 0.499, 0.500, 0.465, 0.329, 0.308]; miou_ci = [0.136, 0.132, 0.123, 0.113, 0.090, 0.105]
-    fid = [406.85, 404.52, 380.52, 380.04, 341.96, 322.20]
+    body = read_csv('alpha_quickdraw')[1:]
+    a = [float(r[0].split('=')[1]) for r in body]
+    opr, opr_ci = zip(*[mean_ci(r[1]) for r in body])
+    miou, miou_ci = zip(*[mean_ci(r[3]) for r in body])
+    fid = [float(r[5]) for r in body]
     fig, axs = plt.subplots(1, 3, figsize=(9.6, 3.0), dpi=220)
     for ax, v, ci, yl, c in ((axs[0], opr, opr_ci, 'OPR (%)  ↑', S1), (axs[1], miou, miou_ci, 'Layout mIoU  ↑', S1), (axs[2], fid, None, 'FID  ↓', S1)):
         style(ax)
@@ -141,8 +157,8 @@ def alpha():
 
 def qualitative():
     from PIL import Image
-    src = '/mnt/project-files/results/paper/figures/qualitative_quickdraw.png'
-    im = Image.open(src).convert('RGB'); im.thumbnail((1800, 1800))
+    src = os.path.join(RESULTS, 'figures', 'qualitative_quickdraw.png')
+    im = Image.open(src).convert('RGB'); im.thumbnail((2000, 2000))
     im.save(os.path.join(OUT, 'fig5_qual.jpg'), quality=85)
 
 

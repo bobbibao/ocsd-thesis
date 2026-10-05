@@ -15,7 +15,10 @@ REF['zhang2025sketchscene'] = ('Tianyu Zhang, Xiaoxuan Xie, Xusheng Du, Haoran X
                                'with Diffusion Model", *Computers & Graphics* 129, Article 104226 (preprint: arXiv:2407.06469, 2024).')
 REF['mitsouras2024usketch'] = REF['mitsouras2024usketch'].replace('mã nguồn', 'code')
 
+import subprocess
+subprocess.run([sys.executable, os.path.join(HERE, 'tables_paper.py')], check=True)   # tables from the results CSVs
 md = open(os.path.join(HERE, 'paper.md'), encoding='utf-8').read()
+md = re.sub(r'<!-- TABLE:(\w+) -->', lambda m: open(os.path.join(HERE, '_tables', m.group(1) + '.md'), encoding='utf-8').read(), md)
 order = []
 def cite(m):
     keys = [k.strip().lstrip('@') for k in m.group(1).split(';')]
@@ -95,6 +98,8 @@ for p in doc.paragraphs:
     if p.style.name == 'Note':
         ppr = p._p.get_or_add_pPr()
         shd = OxmlElement('w:shd'); shd.set(qn('w:val'), 'clear'); shd.set(qn('w:fill'), 'FFF4D6'); ppr.append(shd)
+    if p.style.name == 'TableCaption':
+        p.paragraph_format.keep_with_next = True
     if p.style.name in ('Heading 1', 'Heading 2'):
         for r in p.runs:
             r.font.color.rgb = RGBColor(0, 0, 0)
@@ -116,7 +121,8 @@ for t in doc.tables:
         tblPr.remove(old)
     bs = OxmlElement('w:tblBorders'); border(bs, 'top', 12); border(bs, 'bottom', 12); tblPr.append(bs)
     ncol = len(t.columns)
-    first = Cm(4.2) if ncol > 4 else Cm(3.0)
+    first = Cm(3.2) if ncol >= 9 else (Cm(4.2) if ncol > 4 else Cm(3.0))
+    fsize = Pt(7.6) if ncol >= 9 else Pt(8.3)
     rest = (Cm(16.6) - first) / (ncol - 1)
     widths = [first] + [int(rest)] * (ncol - 1)
     grid = t._tbl.find(qn('w:tblGrid'))
@@ -132,10 +138,11 @@ for t in doc.tables:
                 tb = OxmlElement('w:tcBorders'); border(tb, 'bottom', 6); tcPr.append(tb)
             for p in cell.paragraphs:
                 p.paragraph_format.space_before = Pt(1); p.paragraph_format.space_after = Pt(1)
+                p.paragraph_format.keep_with_next = i < len(t.rows) - 1
                 for r in p.runs:
-                    r.font.size = Pt(8.3); r.font.name = FONT
+                    r.font.size = fsize; r.font.name = FONT
                     if i == 0: r.font.bold = True
-doc.core_properties.title = 'Object-Consistent Sketch-and-Text Guided Scene Image Generation with Diffusion Models'
+doc.core_properties.title = 'Keeping Every Object: A Controlled Study of Sketch-and-Text Guided Scene Generation with Diffusion Models'
 doc.core_properties.author = 'Le Hoang Bao, Thai Ba Cuong, Nguyen Thanh Chuyen'
 doc.save(out)
 print('saved', out, len(order), 'references')
