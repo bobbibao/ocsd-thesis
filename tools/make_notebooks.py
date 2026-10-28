@@ -11,7 +11,7 @@ SETUP = r'''#@title 1. Cấu hình (chỉ sửa ô này)
 REPO_URL   = "https://github.com/bobbibao/ocsd-thesis.git"  #@param {type:"string"}
 BRANCH     = "main"                                             #@param {type:"string"}
 DRIVE_ROOT = "/content/drive/MyDrive/KLTN_OCSD"                 #@param {type:"string"}
-TIER       = "pilot"   #@param ["screen", "pilot", "paper", "full"]
+TIER       = "pilot"   #@param ["repair_screen", "screen", "pilot", "paper", "full"]
 BACKBONE   = "sd15"    #@param ["sd15", "sd21"]
 MAX_MINUTES = 600      #@param {type:"number"}
 SKIP_JOBS  = ""        #@param {type:"string"}
@@ -69,7 +69,7 @@ from ocsd import runlog
 from ocsd.config import Paths, ExperimentConfig, TIERS
 P = Paths(DRIVE_ROOT); P.makedirs()
 E = ExperimentConfig(backbone=BACKBONE, tier=TIER, skip_jobs=SKIP_JOBS,
-                     extra_detectors=() if TIER == "screen" else ("owlv2", "owlv2d", "detr"))
+                     extra_detectors=() if TIER in ("screen", "repair_screen") else ("owlv2", "owlv2d", "detr"))
 from ocsd.provenance import start_run
 P, RUN = start_run(P, E, run_id=RUN_ID)
 RUN_ID = P.run_id
@@ -84,6 +84,9 @@ def nb(cells, name):
     n.metadata = {"accelerator": "GPU", "colab": {"gpuType": "L4", "machine_shape": "hm", "provenance": []},
                   "kernelspec": {"display_name": "Python 3", "name": "python3"},
                   "language_info": {"name": "python"}}
+    if name in ("00_push_logs.ipynb", "03_export_screen_review.ipynb"):
+        n.metadata.pop('accelerator', None)
+        n.metadata['colab'] = {'provenance': []}
     cells = [c.replace("start_run(P, E, run_id=RUN_ID)", f'start_run(P, E, run_id=RUN_ID, notebook="notebooks/{name}")') for c in cells]
     n.cells = [nbf.v4.new_markdown_cell(c[3:]) if c.startswith("MD:") else nbf.v4.new_code_cell(c) for c in cells]
     path = os.path.join(OUT, name)
@@ -107,10 +110,10 @@ nb([
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
     "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
-    SETUP.replace('TIER       = "pilot"', 'TIER       = "screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'), MOUNT, INSTALL,
-    "MD:## Sàng lọc trước khi chạy dài\nMặc định `screen`: 12 cảnh × 7 phương pháp × 1 seed = 84 ảnh; "
-    "không M3, COCO, FID/KID hoặc tuning. Có GLIGEN, best-of-2, Collage, OCSD-v2 và biến thể "
-    "GLIGEN + sửa vùng có/không M2. Đây là giả thuyết chưa được xác minh chất lượng trên GPU. "
+    SETUP.replace('TIER       = "pilot"', 'TIER       = "repair_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'), MOUNT, INSTALL,
+    "MD:## Sàng lọc trước khi chạy dài\nMặc định `repair_screen`: 12 cảnh × 4 phương pháp × 1 seed = 48 ảnh; "
+    "không M3, COCO, FID/KID hoặc tuning. Có GLIGEN, best-of-2, sửa với M2 toàn cảnh và M2 chỉ đối tượng thiếu. "
+    "Đây là thử nghiệm tối ưu chi phí chưa được xác minh chất lượng trên GPU. "
     "Không tự chuyển sang paper/full. MAX_MINUTES giới hạn stage sinh ảnh giữa các cảnh, "
     "không giới hạn tổng thời gian tải/cài đặt/đánh giá hoặc compute units. Xem docs/QUALITY_SCREEN.md.",
     "MD:## A. Bộ dữ liệu\nQuickDraw-Scenes (tổng hợp, 12 ô: số đối tượng 1/3/5/8+ × độ phức tạp đơn giản/trung bình/phức tạp) "
@@ -118,7 +121,7 @@ nb([
     r'''#@title A. Build benchmarks (skipped if already built for this tier)
 from ocsd import stages
 with RUN.stage("A_data"):
-    stages.setup_data(P, TIER, with_coco=TIER != "screen")
+    stages.setup_data(P, TIER, with_coco=TIER not in ("screen", "repair_screen"))
     RUN.seal_data()
     RUN.plan(E)
 from IPython.display import Image, display
@@ -151,7 +154,7 @@ _GLIGEN.clear()
 import gc
 gc.collect(); torch.cuda.empty_cache()
 with RUN.stage("C_evaluate"):
-    vis = stages.evaluate(P, E, vis=vis, fid=TIER != "screen")''',
+    vis = stages.evaluate(P, E, vis=vis, fid=TIER not in ("screen", "repair_screen"))''',
     "MD:## D. Báo cáo",
     r'''#@title D. Tables, figures, statistics, summary
 with RUN.stage("D_report"):
@@ -316,3 +319,49 @@ subprocess.run([sys.executable, "-m", "pip", "install", "-q", "gradio"], check=T
 from ocsd.app import launch
 launch(backbone=E.backbone, share=True)''',
 ], "02_app_gradio.ipynb")
+
+
+# CPU-only export, deliberately independent of the inference environment and GitHub credentials.
+nb([
+    "MD:# Export completed screen evidence (CPU only)\n\nBlank RUN_ID selects the latest run. "
+    "Downloads result tables, final images, and repair diagnostics after checking manifest hashes. "
+    "No model download or inference. Attach the ZIP in chat; no GitHub token is needed.",
+    r'''from pathlib import Path
+from zipfile import ZipFile, ZIP_DEFLATED
+from google.colab import drive, files
+import json, hashlib, re
+
+drive.mount('/content/drive')
+ROOT = Path('/content/drive/MyDrive/KLTN_OCSD')
+RUN_ID = "" #@param {type:"string"}
+if not RUN_ID:
+    RUN_ID = json.loads((ROOT / 'results/latest_run.json').read_text())['run_id']
+assert re.fullmatch(r'[A-Za-z0-9_-]+', RUN_ID), 'Invalid RUN_ID'
+manifest_path = ROOT / 'results' / 'runs' / RUN_ID / 'run_manifest.json'
+manifest = json.loads(manifest_path.read_text())
+assert manifest['status'] == 'complete', 'Run is incomplete: resume before interpreting results'
+assert manifest['contract']['experiment']['tier'] in ('screen', 'repair_screen')
+methods = {'gligen', 'gligen_bon', 'grounded_repair', 'grounded_repair_no_m2', 'grounded_repair_sparse'}
+selected = []
+for relative, digest in manifest['artifacts'].items():
+    rel = Path(relative)
+    result = (rel.parts[:3] == ('results', 'runs', RUN_ID)
+              and rel.suffix.lower() in {'.csv', '.json', '.md', '.txt', '.log'})
+    output = (rel.parts[:3] == ('outputs', 'runs', RUN_ID) and len(rel.parts) >= 6
+              and rel.parts[3] == 'quickdraw' and rel.parts[4] in methods)
+    if not (result or output):
+        continue
+    p = (ROOT / rel).resolve()
+    assert p.is_relative_to(ROOT.resolve()), 'Invalid artifact path'
+    assert p.is_file(), f'Missing: {p}'
+    assert hashlib.sha256(p.read_bytes()).hexdigest() == digest, f'Changed: {p}'
+    selected.append((p, relative))
+assert selected, 'No artifacts found'
+archive = '/content/ocsd_review_' + RUN_ID + '.zip'
+with ZipFile(archive, 'w', ZIP_DEFLATED) as z:
+    z.write(manifest_path, 'run_manifest.json')
+    for p, relative in selected:
+        z.write(p, relative)
+print('Exported existing files; no model execution:', len(selected), 'run:', RUN_ID)
+files.download(archive)''',
+], "03_export_screen_review.ipynb")

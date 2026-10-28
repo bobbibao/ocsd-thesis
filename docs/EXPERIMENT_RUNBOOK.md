@@ -6,9 +6,9 @@ Notebook chính: [RUN_ALL.ipynb trên Colab](https://colab.research.google.com/g
 Không cần chép ZIP lên Drive. Giữ REPO_URL của bobbibao/ocsd-thesis và BRANCH="main".
 
 1. Mở link Colab, chọn GPU L4/A100 và giữ DRIVE_ROOT đang dùng.
-2. Mặc định `TIER="screen"`, `BACKBONE="sd15"`, `RUN_ID=""`, `MAX_MINUTES=20`.
+2. Mặc định `TIER="repair_screen"`, `BACKBONE="sd15"`, `RUN_ID=""`, `MAX_MINUTES=20`.
    Đọc [QUALITY_SCREEN.md](QUALITY_SCREEN.md) trước khi tiêu GPU: đây là giả thuyết chưa có kết quả chất lượng.
-3. Run all chỉ chạy screening 84 ảnh và đánh giá, không tự chạy pilot/paper/full.
+3. Run all chỉ chạy screening 48 ảnh và đánh giá, không tự chạy pilot/paper/full.
 4. `PUSH_RESULTS=True` và Colab secret GH_TOKEN gửi log/kết quả lên colab-results như luồng cũ.
    Thiếu token thì kết quả vẫn ở Drive; không yêu cầu đưa token vào code.
 5. Đọc summary.md, screen_means.csv, screen_paired.csv và ảnh. `do_not_scale_up` nghĩa là chưa nên
@@ -59,7 +59,7 @@ không tự gửi dữ liệu lên GitHub.
 
 ## Ngân sách thử đầu tiên
 
-Mặc định chọn `screen`; chưa có thời gian GPU đo thực cho biến thể mới. Giới hạn 20 phút chỉ áp dụng
+Mặc định chọn `repair_screen`; chưa có thời gian GPU đo thực cho biến thể mới. Giới hạn 20 phút chỉ áp dụng
 cho stage sinh ảnh giữa các scene, không phải trần compute units. Nếu sau screening chủ động chạy
 `pilot`, kết quả lịch sử trên A100 80 GB tại nhánh `colab-results` ước tính **1,3 giờ GPU sinh ảnh**
 cho pilot, chưa gồm khoảng 10–15% đánh giá và tải dữ liệu/mô hình. Dành khoảng **1,5–2 giờ trên A100**
@@ -83,3 +83,5 @@ CPU: cài torch/torchvision phù hợp, `pip install -r requirements-dev.txt`, r
 `CLIP_BPE` trỏ tới file BPE trong package open_clip; test tải QuickDraw cần truy cập storage.googleapis.com.
 Thêm `python tests/test_screening.py`: 9 kiểm thử mới, gồm sửa vùng bằng model nhỏ và Runner/resume.
 Sinh lại notebook bằng `python tools/make_notebooks.py`.
+
+Missing-only M2 and CPU ZIP recovery: see [SPARSE_REPAIR_SCREEN.md](SPARSE_REPAIR_SCREEN.md). Use a fresh RUN_ID for this code version.

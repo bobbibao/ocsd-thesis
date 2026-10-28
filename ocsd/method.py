@@ -98,13 +98,17 @@ class ObjectResult:
 
 
 def object_branch(eng: Engine, vis, scene: Scene, cfg: OCSDConfig, seed: int = 0,
-                  log: Optional[dict] = None) -> List[ObjectResult]:
+                  log: Optional[dict] = None, object_indices: Optional[Sequence[int]] = None) -> List[ObjectResult]:
     """M2: với mỗi phác thảo đối tượng, sinh K ứng viên bằng SD + ControlNet Scribble, tách mặt nạ bằng
     Grounding DINO + SAM, chọn ứng viên theo CLIP(vùng, cụm từ) + IoU(mặt nạ, mặt nạ phác thảo) + độ tin cậy."""
     eng.lora(False)
     out = []
     l1, l2, l3 = cfg.select_weights
-    for i, o in enumerate(scene.objects):
+    indices = list(range(scene.n)) if object_indices is None else list(object_indices)
+    if indices != sorted(set(indices)) or any(i < 0 or i >= scene.n for i in indices):
+        raise ValueError("object_indices must be sorted unique original scene indices")
+    for i in indices:
+        o = scene.objects[i]
         sk_crop, info = square_crop(o.sketch, o.box, cfg.height)
         m_crop, _ = square_crop((o.mask * 255).astype(np.uint8), o.box, cfg.height, fill=0)
         m_crop = m_crop > 127
@@ -292,6 +296,8 @@ def compose_foreground(scene: Scene, objs: List[ObjectResult], cfg: OCSDConfig):
         if cfg.placement_search else [(1.0, 0, 0)]
     for i in order:
         r = objs[i]
+        if r is None:  # sparse repair: retain scene-length masks and original object indexing
+            continue
         best, best_iou = (1.0, 0, 0), -1
         for s, dx, dy in grid:
             _, pm = paste_back(np.zeros((H, H, 3), np.uint8), None, r.img, r.mask, r.info, s, dx, dy)
@@ -532,7 +538,7 @@ def repair_regions(scene: Scene, ctx: SceneCond, c: Dict, dets: Sequence[dict], 
 
 def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, img: np.ndarray, c: Dict,
                  dets: Sequence[dict], seed: int, lambda0: float, log: Optional[dict] = None,
-                 protect_matched: bool = False) -> Optional[np.ndarray]:
+                 protect_matched: bool = False, diagnose=None) -> Optional[np.ndarray]:
     """M5(d) repair (joint mode): re-noise `img` to (1 - repair_strength) of the trajectory and denoise again only
     inside repair_regions - the rest is held to the previous image at every step (and pasted back at the end), and a
     missing object's M2 latent is re-imposed for the same alpha fraction of the remaining steps. Region attention
@@ -542,8 +548,17 @@ def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, i
     use_id = prep.id_tokens is not None
     ctx = scene_cond(eng, scene, cfg, prep.id_tokens, prep.fg)
     M, missing = repair_regions(scene, ctx, c, dets, H)
+    proposed = M.copy()
     if protect_matched:
         M = protect_regions(M, ctx.region_masks, c, dets)
+    if diagnose is not None:
+        diagnose('edit_mask', np.repeat((M * 255).astype(np.uint8)[..., None], 3, axis=2))
+        excluded = proposed & ~M
+        diagnose('excluded_mask', np.repeat((excluded * 255).astype(np.uint8)[..., None], 3, axis=2))
+    if log is not None:
+        log.setdefault('repair_regions', []).append(dict(missing_ids=list(missing),
+            matched=c['matched'], detections=list(dets), proposed_area=float(proposed.mean()),
+            editable_area=float(M.mean())))
     if not M.any():
         return None
     ts = eng.set_timesteps(cfg.steps)
