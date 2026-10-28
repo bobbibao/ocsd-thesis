@@ -204,7 +204,7 @@ class ExperimentConfig:
     detr_thr: float = 0.5
 
     def __post_init__(self):
-        if self.tier == "screen" and self.backbone != "sd15":
+        if self.tier in ("screen", "repair_screen") and self.backbone != "sd15":
             raise ValueError("The screen tier compares GLIGEN and requires backbone=sd15")
         if self.seeds is None:
             self.seeds = list(TIERS[self.tier]["seeds"])
@@ -217,6 +217,9 @@ class ExperimentConfig:
 TIERS = {
     # Exploratory check only: 12 scenes, one seed, no M3, COCO, FID or tuning grid.
     "screen": dict(qd_per_cell=1, trained_n=0, coco_n=0, coco_trained_n=0, ablation_n=0, alpha_n=0,
+                   seeds=[0], seeds_all=1, tune=False,
+                   cfg=dict(steps=30, obj_steps=20, K=2, S1=0, S2=0, R=1, bo_n=2)),
+    "repair_screen": dict(qd_per_cell=1, trained_n=0, coco_n=0, coco_trained_n=0, ablation_n=0, alpha_n=0,
                    seeds=[0], seeds_all=1, tune=False,
                    cfg=dict(steps=30, obj_steps=20, K=2, S1=0, S2=0, R=1, bo_n=2)),
     # Quy mô thực nghiệm, thiết kế cho Google Colab Pro (~100 compute unit/tháng: T4 ~1,8 unit/giờ, L4 ~4,8 unit/giờ).

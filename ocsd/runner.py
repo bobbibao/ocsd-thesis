@@ -93,7 +93,8 @@ class Runner:
         p = self.img_path(split, method, scene.sid, seed)
         try:
             meta = json.load(open(p[:-4] + '.json'))
-            return meta.get('signature') == self.signature(scene, method, seed) and meta.get('sha256') == file_hash(p)
+            return meta.get('signature') == self.signature(scene, method, seed) and meta.get('sha256') == file_hash(p) and all(
+                file_hash(os.path.join(self.out_root, rel)) == h for rel, h in meta.get('diagnostics', {}).items())
         except (OSError, ValueError, KeyError):
             return False
 
@@ -192,10 +193,15 @@ class Runner:
         rec.update(signature=self.signature(scene, method, seed), sha256=file_hash(p))
         atomic_json(p[:-4] + '.json', _jsonable(rec))
 
-    def _objects(self, split, scene: Scene, cfg: OCSDConfig, seed: int):
+    def _objects(self, split, scene: Scene, cfg: OCSDConfig, seed: int, object_indices=None):
         """M2 objects of `cfg` for this scene (cached on disk); drawn again per seed when cfg.m2_per_seed.
         Returns (cache key, objects, M2 time of the cached set)."""
+        indices = None if object_indices is None else list(object_indices)
+        if indices is not None and (indices != sorted(set(indices)) or any(i < 0 or i >= scene.n for i in indices)):
+            raise ValueError("Invalid original object indices")
         key = m2_dir_key(cfg, seed)
+        if indices is not None:
+            key += '_subset_' + digest(indices)[:16]
         meta_path = os.path.join(self.obj_dir(split, key, scene.sid), 'objects.json')
         sig = digest(dict(context=self.identity, scene=self.scene_identity(scene), key=key))
         try:
@@ -211,14 +217,20 @@ class Runner:
         if objs is None:
             t0 = time.time()
             compute_before = dict(self.eng.compute)
-            objs = object_branch(self.eng, self.vis, scene, cfg, seed=seed if cfg.m2_per_seed else 0)
+            objs = object_branch(self.eng, self.vis, scene, cfg, seed=seed if cfg.m2_per_seed else 0,
+                                 **({} if indices is None else dict(object_indices=indices)))
             m2_time = time.time() - t0
             self._save_objs(split, key, scene, objs, m2_time)
             meta = json.load(open(meta_path))
-            meta.update(compute=self.eng.compute_delta(compute_before), signature=sig, checksums={p.name:file_hash(p) for p in Path(meta_path).parent.glob('*.png')})
+            meta.update(object_indices=indices, compute=self.eng.compute_delta(compute_before), signature=sig, checksums={p.name:file_hash(p) for p in Path(meta_path).parent.glob('*.png')})
             atomic_json(meta_path, meta)
         else:
             m2_time = json.load(open(os.path.join(self.obj_dir(split, key, scene.sid), "objects.json"))).get("m2_time")
+        if indices is not None:
+            sparse = [None] * scene.n
+            for i, obj in zip(indices, objs):
+                sparse[i] = obj
+            objs = sparse
         return key, objs, m2_time
 
     def _run_scene(self, scene: Scene, todo, split, stats):
@@ -236,15 +248,22 @@ class Runner:
             compute_before = dict(eng.compute)
             if torch.cuda.is_available():
                 torch.cuda.reset_peak_memory_stats()
-            if kind in ("grounded_repair", "grounded_repair_no_m2"):
+            if kind in ("grounded_repair", "grounded_repair_no_m2", "grounded_repair_sparse"):
                 from .screening import grounded_repair
-                def get_objects():
+                def get_objects(indices=None):
                     started = time.time()
-                    key, objs, elapsed = self._objects(split, scene, cfg, s)
-                    log.update(m2_key=key, prep_times=dict(m2=elapsed), m2_lookup_seconds=time.time()-started)
+                    key, objs, elapsed = self._objects(split, scene, cfg, s, indices)
+                    log.update(m2_key=key, prep_times=dict(m2=elapsed), m2_lookup_seconds=time.time()-started,
+                               m2_object_ids=list(range(scene.n)) if indices is None else indices,
+                               m2_candidate_count=(scene.n if indices is None else len(indices))*cfg.K)
                     return objs
+                def diagnose(name, image):
+                    path = os.path.join(self.out_root, split, m, '_diagnostics', f'{scene.sid}_s{s}', name + '.png')
+                    _save_png(path, image)
+                    log.setdefault('diagnostics', {})[os.path.relpath(path, self.out_root)] = file_hash(path)
                 img = grounded_repair(eng, vis, scene, s, cfg, self.backbone, self.cache_dir, log,
-                                      get_objects, use_m2=kind == "grounded_repair")
+                                      get_objects, use_m2=kind != "grounded_repair_no_m2",
+                                      sparse=kind == "grounded_repair_sparse", diagnose=diagnose)
             else:
                 img = run_baseline(kind, eng, vis, scene, s, cfg, self.backbone, self.cache_dir, log)
             log["compute"] = eng.compute_delta(compute_before)
@@ -291,7 +310,7 @@ class Runner:
         # ---- baseline hai nhánh (collage): dùng bộ đối tượng M2 của chính cấu hình đó
         for m, s in two_branch:
             kind, cfg = self.baselines[m]
-            k2, objs, m2_time = self._objects(split, scene, cfg, s)
+            k2, objs, m2_time = self._objects(split, scene, cfg, s, indices)
             log = dict(prep_times=dict(m2=m2_time), m2_key=k2)
             if torch.cuda.is_available():
                 torch.cuda.reset_peak_memory_stats()

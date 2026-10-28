@@ -12,6 +12,7 @@ from .provenance import atomic_json
 
 METHODS = ('controlnet', 'gligen', 'gligen_bon', 'collage', 'ocsd_v2',
            'grounded_repair_no_m2', 'grounded_repair')
+REPAIR_METHODS = ('gligen', 'gligen_bon', 'grounded_repair', 'grounded_repair_sparse')
 CLIP_TOLERANCE = 0.5  # fixed prospectively; CLIP is a method guard, not an independent quality endpoint
 
 
@@ -34,13 +35,17 @@ def accept_repair(before, after, baseline_clip, candidate_clip):
     return True, 'accepted'
 
 
-def grounded_repair(eng, vis, scene, seed, cfg, backbone, cache_dir, log, get_objects, use_m2=True):
+def grounded_repair(eng, vis, scene, seed, cfg, backbone, cache_dir, log, get_objects, use_m2=True, sparse=False, diagnose=None):
     """Start from GLIGEN, lazily prepare M2 only for missing objects, preserve/reject local edits.
 
-    get_objects returns a cached full-scene M2 set. It is never called if the initial image passes,
+    get_objects returns a scene-aligned M2 set (None for unrequested indices in sparse mode).
+    Sparse mode passes original missing indices to the callback. It is never called if the initial image passes,
     only extras need removal, or the no-M2 ablation is selected. No identity training is performed.
     """
     t0 = time.time()
+    log['scene_spec'] = dict(caption=scene.caption, bg=scene.bg,
+                             objects=[dict(index=i, cls=o.cls, phrase=o.phrase, box=o.box)
+                                      for i, o in enumerate(scene.objects)])
     best = _gligen(eng, scene, seed, cfg, backbone, cache_dir)
     classes = [o.cls for o in scene.objects]
     dets = vis.gdino(best, classes, thr=cfg.verify_thr)
@@ -52,19 +57,27 @@ def grounded_repair(eng, vis, scene, seed, cfg, backbone, cache_dir, log, get_ob
         if verify_pass(c):
             break
         if use_m2 and prep.objs is None and any(j < 0 for j, _ in c['matched']):
-            objs = get_objects()
+            missing_ids = [i for i, (j, _) in enumerate(c['matched']) if j < 0]
+            objs = get_objects(missing_ids) if sparse else get_objects()
             prep = Prepared(objs, compose_foreground(scene, objs, cfg), None)
+        emit = (lambda name, image: diagnose(f'attempt_{attempt + 1}_{name}', image)) if diagnose else None
+        if emit:
+            emit('before', best)
         candidate = repair_scene(eng, scene, prep, cfg, best, c, dets, seed + 100003 * (attempt + 1),
-                                 cfg.lambda0, log, protect_matched=True)
+                                 cfg.lambda0, log, protect_matched=True, **({"diagnose": emit} if emit else {}))
         if candidate is None:
             break
+        if emit:
+            emit("candidate", candidate)
         d2 = vis.gdino(candidate, classes, thr=cfg.verify_thr)
         c2 = consistency(scene, d2, size=cfg.height)
         if initial_clip is None:
             initial_clip = float(vis.clip.score([best], [scene.caption])[0])
         clip = float(vis.clip.score([candidate], [scene.caption])[0])
         accept, reason = accept_repair(c, c2, initial_clip, clip)
-        history.append(dict(kind='protected_repair', score=verify_score(c2), opr=c2['opr'],
+        history.append(dict(missing_ids=[i for i, (j, _) in enumerate(c['matched']) if j < 0],
+                            matched_before=c['matched'], matched_after=c2['matched'],
+                            detections_before=dets, detections_after=d2, kind='protected_repair', score=verify_score(c2), opr=c2['opr'],
                             oce_c=c2['oce_c'], clip=clip, accepted=accept, reason=reason))
         if accept:
             best, c, dets = candidate, c2, d2
@@ -72,7 +85,7 @@ def grounded_repair(eng, vis, scene, seed, cfg, backbone, cache_dir, log, get_ob
             break  # do not spend another attempt after a rejected edit
     log.update(tries=len(history), verify=history,
                scene_time=time.time()-t0-log.get('m2_lookup_seconds', 0), peak_gb=_cuda_peak(),
-               experimental=True, compute_includes_m2=True, clip_guard_tolerance=CLIP_TOLERANCE)
+               experimental=True, m2_scope="missing_only" if sparse else "full_scene", compute_includes_m2=True, clip_guard_tolerance=CLIP_TOLERANCE)
     return best
 
 
@@ -92,8 +105,10 @@ def screen_report(P, E):
             df['standalone_time_s'] += df[name].fillna(0)
     ps = R.per_scene(df)
     summary = R.summarize(ps, metrics=['opr', 'oce_c', 'miou', 'ra', 'clip', 'standalone_time_s'])
-    paired = R.paired_tests(ps, ref='grounded_repair', others=['gligen', 'gligen_bon', 'collage',
-                                                           'ocsd_v2', 'grounded_repair_no_m2'])
+    ref = 'grounded_repair_sparse' if E.tier == 'repair_screen' else 'grounded_repair'
+    others = ['gligen', 'gligen_bon', 'grounded_repair'] if E.tier == 'repair_screen' else [
+        'gligen', 'gligen_bon', 'collage', 'ocsd_v2', 'grounded_repair_no_m2']
+    paired = R.paired_tests(ps, ref=ref, others=others)
     tables = os.path.join(P.results, 'tables'); os.makedirs(tables, exist_ok=True)
     summary.to_csv(os.path.join(tables, 'screen_means.csv'), index=False)
     paired.to_csv(os.path.join(tables, 'screen_paired.csv'), index=False)
@@ -102,8 +117,14 @@ def screen_report(P, E):
     good = all(base.loc['grounded_repair', 'opr'] > base.loc[b, 'opr'] and
                base.loc['grounded_repair', 'miou'] >= base.loc[b, 'miou'] and
                base.loc['grounded_repair', 'oce_c'] <= base.loc[b, 'oce_c']
-               for b in ('gligen', 'gligen_bon', 'collage'))
+               for b in (('gligen', 'gligen_bon') if E.tier == 'repair_screen' else ('gligen', 'gligen_bon', 'collage')))
     decision = 'review_for_heldout_validation' if good else 'do_not_scale_up'
+    if E.tier == 'repair_screen':
+        # Development efficiency screen, never a statistical non-inferiority claim.
+        old, new = base.loc['grounded_repair'], base.loc['grounded_repair_sparse']
+        good = (new.opr >= old.opr and new.miou >= old.miou and new.oce_c <= old.oce_c
+                and new.standalone_time_s < old.standalone_time_s)
+        decision = 'review_sparse_quality_and_cost' if good else 'do_not_scale_up'
     result = dict(tier=E.tier, decision=decision, research_claim='unproven',
                   n_images=len(df), n_scenes=df.sid.nunique(), figures=[],
                   tables=['screen_means', 'screen_paired'])

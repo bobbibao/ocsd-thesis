@@ -142,12 +142,18 @@ def _id_sim(out_root, split, method, scene, img, vis, seed: int = 0) -> float:
     if not os.path.exists(d):
         return float("nan")
     refs, gens = [], []
+    metadata_path = os.path.join(d, 'objects.json')
+    object_ids = json.load(open(metadata_path)).get('object_indices') if os.path.exists(metadata_path) else None
+    positions = {original: packed for packed, original in enumerate(object_ids)} if object_ids is not None else None
     for i, o in enumerate(scene.objects):
-        p = os.path.join(d, f"obj_{i:02d}.png")
+        if positions is not None and i not in positions:
+            continue
+        packed = positions[i] if positions is not None else i
+        p = os.path.join(d, f"obj_{packed:02d}.png")
         if not os.path.exists(p):
             continue
         ref = _read(p)
-        mask = cv2.imread(os.path.join(d, f"mask_{i:02d}.png"), cv2.IMREAD_GRAYSCALE) > 127
+        mask = cv2.imread(os.path.join(d, f"mask_{packed:02d}.png"), cv2.IMREAD_GRAYSCALE) > 127
         ys, xs = np.where(mask)
         if len(xs) == 0:
             continue
