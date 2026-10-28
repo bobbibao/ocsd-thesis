@@ -8,7 +8,7 @@ Mục tiêu: từ **phác thảo cảnh + câu mô tả**, sinh ảnh có **đú
 ## Phiên bản tối ưu và định danh thực nghiệm
 
 Xem [runbook](docs/EXPERIMENT_RUNBOOK.md), [audit](docs/OPTIMIZATION_AUDIT.md) và
-[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `screen`,
+[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `repair_screen`,
 lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi resume. Con trỏ mới nhất là
 `results/latest_run.json`; kết quả cũ được giữ nguyên. Bộ QuickDraw mới dùng seed theo scene và
 `data/benchmarks_v2/`. Chưa có số liệu GPU chứng minh tăng chất lượng từ các sửa đổi này.
@@ -17,8 +17,8 @@ lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi 
 
 1. [Mở RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 2. Runtime → Change runtime type → **GPU L4** (hoặc A100).
-3. Giữ `TIER="screen"` để kiểm tra giả thuyết mới với 84 ảnh trước lượt dài, rồi Runtime → **Run all**.
-   Xem [protocol screening](docs/QUALITY_SCREEN.md). Chưa có bằng chứng biến thể mới vượt baseline.
+3. Giữ `TIER="repair_screen"` để kiểm tra M2 chỉ đối tượng thiếu với 48 ảnh trước lượt dài, rồi Runtime → **Run all**.
+   Xem [protocol screening](docs/SPARSE_REPAIR_SCREEN.md). Chưa có bằng chứng biến thể mới vượt baseline.
 4. Kết quả nằm trong Google Drive: `MyDrive/KLTN_OCSD/results/runs/<run_id>/`
    (`run_manifest.json`, `summary.md`, `summary.json`, `progress.json`, `tables/`, `figures/`, `user_study/`).
 
@@ -31,6 +31,7 @@ Thiết kế cho **Google Colab Pro**. GPU và mức tiêu thụ compute units p
 
 | Tier | QuickDraw-Scenes | Học định danh (OCSD, Zhang) | COCO-Sketch | Seed | DDIM / K / M3 | Ước tính |
 |---|---|---|---|---|---|---|
+| `repair_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo GPU; giới hạn sinh ảnh 20 phút giữa các scene |
 | `screen` | 12 cảnh × 7 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo; giới hạn sinh ảnh 20 phút giữa các scene, chưa gồm tải/đánh giá |
 | `pilot` | 24 cảnh | 8 | 8 (4) | 1 | 30 / 2 / 100+100 | dự trù 1,5–2 giờ A100 từ số liệu lịch sử; cần đo lại |
 | `paper` | 72 cảnh (6/ô, seed thứ 2 trên tập học định danh) | 36 | 32 (16) | 2 | 30 / 2 / 100+100 | lịch sử ước tính 8,6 giờ A100 sinh ảnh; chưa gồm tuning/đánh giá |
@@ -144,3 +145,7 @@ python tests/test_v2_ablation.py    # the 10 OCSD-v2 ablation rows end to end on
 ```
 (`smoke_test.py` cần biến môi trường `SMOKE_BENCH` trỏ tới một QuickDraw-Scenes dựng ở 128 px và `CLIP_BPE` trỏ tới
 `open_clip/bpe_simple_vocab_16e6.txt.gz`; xem đầu tệp.)
+
+### Missing-only M2 development screen
+
+`RUN_ALL.ipynb` now defaults to `repair_screen` (48 outputs): sparse M2 repair versus full repair, GLIGEN and best-of-2. Start a fresh run with blank RUN_ID; this is an unvalidated efficiency experiment. See [protocol and recovery](docs/SPARSE_REPAIR_SCREEN.md). Export the completed run's tables, images and repair diagnostics using `03_export_screen_review.ipynb` on CPU without a GitHub token.
