@@ -16,7 +16,7 @@ import time
 from typing import Dict, List, Optional
 
 from .config import TIERS, ExperimentConfig, Paths
-from .data import (COCO_URLS, build_coco_sketch, build_quickdraw_scenes, download_quickdraw, list_scenes)
+from .data import (COCO_URLS, build_coco_sketch, build_quickdraw_scenes, download_quickdraw, list_scenes, load_scene)
 from .methods import BASELINES, OCSD_VARIANTS
 from .report import ABLATION, ABLATION_V2, ABLATION_V2_COCO, ALPHAS, MAIN, PARETO_METHODS
 
@@ -112,6 +112,10 @@ def freeze_tuning_split(P: Paths) -> Dict[str, List[str]]:
     split = {sp: sorted(os.path.basename(d) for d in list_scenes(P.benchmarks, sp)) for sp in ("quickdraw", "coco")}
     split["created"] = time.strftime("%Y-%m-%d %H:%M:%S")
     json.dump(split, open(p, "w"), indent=1)
+    if P.run_id:
+        # Pilot artifacts already live in their own run. Do not archive this run's new config/logs.
+        print(f"[tune] froze tuning split: {len(split['quickdraw'])} QuickDraw + {len(split['coco'])} COCO scenes")
+        return split
     # keep the pilot's metrics and tables apart, so the paper tables only contain the new evaluation scenes
     arch = os.path.join(P.results, "pilot")
     for name in ("quickdraw", "coco", "tables", "figures", "user_study", "summary.md", "summary.json",
@@ -258,21 +262,22 @@ def _run_grid(P, E, eng, vis, variants, ref, name, max_minutes, baselines=None):
     _, base = tier_variants(E, apply_tuned=False)
     runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base, cache_dir=P.cache,
                     baselines=baselines)
-    todo = [(sp, d, [(m, s) for m in names for s in TUNE_SEEDS
-                     if not os.path.exists(runner.img_path(sp, m, os.path.basename(d), s))])
-            for sp, ds in jobs for d in ds]
-    todo = [x for x in todo if x[2]]
+    items = [(sp, d, [(m, s) for m in names for s in TUNE_SEEDS]) for sp, ds in jobs for d in ds]
+    todo = runner.pending_items(items)
     print(f"[tune:{name}] {len(names)} settings, {sum(len(ds) for _, ds in jobs)} scenes, seeds {TUNE_SEEDS}: "
           f"{sum(len(x[2]) for x in todo)} images to generate")
     runner.run_items(todo, max_minutes=max_minutes)
-    if any(not os.path.exists(runner.img_path(sp, m, os.path.basename(d), s))
-           for sp, ds in jobs for d in ds for m in names for s in TUNE_SEEDS):
+    if runner.pending_items(items):
         raise RuntimeError("tuning images incomplete (time limit or errors); run this stage again")
     rows = []
     for sp, ds in jobs:
         df = evaluate_images(P.outputs, P.benchmarks, sp, names, TUNE_SEEDS, vis, out_res,
                              detector=E.eval_detector, det_thr=E.det_thr, iou_thr=E.match_iou, scene_dirs=ds,
                              include_real=False)
+        expected = {(m, os.path.basename(d), int(seed)) for m in names for d in ds for seed in TUNE_SEEDS}
+        found = [(m, sid, int(seed)) for m, sid, seed in zip(df.method, df.sid, df.seed)]
+        if not expected <= set(found) or len(found) != len(set(found)):
+            raise RuntimeError("Tuning evaluation incomplete or duplicated; no configuration was selected")
         rows.append(df[df.sid.isin({os.path.basename(d) for d in ds}) & df.seed.isin(TUNE_SEEDS)
                        & df.method.isin(names)])
     df = pd.concat(rows)
@@ -386,7 +391,8 @@ def _gen_signatures(E: ExperimentConfig, tuned: Optional[Dict] = None, defaults:
         sig = {m: c.to_dict() for m, c in var.items()}
         for m, (kind, c) in bls.items():
             d = c.to_dict()
-            sig[m] = {f: d[f] for f in BASELINE_FIELDS[kind]}
+            sig[m] = (d if kind in ("grounded_repair", "grounded_repair_no_m2") else
+                      {f: d[f] for f in set(BASELINE_FIELDS[kind]) | {"height", "width", "steps", "guidance", "negative_prompt"}})
         for d in sig.values():
             if sp == "quickdraw":
                 d.pop("use_caption", None)
@@ -459,6 +465,17 @@ def experiment_plan(P: Paths, E: ExperimentConfig) -> List[Dict]:
     E4/alpha nằm trong tập cảnh đã học định danh để dùng lại M2/M3 (tiết kiệm GPU). priority: 0 = main tables, then
     the power job (1) and the sweeps (2), which run after everything else. E.skip_jobs drops jobs by name prefix."""
     t = TIERS[E.tier]
+    if E.tier == "screen":
+        from .screening import METHODS
+        scenes = list_scenes(P.benchmarks, "quickdraw", exclude=_qd_from(P, 1))
+        if len(scenes) != 12:
+            raise RuntimeError("Screen requires all 12 benchmark cells; finish data preparation first")
+        if os.path.exists(_tuning_split_path(P)):
+            development = set(json.load(open(_tuning_split_path(P))).get('quickdraw', []))
+            if not {os.path.basename(d) for d in scenes} <= development:
+                raise RuntimeError("Screen would reuse held-out scenes; use a separate development data root")
+        return [dict(name="screen_quickdraw", split="quickdraw", scenes=scenes,
+                     methods=list(METHODS), seeds=E.seeds, priority=0)]
     main = [m for m in MAIN if not (m in ("gligen", "t2i_adapter", "gligen_bon") and E.backbone != "sd15")]
     free = [m for m in main if m not in ("ocsd", "zhang2025")]
     ex = excluded_scenes(P, E)
@@ -567,6 +584,10 @@ def tier_baselines(E: ExperimentConfig, P: Optional[Paths] = None, tuned_bl: Opt
         out[b] = (b, c)
     for name, (b, field, value) in PARETO_BASELINES.items():
         out[name] = (b, base.replace(**{field: value}))
+    if E.tier == "screen":
+        c = base.replace(use_identity=False, blend_mode="joint", m2_per_seed=True,
+                         use_energy=False, use_region_attn=False, use_scene_cn=True, alpha=0.4)
+        out.update({name: (name, c) for name in ("grounded_repair", "grounded_repair_no_m2")})
     return out
 
 
@@ -606,7 +627,8 @@ def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None,
     from .runner import Runner
     from .vision import Vision
     if eng is None:
-        eng = Engine.from_pretrained(E.backbone, "cuda", E.fp16, cache_dir=P.cache)
+        eng = Engine.from_pretrained(E.backbone, "cuda", E.fp16, cache_dir=P.cache,
+                                     load_adapter=E.tier != "screen")
     if vis is None:
         vis = Vision("cuda", cache_dir=P.cache)
     if TIERS[E.tier].get("tune"):
@@ -617,13 +639,14 @@ def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None,
     runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base, cache_dir=P.cache,
                     baselines=tier_baselines(E, P=P))
     items = work_items(P, E)
-    todo = [(sp, d, [(m, s) for m, s in ms if not os.path.exists(runner.img_path(sp, m, os.path.basename(d), s))])
-            for sp, d, ms in items]
-    todo = [x for x in todo if x[2]]
+    todo = runner.pending_items(items)
     print(f"Còn {sum(len(x[2]) for x in todo)} ảnh trên {len(todo)} cảnh")
-    runner.run_items(todo, max_minutes=max_minutes)
-    log_progress(P, E)
-    estimate(P, E)
+    stats = runner.run_items(todo, max_minutes=max_minutes)
+    progress = log_progress(P, E)
+    if E.tier != "screen":
+        estimate(P, E)
+    if stats["failed"] or any(j["todo"] for j in progress.values()) or runner.pending_items(items):
+        raise RuntimeError("Generation incomplete (errors or time budget); completed artifacts saved. Resume this RUN_ID before evaluation.")
     return eng, vis
 
 
@@ -755,6 +778,11 @@ def report(P: Paths, E: ExperimentConfig):
     matplotlib.use("Agg")
     import pandas as pd
     from . import report as R
+    if P.run_id and any(j['todo'] for j in log_progress(P, E).values()):
+        raise RuntimeError("Cannot publish a complete report for an unfinished run; resume generation first")
+    if E.tier == "screen":
+        from .screening import screen_report
+        return screen_report(P, E)
     tabs = R.build_all(P.results)
     figs = []
     for split in ("quickdraw", "coco"):

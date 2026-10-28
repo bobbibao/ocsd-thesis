@@ -203,7 +203,10 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
     row_mask[id_rows] = 1
     use_lora = cfg.S2 > 0
     if use_lora:
-        eng.add_lora(cfg.lora_rank)
+        # Local RNG scope: initial LoRA weights must not depend on earlier methods/scenes.
+        with torch.random.fork_rng(devices=list(range(torch.cuda.device_count()))):
+            torch.manual_seed(seed)
+            eng.add_lora(cfg.lora_rank)
     opt = torch.optim.AdamW([emb_layer.weight], lr=cfg.lr_emb1, weight_decay=0.0)
     sch = eng.scheduler
     T_train = sch.config.num_train_timesteps
@@ -231,7 +234,14 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
                 emb = eng.encode_grad([s["prompt"]])
                 pred = eng.unet(zt, t, encoder_hidden_states=emb, return_dict=False)[0]
             m = s["m_lat"].amax(0)[None, None]
-            l_id = (((pred.float() - noise.float()) ** 2) * m).sum() / (m.sum() * pred.shape[1] + 1e-6)
+            prediction = sch.config.prediction_type
+            if prediction == "epsilon":
+                target = noise
+            elif prediction == "v_prediction":
+                target = sch.get_velocity(s["z0"], noise, t)
+            else:
+                raise ValueError(f"Unsupported prediction_type: {prediction}")
+            l_id = (((pred.float() - target.float()) ** 2) * m).sum() / (m.sum() * pred.shape[1] + 1e-6)
             loss = l_id
             if need_att:
                 A = eng.ctrl.aggregated_map(0)
@@ -521,7 +531,8 @@ def repair_regions(scene: Scene, ctx: SceneCond, c: Dict, dets: Sequence[dict], 
 
 
 def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, img: np.ndarray, c: Dict,
-                 dets: Sequence[dict], seed: int, lambda0: float, log: Optional[dict] = None) -> Optional[np.ndarray]:
+                 dets: Sequence[dict], seed: int, lambda0: float, log: Optional[dict] = None,
+                 protect_matched: bool = False) -> Optional[np.ndarray]:
     """M5(d) repair (joint mode): re-noise `img` to (1 - repair_strength) of the trajectory and denoise again only
     inside repair_regions - the rest is held to the previous image at every step (and pasted back at the end), and a
     missing object's M2 latent is re-imposed for the same alpha fraction of the remaining steps. Region attention
@@ -531,6 +542,8 @@ def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, i
     use_id = prep.id_tokens is not None
     ctx = scene_cond(eng, scene, cfg, prep.id_tokens, prep.fg)
     M, missing = repair_regions(scene, ctx, c, dets, H)
+    if protect_matched:
+        M = protect_regions(M, ctx.region_masks, c, dets)
     if not M.any():
         return None
     ts = eng.set_timesteps(cfg.steps)
@@ -542,6 +555,8 @@ def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, i
     if missing and prep.fg is not None and cfg.use_blend:
         until = start + int(round((1 - cfg.alpha) * (T - start)))
         miss = np.any([prep.fg[1][i] for i in missing], 0)
+        if protect_matched:
+            miss &= M
         if miss.any() and until > start:
             anchors.append((eng.to_latent(prep.fg[0]), eng.randn(seed + 7919, 1, H, H),
                             _lat_mask(miss, lh, lh, eng.device, eng.dtype)[None, None], until))
@@ -550,9 +565,26 @@ def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, i
         z = _denoise(eng, ctx, cfg, ts, start, eng.q_sample(z0, noise, ts[start]), lambda0, anchors, use_id, energy_E)
     out = eng.to_image(z)[0].astype(np.float32)
     soft = np.clip(cv2.GaussianBlur(M.astype(np.float32), (0, 0), 4) * 1.5, 0, 1)[..., None]
+    if protect_matched:
+        soft *= M[..., None]  # preserve every pixel outside the permitted edit region exactly
     if log is not None:
         log.setdefault("repairs", []).append(dict(missing=len(missing), area=float(M.mean()), start=start))
     return (img.astype(np.float32) * (1 - soft) + out * soft).round().clip(0, 255).astype(np.uint8)
+
+
+def protect_regions(mask, region_masks, c, dets):
+    """Remove verified object regions/boxes from a proposed local edit mask."""
+    mask = mask.copy()
+    h, w = mask.shape
+    for i, (j, _) in enumerate(c['matched']):
+        if j < 0:
+            continue
+        mask[region_masks[i]] = False
+        x0, y0, x1, y1 = dets[j]['box']
+        x0, y0 = max(0, int(np.floor(x0))), max(0, int(np.floor(y0)))
+        x1, y1 = min(w, int(np.ceil(x1))), min(h, int(np.ceil(y1)))
+        mask[y0:y1, x0:x1] = False
+    return mask
 
 
 # ============================================================================ toàn bộ OCSD

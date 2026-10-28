@@ -18,6 +18,7 @@ from ocsd.matching import consistency
 from ocsd.method import anchor_masks, build_scene, generate, prepare, repair_regions, repair_scene, scene_cond
 from ocsd.methods import OCSD_VARIANTS
 from ocsd.runner import Runner
+from ocsd.methods import m2_dir_key
 from ocsd.sketch import Scene, SceneObject, decompose_by_color, make_caption, scene_global_prompt
 
 W = os.environ.get("V2_DIR", "/tmp/ocsd_v2")
@@ -148,11 +149,11 @@ r = Runner(eng, vis, out, variants=variants, base_cfg=base, baselines=baselines)
 st = r.run(dirs, list(variants) + list(baselines), seeds=[0, 1], split="quickdraw")
 assert st["failed"] == 0 and st["done"] == 2 * 2 * (len(variants) + len(baselines)), st
 sid = os.path.basename(dirs[0])
-assert os.path.exists(os.path.join(out, "quickdraw", "_objects", "K2_phrase_s1", sid, "objects.json"))
+assert os.path.exists(os.path.join(out, "quickdraw", "_objects", m2_dir_key(v2, 1), sid, "objects.json"))
 lg = json.load(open(os.path.join(out, "quickdraw", "ocsd_v2", f"{sid}_s1.json")))
-assert lg["m2_key"] == "K2_phrase_s1" and lg["cfg"]["blend_mode"] == "joint"
+assert lg["m2_key"] == m2_dir_key(v2, 1) and lg["cfg"]["blend_mode"] == "joint"
 lg = json.load(open(os.path.join(out, "quickdraw", "collage_bo3", f"{sid}_s1.json")))
-assert lg["m2_key"] == "K2_phrase_s1" and 1 <= lg["tries"] <= 2
+assert lg["m2_key"] == m2_dir_key(v2, 1) and 1 <= lg["tries"] <= 2
 assert json.load(open(os.path.join(out, "quickdraw", "pcn_s0.7", f"{sid}_s0.json")))["cfg"]["cn_scale"] == 0.7
 st = r.run(dirs, list(variants) + list(baselines), seeds=[0, 1], split="quickdraw")   # resume: nothing left
 assert st["done"] == 0 and st["failed"] == 0

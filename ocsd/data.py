@@ -15,6 +15,7 @@ import io
 import json
 import os
 import random
+import hashlib
 import re
 import zipfile
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
@@ -165,7 +166,6 @@ def build_quickdraw_scenes(qd_dir: str, out_dir: str, per_cell: int = 25, seed: 
 
     dup_prob: xác suất một đối tượng mới là bản sao lớp đã có (vd. 'three sheep') - để kiểm tra lỗi đếm.
     """
-    rng = random.Random(seed)
     pools = {}
     for qd, name in QD_CLASSES.items():
         p = os.path.join(qd_dir, f"{qd}.ndjson")
@@ -180,6 +180,7 @@ def build_quickdraw_scenes(qd_dir: str, out_dir: str, per_cell: int = 25, seed: 
         for cx in COMPLEXITIES:
             spec = COMPLEXITY_SPEC[cx]
             k = 0
+            rng = None
             while k < per_cell:
                 sid = f"qd_{cnt_key.replace('+', 'p')}_{cx}_{k:03d}"
                 sdir = os.path.join(out_dir, sid)
@@ -187,6 +188,12 @@ def build_quickdraw_scenes(qd_dir: str, out_dir: str, per_cell: int = 25, seed: 
                     made.append(sdir)
                     k += 1
                     continue
+                # A scene's random stream must not depend on which earlier files already exist.
+                # Retain its advancing stream if layout sampling needs another attempt.
+                if rng is None:
+                    scene_seed = int.from_bytes(hashlib.sha256(f"qd-v2:{seed}:{sid}".encode()).digest()[:8], "big")
+                    rng = random.Random(scene_seed)
+                    layout_attempts = 0
                 n = rng.randint(lo, hi)
                 bg = rng.choice(list(BACKGROUNDS))
                 pool = [c for c in BACKGROUNDS[bg] if c in pools]
@@ -213,6 +220,9 @@ def build_quickdraw_scenes(qd_dir: str, out_dir: str, per_cell: int = 25, seed: 
                     aspects.append(float(np.clip((xs.max() - xs.min() + 1) / (ys.max() - ys.min() + 1), 0.4, 2.5)))
                 boxes = _sample_layout(n, aspects, spec["max_overlap"], rng, size)
                 if boxes is None:
+                    layout_attempts += 1
+                    if layout_attempts >= 100:
+                        raise RuntimeError(f"Cannot place {sid} at size={size} after 100 attempts")
                     continue
                 # vẽ: xa trước, gần sau (cạnh dưới nhỏ trước)
                 order = sorted(range(n), key=lambda i: boxes[i][3])
@@ -241,7 +251,7 @@ def build_quickdraw_scenes(qd_dir: str, out_dir: str, per_cell: int = 25, seed: 
                         phrases.append(f"{rng.choice(pool_a)} {c}")
                 rels = infer_relations(tight, size)
                 scene = dict(
-                    sid=sid, split="quickdraw", n_obj=n, count_bin=cnt_key, complexity=cx, bg=bg,
+                    sid=sid, split="quickdraw", generator_version="qd-v2", n_obj=n, count_bin=cnt_key, complexity=cx, bg=bg,
                     caption=make_caption(phrases, bg),
                     objects=[dict(cls=c, phrase=p, box=list(map(float, b)), qd_key=d["key_id"],
                                   recognized=bool(d["recognized"]), n_strokes=d["n_strokes"])
@@ -252,6 +262,7 @@ def build_quickdraw_scenes(qd_dir: str, out_dir: str, per_cell: int = 25, seed: 
                 _save_scene(sdir, canvas, obj_sketches, masks, scene)
                 made.append(sdir)
                 k += 1
+                rng = None
     print(f"QuickDraw-Scenes: {len(made)} cảnh tại {out_dir}")
     return made
 
@@ -284,8 +295,15 @@ def background_from_caption(caption: str) -> str:
 def _pidinet():
     try:
         from controlnet_aux import PidiNetDetector
-        return PidiNetDetector.from_pretrained("lllyasviel/Annotators")
+        from .provenance import model_kwargs
+        from huggingface_hub import hf_hub_download
+        repo = "lllyasviel/Annotators"
+        weights = hf_hub_download(repo, "table5_pidinet.pth", **model_kwargs(repo))
+        return PidiNetDetector.from_pretrained(os.path.dirname(weights))
     except Exception as e:  # pragma: no cover
+        from .provenance import MODEL_REVISIONS
+        if MODEL_REVISIONS:
+            raise RuntimeError("Pinned PiDiNet could not load; refusing to change the benchmark extractor") from e
         print("Không nạp được PiDiNet, dùng Canny thay thế:", e)
         return None
 
@@ -385,7 +403,7 @@ def build_coco_sketch(coco_dir: str, out_dir: str, n_scenes: int = 200, seed: in
             sketch = normalize_sketch(sketch, size)
             obj_sk = [np.where((sk < 128) & (sketch < 128), 0, 255).astype(np.uint8) for sk in obj_sk]
             cap = caps.loadAnns(caps.getAnnIds(imgIds=iid))[0]["caption"].strip()
-            scene = dict(sid=sid, split="coco", n_obj=len(objs), count_bin=key, complexity="real",
+            scene = dict(sid=sid, split="coco", sketch_extractor="pidinet" if det is not None else "canny", n_obj=len(objs), count_bin=key, complexity="real",
                          bg=background_from_caption(cap), caption=cap, objects=objs,
                          relations=[list(r) for r in infer_relations([o["box"] for o in objs], size)],
                          coco_image_id=iid)
