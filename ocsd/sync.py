@@ -45,6 +45,7 @@ def _run(cmd, cwd=None, secret=""):
 
 def push_results(results_dir: str, token: str, repo: str = "bobbibao/ocsd-thesis", branch: str = "colab-results",
                  work: str = "/content/_results_sync", remote_url: str = "") -> str:
+    token = (token or "").strip()
     if not token and not remote_url:
         print("[sync] no GH_TOKEN secret: results stay on Drive only")
         return ""
@@ -84,6 +85,27 @@ def push_results(results_dir: str, token: str, repo: str = "bobbibao/ocsd-thesis
     _run(f"git push -q origin HEAD:{branch}", cwd=work, secret=token or "\0")
     print(f"[sync] pushed {n} files to {repo}@{branch}")
     return branch
+
+
+def try_push_results(results_dir: str, token: str, **kwargs) -> str:
+    """Optional notebook export: report failure without invalidating completed results."""
+    try:
+        return push_results(results_dir, token, **kwargs)
+    except RuntimeError as exc:
+        message = str(exc).lower()
+        print("[sync] Upload FAILED. Results remain at:", results_dir)
+        if any(term in message for term in (
+            "authentication failed", "invalid username or token", "403", "permission denied",
+            "permission to", "could not read username",
+        )):
+            print("[sync] GitHub rejected authentication/access. Update Colab Secrets > GH_TOKEN, "
+                  "enable Notebook access, and use an unexpired token for bobbibao/ocsd-thesis "
+                  "with Contents: Read and write. Do not paste tokens in notebook cells or chat.")
+        else:
+            print("[sync] Git export failed; check GitHub/network availability and repository access.")
+        print("[sync] After fixing access, rerun ONLY this upload cell (or 00_push_logs.ipynb on CPU). "
+              "No model rerun is needed. GitHub has not been confirmed updated.")
+        return ""
 
 
 def colab_token() -> str:
