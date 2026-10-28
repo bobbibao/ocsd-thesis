@@ -26,3 +26,15 @@ Next steps, before more GPU work:
 1. Recover `tables/screen_paired.csv`, `tables/screen_means.csv`, per-image metric CSVs, manifest, plan and logs from this existing run using CPU. Check pairing, corrected tests, scene-level deltas and run completeness.
 2. Inspect generated images and repair acceptance traces for preserved objects, style discontinuities, and concentrated gains/losses. Keep visual review blind to method labels where feasible.
 3. Only after that review, freeze a held-out protocol with a compute-matched baseline, multiple seeds, independent evaluation and a small staged budget. Keep these 12 scenes in development; do not reuse them as final test scenes. No additional GPU run is currently justified solely by these aggregate means.
+
+## Uploaded ZIP audit (2026-10-29)
+
+The user supplied `ocsd_screen_results.zip`. All 17 present manifest-listed result artifacts match their SHA-256 checksums. There are 84 unique method/scene/seed rows, 12 per method. All 25 paired comparisons were recomputed from the per-image CSVs with the repository's reporting functions; differences, bootstrap intervals, raw p-values and Holm-adjusted p-values match the supplied table. This verifies report arithmetic, not the detector outputs or image quality.
+
+Against GLIGEN, OPR improves on 3 scenes and ties on 9. Against best-of-2 it improves only on `qd_5_complex_000` (+.20), tying on the other 11; the mean gain is .01667. mIoU against best-of-2 improves on 3 scenes, ties on 8 and declines on `qd_8p_complex_000` (-.02407). Count error improves on one scene, worsens on one, and ties on ten.
+
+Against best-of-2, Holm-adjusted p is 1.0 for OPR and .5 for mIoU. The mIoU bootstrap difference interval is [-.00523, .04501]. Against plain GLIGEN, adjusted p is 1.0 for OPR and .375 for mIoU. No superiority over either GLIGEN comparator is established. The mIoU advantage over OCSD-v2 has adjusted p=.00732 within the report's per-metric family of five comparisons; this is exploratory development evidence, not a held-out claim or correction across all 25 tests. Failure to reject does not establish equivalence.
+
+M2 is charged on five scenes: 95.39 of 128.09 total standalone seconds (74.5%). Three of these scenes improve OPR versus plain GLIGEN; `qd_5_medium_000` and `qd_8p_simple_000` do not. This identifies full-scene M2 preparation as a cost target, but missing-object-only M2 would change behavior and has not been validated. No algorithm change is justified as a proven improvement yet.
+
+The ZIP contains no generated images or per-output repair JSON traces. Visual preservation, accepted/rejected repair reasons and compute counters remain unverified. Use `03_export_screen_review.ipynb` on CPU to export existing images and metadata without credentials or inference. Do not scale to paper/full before that review.
