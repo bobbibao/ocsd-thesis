@@ -5,28 +5,43 @@ Sinh viên: Lê Hoàng Bảo (21090331), Thái Bá Cường (21050681). GVHD: TS
 
 Mục tiêu: từ **phác thảo cảnh + câu mô tả**, sinh ảnh có **đúng đối tượng, đúng số lượng, đúng vị trí/hình dạng và đúng quan hệ**.
 
+## Phiên bản tối ưu và định danh thực nghiệm
+
+Xem [runbook](docs/EXPERIMENT_RUNBOOK.md), [audit](docs/OPTIMIZATION_AUDIT.md) và
+[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `screen`,
+lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi resume. Con trỏ mới nhất là
+`results/latest_run.json`; kết quả cũ được giữ nguyên. Bộ QuickDraw mới dùng seed theo scene và
+`data/benchmarks_v2/`. Chưa có số liệu GPU chứng minh tăng chất lượng từ các sửa đổi này.
+
 ## Chạy trên Google Colab (Run all)
 
-1. Mở `notebooks/RUN_ALL.ipynb` trên Colab (File → Open notebook → GitHub → `bobbibao/ocsd-thesis`).
+1. [Mở RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 2. Runtime → Change runtime type → **GPU L4** (hoặc A100).
-3. Ở ô 1 chọn `TIER` (`pilot` cho lần đầu), rồi Runtime → **Run all**.
-4. Kết quả nằm trong Google Drive: `MyDrive/KLTN_OCSD/results/` (`summary.md`, `summary.json`, `progress.json`, `tables/`, `figures/`, `user_study/`).
+3. Giữ `TIER="screen"` để kiểm tra giả thuyết mới với 84 ảnh trước lượt dài, rồi Runtime → **Run all**.
+   Xem [protocol screening](docs/QUALITY_SCREEN.md). Chưa có bằng chứng biến thể mới vượt baseline.
+4. Kết quả nằm trong Google Drive: `MyDrive/KLTN_OCSD/results/runs/<run_id>/`
+   (`run_manifest.json`, `summary.md`, `summary.json`, `progress.json`, `tables/`, `figures/`, `user_study/`).
 
-Colab ngắt kết nối hoặc hết giờ: chỉ cần **Run all lại**; ảnh và độ đo đã có trên Drive được bỏ qua.
+Colab ngắt kết nối hoặc hết giờ: dùng lại RUN_ID với cùng code/cấu hình, rồi **Run all lại**;
+ảnh và độ đo hợp lệ trên Drive được bỏ qua.
 Không cần khóa Hugging Face: mọi mô hình dùng đều công khai.
 
-Thiết kế cho **Google Colab Pro** (khoảng 100 compute unit/tháng; T4 ≈ 1,8 unit/giờ, L4 ≈ 4,8 unit/giờ).
-Mọi phương pháp dùng cùng siêu tham số của tier nên so sánh vẫn công bằng.
+Thiết kế cho **Google Colab Pro**. GPU và mức tiêu thụ compute units phụ thuộc phiên chạy;
+đối chiếu số lần gọi mô hình và thời gian đo thực khi so sánh ngân sách các phương pháp.
 
 | Tier | QuickDraw-Scenes | Học định danh (OCSD, Zhang) | COCO-Sketch | Seed | DDIM / K / M3 | Ước tính |
 |---|---|---|---|---|---|---|
-| `pilot` | 24 cảnh | 8 | 8 (4) | 1 | 30 / 2 / 100+100 | ~1 giờ L4, ~5 unit |
-| `paper` | 72 cảnh (6/ô, seed thứ 2 trên tập học định danh) | 36 | 32 (16) | 2 | 30 / 2 / 100+100 | ~8,4 giờ A100 đo thực + ~0,9 giờ tinh chỉnh |
+| `screen` | 12 cảnh × 7 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo; giới hạn sinh ảnh 20 phút giữa các scene, chưa gồm tải/đánh giá |
+| `pilot` | 24 cảnh | 8 | 8 (4) | 1 | 30 / 2 / 100+100 | dự trù 1,5–2 giờ A100 từ số liệu lịch sử; cần đo lại |
+| `paper` | 72 cảnh (6/ô, seed thứ 2 trên tập học định danh) | 36 | 32 (16) | 2 | 30 / 2 / 100+100 | lịch sử ước tính 8,6 giờ A100 sinh ảnh; chưa gồm tuning/đánh giá |
 | `full` | 300 cảnh | 180 | 200 (100) | 3 | 50 / 4 / 200+200 | cần GPU ngoài Colab Pro |
 
-Tier `paper`/`full` chạy thêm giai đoạn **T (tinh chỉnh)**: chọn α và cường độ LoRA trên các cảnh của pilot (`results/tuning/tuned.json`), rồi loại các cảnh này khỏi tập đánh giá; kết quả pilot được chuyển vào `results/pilot/`.
+Tier `paper`/`full` chạy thêm giai đoạn **T (tinh chỉnh)**: chọn α và cường độ LoRA trên các cảnh của pilot
+(`results/runs/<run_id>/tuning/tuned.json`), rồi loại các cảnh này khỏi tập đánh giá.
+Kết quả pilot giữ nguyên trong RUN_ID riêng. Các đường dẫn `results/...` ở phần mô tả lịch sử bên dưới
+tương ứng thư mục kết quả của từng run đối với notebook mới.
 
-Ước tính của `paper` lấy từ thời gian đo trên A100 trong lượt pilot. Sau mỗi lượt chạy, notebook ghi `results/budget_estimate.json`
+Ước tính của `paper` lấy từ thời gian đo trên A100 trong lượt pilot cũ. Sau mỗi lượt chạy, notebook ghi `results/runs/<run_id>/budget_estimate.json`
 với số giờ GPU dự kiến của từng tier, tính từ thời gian đo thật trên GPU đang dùng.
 Colab Pro không chạy nền: giữ tab trình duyệt mở; khi phiên hết giờ, mở lại và Run all để chạy tiếp.
 
@@ -42,7 +57,8 @@ Các notebook khác: `01_demo_modules.ipynb` (hình minh họa từng mô-đun c
 | M4 | đặt đối tượng (tìm tỉ lệ/độ dịch tối đa IoU), trộn tiềm ẩn khi t > αT, nhánh nền có câu lệnh âm theo lớp | `method.py: compose_foreground, build_scene` |
 | M5 | (a) chú ý chéo giới hạn theo vùng, (b) dẫn hướng năng lượng chú ý, (c) ControlNet cấp cảnh ω, (d) kiểm tra hậu sinh + sinh lại | `attention.py`, `engine.py: energy_update`, `method.py: generate` |
 
-Phương pháp so sánh (`methods.py`), cùng backbone SD 1.5, cùng DDIM 50 bước, CFG 7,5, câu lệnh âm và seed:
+Phương pháp so sánh (`methods.py`) dùng SD 1.5, riêng GLIGEN dùng pretrained grounding U-Net SD 1.4;
+số bước DDIM theo tier, CFG 7,5, câu lệnh âm và seed:
 ControlNet Scribble, T2I-Adapter Sketch, GLIGEN, ControlNet + chú ý vùng (kiểu DenseDiffusion),
 ControlNet + năng lượng chú ý (kiểu BoxDiff/Attend-and-Excite), ControlNet chọn tốt nhất trong 3 bằng cùng bộ kiểm tra
 (đối chứng công bằng cho M5(d)), Zhang et al. (2025) cài đặt lại, OCSD-lite (không huấn luyện), OCSD.
@@ -86,8 +102,8 @@ Stage T tunes α x anchor_shrink for OCSD-v2 on the tuning split (`chosen_v2`). 
 
 - `collage`, `collage_bo3`: the M2 objects pasted onto a ControlNet image and harmonised by SDEdit (± the same
   best-of-3 check): what a plain cut-and-paste pipeline achieves with OCSD's objects.
-- `controlnet_bon`, `gligen_bon`: best of up to N = 8 samples with the same Grounding DINO check, roughly matching
-  OCSD's compute.
+- `controlnet_bon`, `gligen_bon`: best of up to N = 8 samples with the same Grounding DINO check.
+  Inspect measured work counters and runtime before claiming an equal compute budget with OCSD.
 - Stage T also tunes one knob per baseline with OCSD's rule (ControlNet scale, T2I-Adapter scale, GLIGEN β, λ0 of
   the region baseline, η of the energy baseline, collage strength, Zhang et al.'s α).
 
@@ -114,7 +130,10 @@ Stage T tunes α x anchor_shrink for OCSD-v2 on the tuning split (`chosen_v2`). 
 ## Kiểm thử không cần GPU
 
 ```bash
-pip install -r requirements-colab.txt torch torchvision open_clip_torch
+pip install torch torchvision  # choose compatible CPU/CUDA builds for your runtime
+pip install -r requirements-dev.txt
+python tests/test_reproducibility.py # content identities, resume, manifest, fair evaluation
+python tests/test_training_regression.py # M3 scheduler target, seeded LoRA and rank changes
 python tests/smoke_test.py          # mọi phương pháp + đánh giá + báo cáo với mô hình thu nhỏ ngẫu nhiên
 python tests/test_vision_tiny.py    # lớp bao OWLv2/CLIP/SAM/DINOv2
 python tests/test_coco_builder.py   # dựng COCO-Sketch trên bộ COCO giả

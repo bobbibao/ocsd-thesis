@@ -8,6 +8,7 @@ import open_clip
 from tiny import FakeVision, make_engine
 from ocsd import config, stages
 from ocsd.config import ExperimentConfig, Paths
+from ocsd.methods import m2_dir_key
 from ocsd.data import build_quickdraw_scenes, download_quickdraw
 import pandas as pd
 
@@ -145,11 +146,11 @@ stages.generate(P, E, eng=eng, vis=vis)
 stages.evaluate(P, E, vis=vis, fid=False)
 stages.report(P, E)
 qo = os.path.join(P.outputs, "quickdraw")
-assert glob.glob(os.path.join(qo, "_objects", "K2_phrase_s1", "*", "objects.json"))      # M2 per seed (OCSD-v2)
+assert glob.glob(os.path.join(qo, "_objects", m2_dir_key(var["ocsd_v2"], 1), "*", "objects.json"))      # M2 per seed (OCSD-v2)
 logs = [json.load(open(f)) for f in glob.glob(os.path.join(qo, "ocsd_v2", "*.json"))]
 assert logs and all(l["cfg"]["blend_mode"] == "joint" for l in logs)
 assert any(l.get("repairs") for l in logs), "no repair pass was exercised"
-assert all(l["m2_key"] == ("K2_phrase" if l["seed"] == 0 else "K2_phrase_s1") for l in logs)
+assert all(l["m2_key"] == m2_dir_key(var["ocsd_v2"], l["seed"]) for l in logs)
 assert glob.glob(os.path.join(qo, "collage_bo3", "*.png")) and glob.glob(os.path.join(qo, "controlnet_bon", "*.png"))
 for det in ("owlv2", "owlv2d", "detr"):
     assert os.path.exists(os.path.join(P.results, "quickdraw", f"det_{det}", "per_image_ocsd_v2.csv")), det
@@ -187,7 +188,7 @@ assert pilot_sids[0] not in set(R.load_per_image(P.results, "quickdraw").sid)
 seen = []
 
 
-def fake_fid_kid(gen, ref, dev):
+def fake_fid_kid(gen, ref, dev, **kwargs):
     seen.append(len(gen))
     return dict(fid=float(len(gen)), kid=0.0, kid_std=0.0, n_gen=len(gen))
 

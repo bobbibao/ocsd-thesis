@@ -8,6 +8,7 @@ import torch
 from PIL import Image
 
 from .config import AUX_MODELS
+from .provenance import model_kwargs
 
 Det = Dict  # {"cls": str, "box": (x0,y0,x1,y1), "score": float}
 
@@ -29,8 +30,8 @@ class GroundingDINO:
 
     def __init__(self, device="cuda", model_id=AUX_MODELS["gdino"], cache_dir=None):
         from transformers import AutoModelForZeroShotObjectDetection, AutoProcessor
-        self.proc = AutoProcessor.from_pretrained(model_id, cache_dir=cache_dir)
-        self.model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id, cache_dir=cache_dir).to(device).eval()
+        self.proc = AutoProcessor.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id))
+        self.model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id)).to(device).eval()
         self.device = device
 
     @torch.no_grad()
@@ -58,8 +59,8 @@ class OWLv2:
 
     def __init__(self, device="cuda", model_id=AUX_MODELS["owlv2"], cache_dir=None):
         from transformers import Owlv2ForObjectDetection, Owlv2Processor
-        self.proc = Owlv2Processor.from_pretrained(model_id, cache_dir=cache_dir)
-        self.model = Owlv2ForObjectDetection.from_pretrained(model_id, cache_dir=cache_dir).to(device).eval()
+        self.proc = Owlv2Processor.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id))
+        self.model = Owlv2ForObjectDetection.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id)).to(device).eval()
         self.device = device
 
     @torch.no_grad()
@@ -106,8 +107,8 @@ class COCODetector:
 
     def __init__(self, device="cuda", model_id=AUX_MODELS["detr"], cache_dir=None):
         from transformers import AutoImageProcessor, AutoModelForObjectDetection
-        self.proc = AutoImageProcessor.from_pretrained(model_id, cache_dir=cache_dir)
-        self.model = AutoModelForObjectDetection.from_pretrained(model_id, cache_dir=cache_dir).to(device).eval()
+        self.proc = AutoImageProcessor.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id))
+        self.model = AutoModelForObjectDetection.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id)).to(device).eval()
         self.device = device
 
     @torch.no_grad()
@@ -130,8 +131,8 @@ class COCODetector:
 class SAM:
     def __init__(self, device="cuda", model_id=AUX_MODELS["sam"], cache_dir=None):
         from transformers import SamModel, SamProcessor
-        self.proc = SamProcessor.from_pretrained(model_id, cache_dir=cache_dir)
-        self.model = SamModel.from_pretrained(model_id, cache_dir=cache_dir).to(device).eval()
+        self.proc = SamProcessor.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id))
+        self.model = SamModel.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id)).to(device).eval()
         self.device = device
 
     @torch.no_grad()
@@ -148,8 +149,8 @@ class SAM:
 class CLIPScorer:
     def __init__(self, device="cuda", model_id=AUX_MODELS["clip"], cache_dir=None):
         from transformers import CLIPModel, CLIPProcessor
-        self.proc = CLIPProcessor.from_pretrained(model_id, cache_dir=cache_dir)
-        self.model = CLIPModel.from_pretrained(model_id, cache_dir=cache_dir).to(device).eval()
+        self.proc = CLIPProcessor.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id))
+        self.model = CLIPModel.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id)).to(device).eval()
         self.device = device
 
     @torch.no_grad()
@@ -175,8 +176,8 @@ class CLIPScorer:
 class DINOv2:
     def __init__(self, device="cuda", model_id=AUX_MODELS["dinov2"], cache_dir=None):
         from transformers import AutoImageProcessor, AutoModel
-        self.proc = AutoImageProcessor.from_pretrained(model_id, cache_dir=cache_dir)
-        self.model = AutoModel.from_pretrained(model_id, cache_dir=cache_dir).to(device).eval()
+        self.proc = AutoImageProcessor.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id))
+        self.model = AutoModel.from_pretrained(model_id, cache_dir=cache_dir, **model_kwargs(model_id)).to(device).eval()
         self.device = device
 
     @torch.no_grad()

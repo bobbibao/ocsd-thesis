@@ -12,6 +12,7 @@ import torch
 
 from .config import BACKBONES, LEGACY_DEFAULTS, PARETO, OCSDConfig
 from .engine import Engine
+from .provenance import digest, model_kwargs
 from .matching import consistency, verify_pass, verify_score
 from .method import _lat_mask, attn_masks, compose_foreground, sample
 from .sketch import Scene, build_grouped_prompt, join_phrases, scene_global_prompt, sketch_to_control
@@ -119,8 +120,8 @@ LABELS = {
     "cn_region": "ControlNet + chú ý vùng (kiểu DenseDiffusion)",
     "cn_energy": "ControlNet + năng lượng chú ý (kiểu BoxDiff/A&E)",
     "controlnet_bo3": "ControlNet + chọn tốt nhất trong 3 (cùng bộ kiểm tra)",
-    "controlnet_bon": "ControlNet, best of N (same check, compute-matched)",
-    "gligen_bon": "GLIGEN, best of N (same check, compute-matched)",
+    "controlnet_bon": "ControlNet, best of N (same check, up to N samples)",
+    "gligen_bon": "GLIGEN, best of N (same check, up to N samples)",
     "collage": "Collage: M2 objects pasted + SDEdit",
     "collage_bo3": "Collage, best of 3 (same check)",
     "zhang2025": "Zhang et al. (2025) - cài đặt lại",
@@ -162,7 +163,9 @@ LABELS.update({k: f"{'ControlNet, scale' if b == 'controlnet' else 'GLIGEN, β'}
 
 
 def m2_key(c: OCSDConfig) -> str:
-    return f"K{c.K}_{'phrase' if c.use_user_phrase else 'cls'}"
+    fields = ("K", "use_user_phrase", "obj_steps", "obj_cn_scale", "obj_prompt_tmpl", "select_weights",
+              "height", "width", "guidance", "negative_prompt")
+    return f"K{c.K}_{'phrase' if c.use_user_phrase else 'cls'}_" + digest({k: getattr(c, k) for k in fields})[:16]
 
 
 def m2_dir_key(c: OCSDConfig, seed: int) -> str:
@@ -174,7 +177,8 @@ def m2_dir_key(c: OCSDConfig, seed: int) -> str:
 def m3_key(c: OCSDConfig) -> str:
     if not c.use_identity:
         return m2_key(c) + "_noid"
-    return m2_key(c) + f"_id{c.S1}-{c.S2}_r{c.lora_rank}_{'att' if (c.use_att_sep and c.lambda_att > 0) else 'noatt'}"
+    fields = ("S1", "S2", "lora_rank", "use_att_sep", "lambda_att", "lr_emb1", "lr_emb2", "lr_lora")
+    return m2_key(c) + "_id_" + digest({k: getattr(c, k) for k in fields})[:16]
 
 
 # ----------------------------------------------------------------------------- baselines
@@ -182,17 +186,19 @@ _GLIGEN = {}
 
 
 def _gligen_pipe(eng: Engine, backbone: str, cache_dir=None):
-    if "pipe" not in _GLIGEN:
+    key = (backbone, str(eng.device), str(eng.dtype), tuple(model_kwargs(BACKBONES[backbone]["gligen"]).items()))
+    if key not in _GLIGEN:
+        _GLIGEN.clear()
         from diffusers import DDIMScheduler, StableDiffusionGLIGENPipeline
         pid = BACKBONES[backbone]["gligen"]
         if not pid:
             raise RuntimeError("GLIGEN không có cho backbone này")
         p = StableDiffusionGLIGENPipeline.from_pretrained(pid, torch_dtype=eng.dtype, cache_dir=cache_dir,
-                                                          safety_checker=None, requires_safety_checker=False)
+                                                          safety_checker=None, requires_safety_checker=False, **model_kwargs(pid))
         p.scheduler = DDIMScheduler.from_config(p.scheduler.config)
         p.set_progress_bar_config(disable=True)
-        _GLIGEN["pipe"] = p.to(eng.device)
-    return _GLIGEN["pipe"]
+        _GLIGEN[key] = p.to(eng.device)
+    return _GLIGEN[key]
 
 
 def best_of(scene: Scene, vis, cfg: OCSDConfig, n: int, make: Callable[[int], np.ndarray], log: dict) -> np.ndarray:
@@ -217,10 +223,15 @@ def _gligen(eng: Engine, scene: Scene, seed: int, cfg: OCSDConfig, backbone: str
     pipe = _gligen_pipe(eng, backbone, cache_dir)
     boxes = [[o.box[0] / H, o.box[1] / H, o.box[2] / H, o.box[3] / H] for o in scene.objects]
     g = torch.Generator("cpu").manual_seed(seed)
-    return np.array(pipe(prompt=scene.caption, gligen_phrases=[o.phrase for o in scene.objects],
-                         gligen_boxes=boxes, gligen_scheduled_sampling_beta=cfg.gligen_beta,
-                         num_inference_steps=cfg.steps, guidance_scale=cfg.guidance,
-                         negative_prompt=cfg.negative_prompt, generator=g, height=H, width=H).images[0])
+    hook = eng.track_compute(pipe.unet, "gligen_unet")
+    try:
+        return np.array(pipe(prompt=scene.caption, gligen_phrases=[o.phrase for o in scene.objects],
+                             gligen_boxes=boxes, gligen_scheduled_sampling_beta=cfg.gligen_beta,
+                             num_inference_steps=cfg.steps, guidance_scale=cfg.guidance,
+                             negative_prompt=cfg.negative_prompt, generator=g, height=H, width=H).images[0])
+    finally:
+        hook.remove()
+
 
 
 def run_baseline(name: str, eng: Engine, vis, scene: Scene, seed: int, cfg: OCSDConfig = BASE,

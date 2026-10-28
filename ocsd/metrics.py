@@ -8,6 +8,7 @@ import dataclasses
 import glob
 import json
 import os
+from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
 import cv2
@@ -18,6 +19,7 @@ import torch
 from .data import load_scene
 from .matching import consistency
 from .methods import OCSD_VARIANTS, m2_key
+from .provenance import MODEL_REVISIONS, digest, file_hash, files_identity, source_identity
 
 
 def _read(path):
@@ -35,6 +37,15 @@ def _crop(img, box, margin=0.1, size=224):
     return cv2.resize(img[y0:y1, x0:x1], (size, size))
 
 
+def evaluation_identity(image_path, scene_dir, settings, extra=()):
+    paths = [image_path] + [str(p) for p in Path(scene_dir).iterdir()
+                              if p.suffix in ('.json', '.png', '.npz')]
+    paths += [p for p in extra if os.path.isfile(p)]
+    code = source_identity()
+    return digest(dict(files=files_identity(paths), settings=settings, models=MODEL_REVISIONS,
+                       code={k:code[k] for k in ('ocsd/metrics.py', 'ocsd/vision.py', 'ocsd/matching.py', 'ocsd/sketch.py')}))
+
+
 def evaluate_images(out_root: str, bench_dir: str, split: str, methods: Sequence[str], seeds: Sequence[int],
                     vis, results_dir: str, detector: str = "owlv2", det_thr: float = 0.3, iou_thr: float = 0.1,
                     include_real: bool = True, scene_dirs: Optional[Sequence[str]] = None) -> pd.DataFrame:
@@ -48,16 +59,24 @@ def evaluate_images(out_root: str, bench_dir: str, split: str, methods: Sequence
     for m in meths:
         csv = os.path.join(results_dir, split, f"per_image_{m}.csv")
         old = pd.read_csv(csv) if os.path.exists(csv) else pd.DataFrame()
-        done = set(zip(old["sid"], old["seed"])) if len(old) else set()
+        done = {(r.sid, int(r.seed)): getattr(r, "input_id", None) for r in old.itertuples()} if len(old) else {}
         rows = []
         n_err = 0
         for sid, sdir in scenes.items():
             for s in (seeds if m != "real" else [0]):
-                if (sid, s) in done:
-                    continue
                 p = os.path.join(sdir, "real.png") if m == "real" else os.path.join(out_root, split, m, f"{sid}_s{s}.png")
                 if not os.path.exists(p):
                     continue
+                extra = [os.path.splitext(p)[0] + '.json']
+                if os.path.isfile(extra[0]):
+                    k = json.load(open(extra[0])).get('m2_key')
+                    if k:
+                        extra += glob.glob(os.path.join(out_root, split, '_objects', k, sid, '*'))
+                identity = evaluation_identity(p, sdir, (detector, det_thr, iou_thr), extra)
+                if done.get((sid, s)) == identity:
+                    continue
+                if len(old):
+                    old = old[~((old.sid == sid) & (old.seed == s))]
                 try:
                     row = _eval_one(m, sid, s, sdir, p, split, vis, det_fn, det_thr, iou_thr, out_root)
                 except Exception as e:
@@ -67,6 +86,7 @@ def evaluate_images(out_root: str, bench_dir: str, split: str, methods: Sequence
                     if n_err >= 5 and not rows:
                         raise
                     continue
+                row["input_id"] = identity
                 rows.append(row)
         new = pd.DataFrame(rows)
         df = pd.concat([old, new], ignore_index=True) if len(old) else new
@@ -74,6 +94,8 @@ def evaluate_images(out_root: str, bench_dir: str, split: str, methods: Sequence
             df.to_csv(csv, index=False)
         all_rows.append(df)
         print(f"{split}/{m}: {len(df)} ảnh đã đánh giá (+{len(new)})")
+        if n_err:
+            raise RuntimeError(f"{n_err} evaluation failures for {split}/{m}; successful rows saved, retry before reporting")
     return pd.concat(all_rows, ignore_index=True) if all_rows else pd.DataFrame()
 
 
@@ -192,15 +214,19 @@ def evaluate_detectors(out_root: str, bench_dir: str, split: str, methods: Seque
         for m in meths:
             csv = os.path.join(ddir, f"per_image_{m}.csv")
             old = pd.read_csv(csv) if os.path.exists(csv) else pd.DataFrame()
-            done = set(zip(old["sid"], old["seed"])) if len(old) else set()
+            done = {(r.sid, int(r.seed)): getattr(r, "input_id", None) for r in old.itertuples()} if len(old) else {}
+            n_err = 0
             rows = []
             for sid, sdir in scenes.items():
                 for s in (seeds if m != "real" else [0]):
-                    if (sid, s) in done:
-                        continue
                     p = os.path.join(sdir, "real.png") if m == "real" else                         os.path.join(out_root, split, m, f"{sid}_s{s}.png")
                     if not os.path.exists(p):
                         continue
+                    identity = evaluation_identity(p, sdir, (name, det_thr, detr_thr, iou_thr, STRICT_IOU))
+                    if done.get((sid, s)) == identity:
+                        continue
+                    if len(old):
+                        old = old[~((old.sid == sid) & (old.seed == s))]
                     scene = load_scene(sdir)
                     if hasattr(vis, "set_scene"):
                         vis.set_scene(scene)
@@ -209,12 +235,13 @@ def evaluate_detectors(out_root: str, bench_dir: str, split: str, methods: Seque
                     except Exception as e:
                         from .runlog import log_exception
                         log_exception("evaluate_detector", e, context=f"{name}/{split}/{m}/{sid}_s{s}")
+                        n_err += 1
                         continue
                     if not sc.n:
                         continue
                     c = consistency(sc, dets, iou_thr)
                     strict = {f"opr{int(round(100 * t))}": consistency(sc, dets, t)["opr"] for t in STRICT_IOU}
-                    rows.append(dict(method=m, sid=sid, seed=s, split=split, n_obj=scene.n, n_eval=sc.n,
+                    rows.append(dict(method=m, sid=sid, seed=s, split=split, n_obj=scene.n, n_eval=sc.n, input_id=identity,
                                      count_bin=scene.meta["count_bin"], complexity=scene.meta["complexity"],
                                      **{k: c[k] for k in DET_METRICS}, **strict))
             df = pd.concat([old, pd.DataFrame(rows)], ignore_index=True) if len(old) else pd.DataFrame(rows)
@@ -222,6 +249,8 @@ def evaluate_detectors(out_root: str, bench_dir: str, split: str, methods: Seque
                 df.to_csv(csv, index=False)
                 frames.append(df)
             print(f"{split}/{name}/{m}: {len(df)} images (+{len(rows)})")
+            if n_err:
+                raise RuntimeError(f"{n_err} failures in {split}/{name}/{m}; retry before reporting")
         out[name] = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
     return out
 
@@ -235,12 +264,12 @@ def _load_uint8_batch(paths, size=299):
 _REF_METRICS: Dict[tuple, tuple] = {}
 
 
-def _ref_metrics(ref_paths: Sequence[str], device, batch: int = 50):
+def _ref_metrics(ref_paths: Sequence[str], device, batch: int = 50, reference_id=None):
     """FID / KID metrics holding the reference set's Inception features, computed once per reference set; reset()
     keeps them (reset_real_features=False), so every method only encodes its own images."""
     from torchmetrics.image.fid import FrechetInceptionDistance
     from torchmetrics.image.kid import KernelInceptionDistance
-    key = (tuple(ref_paths), str(device))
+    key = (reference_id or digest(files_identity(ref_paths)), str(device))
     if key not in _REF_METRICS:
         _REF_METRICS.clear()
         fid = FrechetInceptionDistance(feature=2048, normalize=False, reset_real_features=False).to(device)
@@ -253,12 +282,12 @@ def _ref_metrics(ref_paths: Sequence[str], device, batch: int = 50):
     return _REF_METRICS[key]
 
 
-def fid_kid(gen_paths: Sequence[str], ref_paths: Sequence[str], device="cuda", batch=50) -> Dict[str, float]:
+def fid_kid(gen_paths: Sequence[str], ref_paths: Sequence[str], device="cuda", batch=50, reference_id=None) -> Dict[str, float]:
     """FID và KID (torchmetrics, Inception-v3 2048 chiều). KID ổn định hơn với tập nhỏ."""
     n = min(len(gen_paths), len(ref_paths))
     if n < 10:
         return dict(fid=float("nan"), kid=float("nan"), kid_std=float("nan"), n_gen=len(gen_paths))
-    fid, kid = _ref_metrics(ref_paths, device, batch)
+    fid, kid = _ref_metrics(ref_paths, device, batch, reference_id)
     fid.reset()
     kid.reset()
     kid.subset_size = min(100, n)
@@ -266,7 +295,10 @@ def fid_kid(gen_paths: Sequence[str], ref_paths: Sequence[str], device="cuda", b
         x = _load_uint8_batch(gen_paths[i:i + batch]).to(device)
         fid.update(x, real=False)
         kid.update(x, real=False)
-    km, ks = kid.compute()
+    # Fixed subsampling stream: method order and resume cannot change the KID estimate.
+    with torch.random.fork_rng(devices=list(range(torch.cuda.device_count()))):
+        torch.manual_seed(0)
+        km, ks = kid.compute()
     return dict(fid=float(fid.compute()), kid=float(km) * 1000, kid_std=float(ks) * 1000, n_gen=len(gen_paths))
 
 
@@ -294,6 +326,7 @@ def image_level_quality(out_root, bench_dir, split, methods, seeds, ref_paths, r
     rows = []
     prev_p = os.path.join(results_dir, split, "quality_fid_kid.csv")
     prev = pd.read_csv(prev_p).set_index("method") if os.path.exists(prev_p) else pd.DataFrame()
+    reference_id = digest(files_identity(ref_paths))
     for m in methods:
         gen = sorted(glob.glob(os.path.join(out_root, split, m, "*.png")))
         if pairs is not None and m in pairs:
@@ -303,13 +336,19 @@ def image_level_quality(out_root, bench_dir, split, methods, seeds, ref_paths, r
             keep = {f"_s{s}.png" for s in seeds}
             gen = [p for p in gen if any(p.endswith(k) for k in keep)
                    and (scene_ids is None or os.path.basename(p).rsplit("_s", 1)[0] in scene_ids)]
+        if pairs is not None and m in pairs:
+            found = {(os.path.basename(p).rsplit('_s', 1)[0], int(os.path.basename(p)[:-4].rsplit('_s', 1)[1])) for p in gen}
+            missing = set(pairs[m]) - found
+            if missing:
+                raise RuntimeError(f"Incomplete FID/KID set for {m}: {len(missing)} missing scene/seed pairs")
         if not gen:
             continue
-        sel = hashlib.md5("|".join(os.path.basename(p) for p in gen).encode()).hexdigest()[:12]
+        sel = digest(dict(images=files_identity(gen), references=reference_id, lpips=with_lpips,
+                          code=file_hash(__file__), kid_seed=0))
         if m in prev.index and "sel" in prev.columns and prev.loc[m, "sel"] == sel:   # same images -> reuse
             rows.append(dict(prev.loc[m].to_dict(), method=m))
             continue
-        r = dict(method=m, split=split, **fid_kid(gen, ref_paths, device))
+        r = dict(method=m, split=split, **fid_kid(gen, ref_paths, device, reference_id=reference_id))
         r["sel"] = sel
         sd = sorted({int(os.path.basename(p)[:-4].rsplit("_s", 1)[1]) for p in gen})
         if with_lpips and len(sd) > 1:

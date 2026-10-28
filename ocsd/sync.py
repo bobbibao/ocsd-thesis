@@ -4,15 +4,35 @@ GH_TOKEN (fine-grained, repository bobbibao/ocsd-thesis, permission Contents: re
 from __future__ import annotations
 
 import glob
+import json
 import os
+from pathlib import Path
+import re
 import shutil
 import subprocess
 import time
 
-INCLUDE = ["logs", "tables", "figures", "summary.md", "summary.json", "progress.json", "budget_estimate.json",
+INCLUDE = ["logs", "tables", "figures", "run_manifest.json", "summary.md", "summary.json", "progress.json", "budget_estimate.json",
            "benchmark_counts.json", "experiment_config.json", "*/per_image_*.csv", "*/quality_fid_kid.csv",
-           "tuning", "pilot/tables", "pilot/summary.md"]
+           "*/plan.json", "tuning", "pilot/tables", "pilot/summary.md"]
 MAX_FILE_MB = 20
+
+
+def results_for_run(root: str, run_id: str = "") -> str:
+    """Resolve an explicit/latest versioned run, retaining support for legacy result directories."""
+    results = Path(root) / "results"
+    latest = results / "latest_run.json"
+    if not run_id and latest.exists():
+        run_id = json.loads(latest.read_text())["run_id"]
+    if run_id:
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", run_id):
+            raise ValueError("Invalid RUN_ID")
+        results = results / "runs" / run_id
+        if not (results / "run_manifest.json").is_file():
+            raise FileNotFoundError(f"No run manifest in {results}")
+    if not results.is_dir():
+        raise FileNotFoundError(results)
+    return str(results)
 
 
 def _run(cmd, cwd=None, secret=""):

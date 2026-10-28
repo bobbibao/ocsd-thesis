@@ -71,7 +71,7 @@ def holm(df: pd.DataFrame, by: Sequence[str] = ("metric",)) -> pd.DataFrame:
     df = df.copy()
     df["p_holm"] = np.nan
     for _, g in df.groupby(list(by)):
-        order = g.sort_values("p").index
+        order = g.dropna(subset=["p"]).sort_values("p").index
         k = len(order)
         prev = 0.0
         for rank, idx in enumerate(order):
@@ -97,13 +97,18 @@ def paired_tests(ps: pd.DataFrame, ref: str = "ocsd", metrics=("opr", "oce_c", "
             x, y = a.loc[common, met].to_numpy(float), b.loc[common, met].to_numpy(float)
             ok = ~(np.isnan(x) | np.isnan(y))
             x, y = x[ok], y[ok]
-            if len(x) < 6 or np.allclose(x, y):
+            status = "insufficient_pairs" if len(x) < 6 else "tested"
+            if len(x) < 6:
+                p = float('nan')
+            elif np.allclose(x, y):
                 p = 1.0
             else:
                 sx, sy = (x, y) if HIGHER.get(met, True) else (y, x)   # orient so "greater" means ref is better
                 p = float(wilcoxon(sx, sy, zero_method="zsplit", alternative=alternative).pvalue)
-            rows.append(dict(ref=ref, method=m, metric=met, n=len(x), mean_ref=x.mean(), mean_other=y.mean(),
-                             diff=x.mean() - y.mean(), p=p))
+            delta, lo, hi = bootstrap_ci(x - y)
+            rows.append(dict(ref=ref, method=m, metric=met, n=len(x),
+                             mean_ref=x.mean() if len(x) else np.nan, mean_other=y.mean() if len(y) else np.nan,
+                             diff=delta, diff_lo=lo, diff_hi=hi, p=p, status=status))
     df = pd.DataFrame(rows)
     return holm(df) if len(df) else df
 
@@ -310,7 +315,7 @@ def build_all(results_dir: str, splits=("quickdraw", "coco"), quality: Optional[
                         "Pre-registered Wilcoxon tests (docs/PREREGISTRATION.md); Holm within each family and metric")
         # ---- E1 / E2: theo số đối tượng và độ phức tạp
         for dim, name in (("count_bin", "E1"), ("complexity", "E2")):
-            s = summarize(ps[ps.method.isin(main) & ps.sid.isin(common)], by=("method", dim))
+            s = summarize(per_scene(common_seed_rows(df[df.sid.isin(common)], main)), by=("method", dim))
             if not len(s):
                 continue
             wide = []

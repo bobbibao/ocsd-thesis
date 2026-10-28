@@ -15,6 +15,8 @@ from typing import Dict, List, Optional
 class Paths:
     root: str = "/content/drive/MyDrive/KLTN_OCSD"
 
+    run_id: str = ""
+
     @property
     def data(self):
         return os.path.join(self.root, "data")
@@ -29,15 +31,15 @@ class Paths:
 
     @property
     def benchmarks(self):
-        return os.path.join(self.data, "benchmarks")
+        return os.path.join(self.data, "benchmarks_v2" if self.run_id else "benchmarks")
 
     @property
     def outputs(self):
-        return os.path.join(self.root, "outputs")
+        return os.path.join(self.root, "outputs", "runs", self.run_id) if self.run_id else os.path.join(self.root, "outputs")
 
     @property
     def results(self):
-        return os.path.join(self.root, "results")
+        return os.path.join(self.root, "results", "runs", self.run_id) if self.run_id else os.path.join(self.root, "results")
 
     @property
     def cache(self):
@@ -202,6 +204,8 @@ class ExperimentConfig:
     detr_thr: float = 0.5
 
     def __post_init__(self):
+        if self.tier == "screen" and self.backbone != "sd15":
+            raise ValueError("The screen tier compares GLIGEN and requires backbone=sd15")
         if self.seeds is None:
             self.seeds = list(TIERS[self.tier]["seeds"])
 
@@ -211,6 +215,10 @@ class ExperimentConfig:
 
 
 TIERS = {
+    # Exploratory check only: 12 scenes, one seed, no M3, COCO, FID or tuning grid.
+    "screen": dict(qd_per_cell=1, trained_n=0, coco_n=0, coco_trained_n=0, ablation_n=0, alpha_n=0,
+                   seeds=[0], seeds_all=1, tune=False,
+                   cfg=dict(steps=30, obj_steps=20, K=2, S1=0, S2=0, R=1, bo_n=2)),
     # Quy mô thực nghiệm, thiết kế cho Google Colab Pro (~100 compute unit/tháng: T4 ~1,8 unit/giờ, L4 ~4,8 unit/giờ).
     # qd_per_cell: số cảnh / ô của QuickDraw-Scenes (12 ô); trained_n: số cảnh chạy phương pháp cần học định danh
     # (OCSD, Zhang et al.) - ablation và alpha lấy trong chính các cảnh này để dùng lại M2/M3 đã học.
