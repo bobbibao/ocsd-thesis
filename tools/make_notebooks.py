@@ -168,7 +168,7 @@ if os.path.exists(os.path.join(LOGS, "LATEST_ERROR.txt")):
     r'''#@title F. Send logs and results to GitHub (branch colab-results) so Claude can read them
 from ocsd import sync
 if PUSH_RESULTS:
-    sync.push_results(P.results, sync.colab_token())
+    sync.try_push_results(P.results, sync.colab_token())
 else:
     print("Results retained on Drive:", P.results)''',
 ], "RUN_ALL.ipynb")
@@ -195,7 +195,7 @@ from ocsd import sync
 RESULTS = sync.results_for_run(DRIVE_ROOT, RUN_ID)
 print("Selected results:", RESULTS)
 if PUSH_RESULTS:
-    sync.push_results(RESULTS, sync.colab_token())
+    sync.try_push_results(RESULTS, sync.colab_token())
 else:
     print("Set PUSH_RESULTS=True to upload this run, including its manifest")''',
 ], "00_push_logs.ipynb")
