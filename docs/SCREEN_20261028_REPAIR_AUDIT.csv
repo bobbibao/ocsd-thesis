@@ -1,0 +1,13 @@
+sid,attempted,accepted,reason,missing,m2_s,changed_pixel_pct,verifier_opr_before,verifier_opr_candidate
+qd_1_complex_000,False,,initial_pass,0,0,0.0,1.0,1.0
+qd_1_medium_000,False,,initial_pass,0,0,0.0,1.0,1.0
+qd_1_simple_000,False,,initial_pass,0,0,0.0,1.0,1.0
+qd_3_complex_000,False,,initial_pass,0,0,0.0,1.0,1.0
+qd_3_medium_000,False,,initial_pass,0,0,0.0,1.0,1.0
+qd_3_simple_000,True,True,accepted,0,0,0.55999755859375,1.0,1.0
+qd_5_complex_000,True,True,accepted,1,13.600400447845459,3.592681884765625,0.8,1.0
+qd_5_medium_000,True,False,count_or_layout_regressed,1,13.598354816436768,0.0,0.8,0.8
+qd_5_simple_000,False,,initial_pass,0,0,0.0,1.0,1.0
+qd_8p_complex_000,True,True,accepted,4,24.61471915245056,5.841064453125,0.5555555555555556,0.7777777777777778
+qd_8p_medium_000,True,True,accepted,3,21.745986700057983,8.083724975585938,0.625,1.0
+qd_8p_simple_000,True,False,lost_object,3,21.83107280731201,0.0,0.625,0.625
