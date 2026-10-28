@@ -38,3 +38,24 @@ Against best-of-2, Holm-adjusted p is 1.0 for OPR and .5 for mIoU. The mIoU boot
 M2 is charged on five scenes: 95.39 of 128.09 total standalone seconds (74.5%). Three of these scenes improve OPR versus plain GLIGEN; `qd_5_medium_000` and `qd_8p_simple_000` do not. This identifies full-scene M2 preparation as a cost target, but missing-object-only M2 would change behavior and has not been validated. No algorithm change is justified as a proven improvement yet.
 
 The ZIP contains no generated images or per-output repair JSON traces. Visual preservation, accepted/rejected repair reasons and compute counters remain unverified. Use `03_export_screen_review.ipynb` on CPU to export existing images and metadata without credentials or inference. Do not scale to paper/full before that review.
+
+## Visual and repair-trace audit (2026-10-29)
+
+The supplied `ocsd_visual_review.zip` contains all 48 PNGs and 48 metadata files for GLIGEN, best-of-2, no-M2 repair and full repair. All 96 match the run manifest hashes. Pixel comparisons and metadata for all 12 full-repair outputs are recorded in `SCREEN_20261028_REPAIR_AUDIT.csv`. The six attempted-repair scenes were inspected side by side across all four methods. This was an unblinded qualitative engineering inspection, not a human evaluation study; original sketches and requested object phrases were not included.
+
+Six scenes pass the initial verifier; their final images are pixel-identical to GLIGEN. Six scenes attempt repair: four are accepted and two rejected. Both rejected outputs are also pixel-identical to GLIGEN, confirming fallback for this run. The changed pixel fractions of accepted outputs are .560%, 3.593%, 5.841% and 8.084%. This supports localized changes; without the saved edit masks it does not independently verify every protected object region.
+
+- `qd_3_simple_000`: accepted on a tiny verifier score increase (.000121), with no change to verifier OPR or count error. The train/bicycle scene looks essentially unchanged at contact-sheet scale. It contributes no OPR improvement.
+- `qd_5_complex_000`: a small boat appears in the lower-left-middle region. It overlaps the pre-existing blue umbrella-like shape, so the object-presence gain should not be described as demonstrated aesthetic improvement. This is the sole OPR win over best-of-2.
+- `qd_5_medium_000`: the attempted repair is rejected (`count_or_layout_regressed`); final horse-scene image equals GLIGEN. M2 cost: 13.60 seconds. The rejected candidate itself is not saved, so its visual failure cannot be inspected.
+- `qd_8p_complex_000`: local additions include a dog-like figure near the tree and an orange object. OPR improves over GLIGEN but only ties best-of-2; independent mIoU is lower than best-of-2. The repaired and best-of-2 images have visibly different composition; a metric win cannot settle overall preference.
+- `qd_8p_medium_000`: vehicle regions are visibly changed/added while much of the street scene remains intact. The internal verifier reaches OPR=1, but the independent evaluation does not establish all requested objects are correct. Do not substitute internal verifier success for evaluation.
+- `qd_8p_simple_000`: repair is rejected (`lost_object`) despite a small aggregate verifier score gain. The final bird/chair scene equals GLIGEN. M2 cost: 21.83 seconds. This supports retaining the explicit matched-object guard; the rejected candidate is unavailable.
+
+### Decision and next implementation target
+
+Do not run paper/full or claim superiority. The protected-repair fallback works on this run, but the benefit over best-of-2 is narrow and visual quality is unresolved. Keep this screen as development evidence.
+
+The next defensible optimization experiment is **M2 generation only for verifier-missing objects**, preserving original object indices/seeds and testing placement and overlaps explicitly. Current M2 prepares 35 objects across the five affected scenes although the initial verifier marks only 12 missing: 70 versus a prospective 24 candidates at K=2. This is a theoretical candidate-count reduction of 65.7%, not a measured runtime reduction or a quality guarantee. Full-scene compositing can affect anchors in overlapping regions, so simply filtering a scene would change both RNG indexing and appearance. It must remain a separately named experimental variant with complete cache signatures and comparisons against the current method.
+
+Before another GPU experiment, add diagnostics for missing object IDs, matched boxes, edit/protected masks, and accepted/rejected candidate images, plus a reason breakdown. Those artifacts will make failures inspectable without paying to recreate them. Avoid tuning acceptance thresholds to these 12 scenes. The rejected attempts account for 35.43 seconds (37.1%) of M2 time, but cannot safely be predicted and skipped from this sample alone. No new model inference was performed for this audit.
