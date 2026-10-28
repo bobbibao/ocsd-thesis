@@ -10,6 +10,7 @@ import torch.nn.functional as F
 
 from .attention import OCSDController, attention_energy, install_processors, token_maps
 from .config import BACKBONES
+from .provenance import model_kwargs
 
 N_ID_TOKENS = 16
 ID_TOKENS = [f"<o{i}>" for i in range(N_ID_TOKENS)]
@@ -27,7 +28,20 @@ class Engine:
         self.vae_factor = 2 ** (len(vae.config.block_out_channels) - 1)   # 8 với SD
         self.attn_div = 4        # bản đồ chú ý dùng cho M5(b)/L_att: latent/4 (16x16 với ảnh 512)
         self.has_lora = False
+        self.compute = {}
+        self.track_compute(self.unet, "unet")
+        if self.controlnet is not None:
+            self.track_compute(self.controlnet, "controlnet")
         self._add_id_tokens()
+
+    def track_compute(self, model, name):
+        def count(module, args):
+            self.compute[name + "_calls"] = self.compute.get(name + "_calls", 0) + 1
+            self.compute[name + "_sample_calls"] = self.compute.get(name + "_sample_calls", 0) + len(args[0])
+        return model.register_forward_pre_hook(count)
+
+    def compute_delta(self, before):
+        return {k:v - before.get(k, 0) for k,v in self.compute.items()}
 
     # ------------------------------------------------------------------ loading
     @classmethod
@@ -43,14 +57,14 @@ class Engine:
         b = BACKBONES[backbone]
         dtype = torch.float16 if fp16 else torch.float32
         kw = dict(cache_dir=cache_dir)
-        tok = CLIPTokenizer.from_pretrained(b["sd"], subfolder="tokenizer", **kw)
-        te = CLIPTextModel.from_pretrained(b["sd"], subfolder="text_encoder", **kw).to(device)  # fp32 (học nhúng)
-        unet = UNet2DConditionModel.from_pretrained(b["sd"], subfolder="unet", torch_dtype=dtype, **kw).to(device)
-        vae = AutoencoderKL.from_pretrained(b["sd"], subfolder="vae", torch_dtype=dtype, **kw).to(device)
-        sch = DDIMScheduler.from_pretrained(b["sd"], subfolder="scheduler", **kw)
-        cn = ControlNetModel.from_pretrained(b["controlnet"], torch_dtype=dtype, **kw).to(device) \
+        tok = CLIPTokenizer.from_pretrained(b["sd"], subfolder="tokenizer", **dict(kw, **model_kwargs(b["sd"])))
+        te = CLIPTextModel.from_pretrained(b["sd"], subfolder="text_encoder", **dict(kw, **model_kwargs(b["sd"]))).to(device)  # fp32 (học nhúng)
+        unet = UNet2DConditionModel.from_pretrained(b["sd"], subfolder="unet", torch_dtype=dtype, **dict(kw, **model_kwargs(b["sd"]))).to(device)
+        vae = AutoencoderKL.from_pretrained(b["sd"], subfolder="vae", torch_dtype=dtype, **dict(kw, **model_kwargs(b["sd"]))).to(device)
+        sch = DDIMScheduler.from_pretrained(b["sd"], subfolder="scheduler", **dict(kw, **model_kwargs(b["sd"])))
+        cn = ControlNetModel.from_pretrained(b["controlnet"], torch_dtype=dtype, **dict(kw, **model_kwargs(b["controlnet"]))).to(device) \
             if load_controlnet and b["controlnet"] else None
-        ad = T2IAdapter.from_pretrained(b["t2i_adapter"], torch_dtype=dtype, **kw).to(device) \
+        ad = T2IAdapter.from_pretrained(b["t2i_adapter"], torch_dtype=dtype, **dict(kw, **model_kwargs(b["t2i_adapter"]))).to(device) \
             if load_adapter and b["t2i_adapter"] else None
         for m in [te, unet, vae, cn, ad]:
             if m is not None:
@@ -181,8 +195,11 @@ class Engine:
 
     # ------------------------------------------------------------------ LoRA / identity
     def add_lora(self, rank: int = 16):
-        if self.has_lora:
+        if self.has_lora and self.lora_rank == rank:
             return
+        if self.has_lora:
+            self.unet.delete_adapters("ocsd")
+            self.has_lora = False
         from peft import LoraConfig
         cfg = LoraConfig(r=rank, lora_alpha=rank, init_lora_weights="gaussian",
                          target_modules=["to_k", "to_q", "to_v", "to_out.0"])
@@ -199,6 +216,7 @@ class Engine:
         self._lora_init = {n: p.detach().clone() for n, p in self.unet.named_parameters() if "lora" in n}
         install_processors(self.unet, self.ctrl)  # bảo toàn bộ xử lý của OCSD sau khi gắn LoRA
         self.has_lora = True
+        self.lora_rank = rank
         self.lora(False)
 
     def set_lora_scale(self, scale: float):

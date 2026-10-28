@@ -1,0 +1,4 @@
+-r requirements-colab.txt
+open_clip_torch==3.3.0
+nbformat==5.11.1
+# Install matching torch/torchvision for your CPU or CUDA runtime separately.

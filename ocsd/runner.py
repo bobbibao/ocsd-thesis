@@ -11,6 +11,8 @@ import json
 import os
 import time
 import traceback
+import uuid
+from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import cv2
@@ -23,11 +25,19 @@ from .engine import Engine
 from .method import ObjectResult, Prepared, compose_foreground, generate, learn_identity, object_branch
 from .methods import BASELINES, COLLAGE_BASELINES, OCSD_VARIANTS, m2_dir_key, m3_key, run_baseline, run_collage
 from .sketch import CropInfo, Scene
+from .provenance import MODEL_REVISIONS, atomic_json, digest, file_hash, source_identity
 
 
 def _save_png(path, img):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    cv2.imwrite(path, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    tmp = path + "." + uuid.uuid4().hex + ".png"
+    try:
+        if not cv2.imwrite(tmp, cv2.cvtColor(img, cv2.COLOR_RGB2BGR)):
+            raise OSError(f"Cannot write image {path}")
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
 
 
 def _jsonable(o):
@@ -51,6 +61,10 @@ class Runner:
         (default: every kind in methods.BASELINES with base_cfg)."""
         self.eng, self.vis, self.out_root = eng, vis, out_root
         self.backbone, self.cache_dir = backbone, cache_dir
+        self.identity = dict(code={k:v for k,v in source_identity().items()
+                                   if k not in ('ocsd/report.py', 'ocsd/metrics.py', 'tools/make_notebooks.py')},
+                             models=dict(MODEL_REVISIONS), backbone=backbone, dtype=str(eng.dtype),
+                             scheduler=dict(eng.scheduler.config))
         self.variants = dict(OCSD_VARIANTS if variants is None else variants)
         self.base_cfg = base_cfg or OCSDConfig()
         self.baselines = dict(baselines) if baselines is not None else {b: (b, self.base_cfg) for b in BASELINES}
@@ -61,6 +75,35 @@ class Runner:
 
     def obj_dir(self, split, key, sid):
         return os.path.join(self.out_root, split, "_objects", key, sid)
+
+    def scene_identity(self, scene):
+        import hashlib
+        def array(a):
+            return hashlib.sha256(np.ascontiguousarray(a).tobytes()).hexdigest()
+        return dict(sid=scene.sid, caption=scene.caption, bg=scene.bg, relations=scene.relations,
+                    sketch=array(scene.sketch), objects=[dict(cls=o.cls, phrase=o.phrase, box=o.box,
+                    mask=array(o.mask), sketch=array(o.sketch)) for o in scene.objects])
+
+    def signature(self, scene, method, seed):
+        kind, cfg = (method, self.variants[method]) if method in self.variants else self.baselines[method]
+        return digest(dict(context=self.identity, scene=self.scene_identity(scene), method=method,
+                           kind=kind, seed=seed, cfg=cfg.to_dict()))
+
+    def valid_image(self, split, method, scene, seed):
+        p = self.img_path(split, method, scene.sid, seed)
+        try:
+            meta = json.load(open(p[:-4] + '.json'))
+            return meta.get('signature') == self.signature(scene, method, seed) and meta.get('sha256') == file_hash(p)
+        except (OSError, ValueError, KeyError):
+            return False
+
+    def archive(self, paths):
+        stamp = uuid.uuid4().hex
+        for p in paths:
+            if os.path.exists(p):
+                dst = os.path.join(self.out_root, '_stale', stamp, os.path.relpath(p, self.out_root))
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                os.rename(p, dst)
 
     # ------------------------------------------------------------------ M2 cache
     def _load_objs(self, split, key, scene: Scene) -> Optional[List[ObjectResult]]:
@@ -93,6 +136,16 @@ class Runner:
         items = [(split, d, [(m, s) for m in methods for s in seeds]) for d in scene_dirs]
         return self.run_items(items, max_minutes, verbose)
 
+    def pending_items(self, items):
+        """Validate a scene once per group, avoiding repeated Drive reads for every method/seed."""
+        pending = []
+        for split, directory, pairs in items:
+            scene = load_scene(directory)
+            todo = [(m, seed) for m, seed in pairs if not self.valid_image(split, m, scene, seed)]
+            if todo:
+                pending.append((split, directory, todo))
+        return pending
+
     def run_items(self, items, max_minutes: Optional[float] = None, verbose: bool = True):
         """items: [(split, scene_dir, [(method, seed), ...])]. Mỗi cảnh xử lý một lần cho mọi (method, seed)."""
         t_start = time.time()
@@ -102,7 +155,7 @@ class Runner:
                 print(f"Dừng do hết ngân sách thời gian ({max_minutes} phút). Chạy lại ô này để tiếp tục.")
                 break
             scene = load_scene(sdir)
-            todo = [(m, s) for m, s in pairs if not os.path.exists(self.img_path(split, m, scene.sid, s))]
+            todo = [(m, s) for m, s in pairs if not self.valid_image(split, m, scene, s)]
             stats["skipped"] += len(pairs) - len(todo)
             if not todo:
                 continue
@@ -113,6 +166,11 @@ class Runner:
                 self._run_scene(scene, todo, split, stats)
             except Exception as e:
                 stats["failed"] += 1
+                eng = self.eng
+                eng.reset_identity()
+                eng.ctrl.clear_regions()
+                eng.ctrl.reset_maps()
+                eng.ctrl.store = False
                 traceback.print_exc()
                 from .runlog import log_exception
                 log_exception("generate_scene", e, context=f"{split}/{scene.sid} todo={todo}")
@@ -125,22 +183,40 @@ class Runner:
         return stats
 
     def _write(self, split, method, scene, seed, img, log, cfg=None):
-        _save_png(self.img_path(split, method, scene.sid, seed), img)
+        p = self.img_path(split, method, scene.sid, seed)
+        self.archive([p, p[:-4] + '.json'])
+        _save_png(p, img)
         rec = dict(method=method, sid=scene.sid, seed=seed, n_obj=scene.n, **log)
         if cfg is not None:
             rec["cfg"] = cfg.to_dict()
-        json.dump(_jsonable(rec), open(self.img_path(split, method, scene.sid, seed)[:-4] + ".json", "w"))
+        rec.update(signature=self.signature(scene, method, seed), sha256=file_hash(p))
+        atomic_json(p[:-4] + '.json', _jsonable(rec))
 
     def _objects(self, split, scene: Scene, cfg: OCSDConfig, seed: int):
         """M2 objects of `cfg` for this scene (cached on disk); drawn again per seed when cfg.m2_per_seed.
         Returns (cache key, objects, M2 time of the cached set)."""
         key = m2_dir_key(cfg, seed)
+        meta_path = os.path.join(self.obj_dir(split, key, scene.sid), 'objects.json')
+        sig = digest(dict(context=self.identity, scene=self.scene_identity(scene), key=key))
+        try:
+            meta = json.load(open(meta_path))
+            valid = meta.get('signature') == sig and all(file_hash(os.path.join(os.path.dirname(meta_path), f)) == h
+                                                         for f, h in meta.get('checksums', {}).items())
+            valid = valid and bool(meta.get('checksums'))
+        except (OSError, ValueError):
+            valid = False
+        if not valid:
+            self.archive([self.obj_dir(split, key, scene.sid)])
         objs = self._load_objs(split, key, scene)
         if objs is None:
             t0 = time.time()
+            compute_before = dict(self.eng.compute)
             objs = object_branch(self.eng, self.vis, scene, cfg, seed=seed if cfg.m2_per_seed else 0)
             m2_time = time.time() - t0
             self._save_objs(split, key, scene, objs, m2_time)
+            meta = json.load(open(meta_path))
+            meta.update(compute=self.eng.compute_delta(compute_before), signature=sig, checksums={p.name:file_hash(p) for p in Path(meta_path).parent.glob('*.png')})
+            atomic_json(meta_path, meta)
         else:
             m2_time = json.load(open(os.path.join(self.obj_dir(split, key, scene.sid), "objects.json"))).get("m2_time")
         return key, objs, m2_time
@@ -157,9 +233,21 @@ class Runner:
         for m, s in [x for x in todo if x[0] in self.baselines and x not in two_branch]:
             kind, cfg = self.baselines[m]
             log = {}
+            compute_before = dict(eng.compute)
             if torch.cuda.is_available():
                 torch.cuda.reset_peak_memory_stats()
-            img = run_baseline(kind, eng, vis, scene, s, cfg, self.backbone, self.cache_dir, log)
+            if kind in ("grounded_repair", "grounded_repair_no_m2"):
+                from .screening import grounded_repair
+                def get_objects():
+                    started = time.time()
+                    key, objs, elapsed = self._objects(split, scene, cfg, s)
+                    log.update(m2_key=key, prep_times=dict(m2=elapsed), m2_lookup_seconds=time.time()-started)
+                    return objs
+                img = grounded_repair(eng, vis, scene, s, cfg, self.backbone, self.cache_dir, log,
+                                      get_objects, use_m2=kind == "grounded_repair")
+            else:
+                img = run_baseline(kind, eng, vis, scene, s, cfg, self.backbone, self.cache_dir, log)
+            log["compute"] = eng.compute_delta(compute_before)
             self._write(split, m, scene, s, img, log, cfg)
             stats["done"] += 1
         # ---- họ OCSD: nhóm theo bộ đối tượng M2 (theo seed nếu m2_per_seed) rồi khóa M3
@@ -180,17 +268,23 @@ class Runner:
                 prep_log = {}
                 id_tokens = None
                 m3_time = 0.0
+                compute_before = dict(eng.compute)
                 if c3.use_identity:
                     t0 = time.time()
                     id_tokens = learn_identity(eng, scene, objs, c3, seed=0, log=prep_log)
                     m3_time = time.time() - t0
-                prep = Prepared(objs, fg, id_tokens, dict(m2=m2_time, m3=m3_time))
+                m3_compute = eng.compute_delta(compute_before)
                 for m, s in its:
                     cfg = self.variants[m]
+                    fg_method = fg if cfg.placement_search == cfg0.placement_search else compose_foreground(scene, objs, cfg)
+                    prep = Prepared(objs, fg_method, id_tokens, dict(m2=m2_time, m3=m3_time))
                     log = dict(prep_times=prep.times, m2_key=k2, m3_key=k3, **prep_log)
                     if torch.cuda.is_available():
                         torch.cuda.reset_peak_memory_stats()
+                    compute_before = dict(eng.compute)
                     img = generate(eng, vis, scene, prep, cfg, s, log=log)
+                    log["compute"] = eng.compute_delta(compute_before)
+                    log["prep_compute"] = dict(m3=m3_compute, m2=json.load(open(os.path.join(self.obj_dir(split, k2, scene.sid), "objects.json"))).get("compute", {}))
                     self._write(split, m, scene, s, img, log, cfg)
                     stats["done"] += 1
                 eng.reset_identity()
@@ -201,6 +295,9 @@ class Runner:
             log = dict(prep_times=dict(m2=m2_time), m2_key=k2)
             if torch.cuda.is_available():
                 torch.cuda.reset_peak_memory_stats()
+            compute_before = dict(eng.compute)
             img = run_collage(kind, eng, vis, scene, objs, s, cfg, log)
+            log["compute"] = eng.compute_delta(compute_before)
+            log["prep_compute"] = dict(m2=json.load(open(os.path.join(self.obj_dir(split, k2, scene.sid), "objects.json"))).get("compute", {}))
             self._write(split, m, scene, s, img, log, cfg)
             stats["done"] += 1

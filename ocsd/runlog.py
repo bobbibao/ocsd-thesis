@@ -48,6 +48,11 @@ def start(results_dir: str, code_dir: str = "") -> str:
     """Start (or continue) logging for this Colab session. Safe to call more than once."""
     d = os.path.join(results_dir, "logs")
     os.makedirs(os.path.join(d, "errors"), exist_ok=True)
+    if _STATE["log_dir"] != d and _STATE["tee"] is not None:
+        sys.stdout = sys.stdout.stream if isinstance(sys.stdout, _Tee) else sys.stdout
+        sys.stderr = sys.stderr.stream if isinstance(sys.stderr, _Tee) else sys.stderr
+        _STATE["tee"].close()
+        _STATE.update(log_dir=None, log_path=None, tee=None)
     if _STATE["log_path"] is None:
         path = os.path.join(d, time.strftime("run_%Y%m%d_%H%M%S.log"))
         f = open(path, "a", buffering=1)

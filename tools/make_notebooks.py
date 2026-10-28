@@ -11,44 +11,53 @@ SETUP = r'''#@title 1. Cấu hình (chỉ sửa ô này)
 REPO_URL   = "https://github.com/bobbibao/ocsd-thesis.git"  #@param {type:"string"}
 BRANCH     = "main"                                             #@param {type:"string"}
 DRIVE_ROOT = "/content/drive/MyDrive/KLTN_OCSD"                 #@param {type:"string"}
-TIER       = "pilot"   #@param ["pilot", "paper", "full"]
+TIER       = "pilot"   #@param ["screen", "pilot", "paper", "full"]
 BACKBONE   = "sd15"    #@param ["sd15", "sd21"]
 MAX_MINUTES = 600      #@param {type:"number"}
 SKIP_JOBS  = ""        #@param {type:"string"}
-HF_TOKEN   = ""        #@param {type:"string"}
+RUN_ID     = ""        #@param {type:"string"}
+PUSH_RESULTS = True    #@param {type:"boolean"}
 # pilot: kiểm tra nhanh (~1-2 giờ GPU); paper: đủ số liệu cho khóa luận; full: cho bài báo (cần thêm GPU).
 # Có thể bấm "Run all" nhiều lần: ảnh/độ đo đã có trên Drive sẽ được bỏ qua và chạy tiếp phần còn lại.
 # SKIP_JOBS: comma-separated job prefixes to leave out, e.g. "pareto" or "pareto,E3_quickdraw_power" (GPU budget).'''
 
-MOUNT = r'''#@title 2. Gắn Google Drive, kiểm tra GPU, lấy mã nguồn mới nhất
+MOUNT = r'''#@title 2. Gắn Google Drive, kiểm tra GPU, chọn mã nguồn
 import os, subprocess, sys
 from google.colab import drive
 drive.mount("/content/drive")
 os.makedirs(DRIVE_ROOT, exist_ok=True)
-print(subprocess.run("nvidia-smi --query-gpu=name,memory.total --format=csv", shell=True, capture_output=True, text=True).stdout)
+gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True)
+if gpu.returncode:
+    raise RuntimeError("Select a GPU runtime before Run all")
+print(gpu.stdout)
 CODE = "/content/KLTN_OCSD"
 if not REPO_URL:
     # chưa có repo: dùng bản mã nguồn đã tải lên Drive (thư mục DRIVE_ROOT/code)
     CODE = os.path.join(DRIVE_ROOT, "code")
 elif os.path.exists(CODE):
-    subprocess.run(f"git -C {CODE} fetch -q origin {BRANCH} && git -C {CODE} reset -q --hard origin/{BRANCH}", shell=True, check=True)
+    if not RUN_ID:
+        dirty = subprocess.run(["git", "-C", CODE, "status", "--porcelain"], check=True, capture_output=True, text=True).stdout
+        if dirty.strip():
+            raise RuntimeError("Checkout has local changes. Preserve them; use a fresh runtime for current GitHub code, or set RUN_ID to resume.")
+        subprocess.run(["git", "-C", CODE, "fetch", "origin", BRANCH], check=True)
+        subprocess.run(["git", "-C", CODE, "merge", "--ff-only", "FETCH_HEAD"], check=True)
+    print("Using checkout (explicit RUN_ID preserves its version):", CODE)
 else:
-    subprocess.run(f"git clone -q -b {BRANCH} {REPO_URL} {CODE}", shell=True, check=True)
-print("Mã nguồn:", CODE, subprocess.run(f"git -C {CODE} log -1 --format='%h %s' 2>/dev/null", shell=True, capture_output=True, text=True).stdout)
+    subprocess.run(["git", "clone", "-q", "-b", BRANCH, REPO_URL, CODE], check=True)
+print("Mã nguồn:", CODE, subprocess.run(["git", "-C", CODE, "log", "-1", "--format=%H %s"], capture_output=True, text=True).stdout)
 sys.path.insert(0, CODE)
-# drop modules imported by an earlier run in this kernel, so the code just pulled is what runs
+# drop modules imported by an earlier run in this kernel, so the selected code is what runs
 for _m in [m for m in sys.modules if m == "ocsd" or m.startswith("ocsd.")]: del sys.modules[_m]
 # HF cache on LOCAL disk: Drive cannot store the cache's symlinks (broken files -> "SafetensorError: header too large").
 # Models re-download each new session (~2-4 min on Colab).
 os.environ["HF_HOME"] = "/content/hf_cache"
-if HF_TOKEN:
-    os.environ["HF_TOKEN"] = HF_TOKEN'''
+# Public models do not require a token; optional HF authentication can use Colab secrets.'''
 
 INSTALL = r'''#@title 3. Install libraries (keeps Colab's PyTorch), start the Drive run log
 LOGS = os.path.join(DRIVE_ROOT, "results", "logs"); os.makedirs(LOGS, exist_ok=True)
 # Colab ships torchao 0.10, which peft rejects when adding LoRA ("incompatible version of torchao"); OCSD does not use it
-subprocess.run("pip uninstall -y -q torchao", shell=True)
-r = subprocess.run(f"pip install -q -r {CODE}/requirements-colab.txt", shell=True, capture_output=True, text=True)
+subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "-q", "torchao"], check=True)
+r = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", os.path.join(CODE, "requirements-colab.txt")], capture_output=True, text=True)
 open(os.path.join(LOGS, "pip_install.log"), "w").write(r.stdout + "\n" + r.stderr)
 print(r.stdout[-2000:], r.stderr[-3000:])
 if r.returncode != 0:
@@ -57,11 +66,17 @@ import importlib, ocsd; importlib.reload(ocsd)
 from ocsd import hfcache
 hfcache.repair(os.environ["HF_HOME"])   # delete broken model files so they download again
 from ocsd import runlog
-runlog.start(os.path.join(DRIVE_ROOT, "results"), CODE)   # every print below also goes to results/logs/run_*.log
 from ocsd.config import Paths, ExperimentConfig, TIERS
 P = Paths(DRIVE_ROOT); P.makedirs()
-E = ExperimentConfig(backbone=BACKBONE, tier=TIER, skip_jobs=SKIP_JOBS)
+E = ExperimentConfig(backbone=BACKBONE, tier=TIER, skip_jobs=SKIP_JOBS,
+                     extra_detectors=() if TIER == "screen" else ("owlv2", "owlv2d", "detr"))
+from ocsd.provenance import start_run
+P, RUN = start_run(P, E, run_id=RUN_ID)
+RUN_ID = P.run_id
+runlog.start(P.results, CODE)
+LOGS = os.path.join(P.results, "logs")
 E.save(os.path.join(P.results, "experiment_config.json"))
+print("RUN_ID:", RUN_ID, "results:", P.results)
 print(E)'''
 
 def nb(cells, name):
@@ -69,8 +84,15 @@ def nb(cells, name):
     n.metadata = {"accelerator": "GPU", "colab": {"gpuType": "L4", "machine_shape": "hm", "provenance": []},
                   "kernelspec": {"display_name": "Python 3", "name": "python3"},
                   "language_info": {"name": "python"}}
+    cells = [c.replace("start_run(P, E, run_id=RUN_ID)", f'start_run(P, E, run_id=RUN_ID, notebook="notebooks/{name}")') for c in cells]
     n.cells = [nbf.v4.new_markdown_cell(c[3:]) if c.startswith("MD:") else nbf.v4.new_code_cell(c) for c in cells]
     path = os.path.join(OUT, name)
+    import hashlib
+    old = nbf.read(path, as_version=4) if os.path.exists(path) else None
+    if old:
+        by_title = {c.source.split("\n")[0]: c.id for c in old.cells if c.get("id")}
+        for c in n.cells:
+            c.id = by_title.get(c.source.split("\n")[0], hashlib.sha256(c.source.encode()).hexdigest()[:12])
     nbf.write(n, path)
     print("wrote", path)
 
@@ -82,16 +104,23 @@ nb([
     "Lê Hoàng Bảo (21090331), Thái Bá Cường (21050681); GVHD: TS. Nguyễn Thanh Chuyên.\n\n"
     "**Cách dùng:** Runtime → Change runtime type → GPU (L4 hoặc A100) → sửa ô 1 → Runtime → Run all.\n\n"
     "Notebook chạy 4 giai đoạn: (A) dựng bộ dữ liệu, (B) sinh ảnh cho E1–E4 và khảo sát α, (C) đánh giá, "
-    "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results` "
+    "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
-    "Nếu Colab ngắt kết nối, chỉ cần Run all lại: phần đã xong được bỏ qua.",
-    SETUP, MOUNT, INSTALL,
+    "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
+    SETUP.replace('TIER       = "pilot"', 'TIER       = "screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'), MOUNT, INSTALL,
+    "MD:## Sàng lọc trước khi chạy dài\nMặc định `screen`: 12 cảnh × 7 phương pháp × 1 seed = 84 ảnh; "
+    "không M3, COCO, FID/KID hoặc tuning. Có GLIGEN, best-of-2, Collage, OCSD-v2 và biến thể "
+    "GLIGEN + sửa vùng có/không M2. Đây là giả thuyết chưa được xác minh chất lượng trên GPU. "
+    "Không tự chuyển sang paper/full. MAX_MINUTES giới hạn stage sinh ảnh giữa các cảnh, "
+    "không giới hạn tổng thời gian tải/cài đặt/đánh giá hoặc compute units. Xem docs/QUALITY_SCREEN.md.",
     "MD:## A. Bộ dữ liệu\nQuickDraw-Scenes (tổng hợp, 12 ô: số đối tượng 1/3/5/8+ × độ phức tạp đơn giản/trung bình/phức tạp) "
     "và COCO-Sketch (ảnh thật COCO val2017, phác thảo PiDiNet, mặt nạ thật). Lần đầu mất ~10–20 phút (tải COCO 1 GB).",
     r'''#@title A. Build benchmarks (skipped if already built for this tier)
 from ocsd import stages
-with runlog.stage("A_data"):
-    stages.setup_data(P, TIER, with_coco=True)
+with RUN.stage("A_data"):
+    stages.setup_data(P, TIER, with_coco=TIER != "screen")
+    RUN.seal_data()
+    RUN.plan(E)
 from IPython.display import Image, display
 f = os.path.join(P.results, "figures", "benchmark_examples.png")
 if os.path.exists(f): display(Image(f, width=900))''',
@@ -104,58 +133,71 @@ if os.path.exists(f): display(Image(f, width=900))''',
     r'''#@title T. Tune OCSD on the pilot scenes (finished phases are skipped)
 import torch
 eng = vis = None
-with runlog.stage("T_tune"):
+with RUN.stage("T_tune"):
     eng, vis = stages.tune(P, E, max_minutes=MAX_MINUTES)''',
     r'''#@title B1. Plan and remaining images
 for j in stages.experiment_plan(P, E):
     print(f"{j['name']:22s} {len(j['scenes']):4d} scenes x {len(j['methods']):2d} methods x {len(j['seeds'])} seeds -> {stages._count_todo(P, j)} images left")''',
     r'''#@title B2. Generate images (resumable: finished images are skipped)
-with runlog.stage("B_generate"):
+with RUN.stage("B_generate"):
     eng, vis = stages.generate(P, E, max_minutes=MAX_MINUTES, eng=eng, vis=vis)''',
     "MD:## C. Đánh giá\nOPR, OCE, độ chính xác đếm, mIoU, RA bằng bộ phát hiện **OWLv2** (khác Grounding DINO mà phương pháp "
     "dùng bên trong, để tránh tối ưu hóa theo chính độ đo); CLIP score toàn ảnh và cấp đối tượng; ID-Sim (DINOv2); FID/KID; LPIPS.",
     r'''#@title C. Metrics (only new images are evaluated; FID reused when unchanged)
 if eng is not None:
-    del eng; torch.cuda.empty_cache()
-with runlog.stage("C_evaluate"):
-    vis = stages.evaluate(P, E, vis=vis, fid=True)''',
+    del eng
+from ocsd.methods import _GLIGEN
+_GLIGEN.clear()
+import gc
+gc.collect(); torch.cuda.empty_cache()
+with RUN.stage("C_evaluate"):
+    vis = stages.evaluate(P, E, vis=vis, fid=TIER != "screen")''',
     "MD:## D. Báo cáo",
     r'''#@title D. Tables, figures, statistics, summary
-with runlog.stage("D_report"):
+with RUN.stage("D_report"):
     summary = stages.report(P, E)
-    from IPython.display import Markdown, display
-    display(Markdown(open(os.path.join(P.results, "summary.md")).read()))
-    for f in summary["figures"]:
-        display(Image(f, width=900))''',
+RUN.finish(E)  # checksum only after the stage has written its final status
+from IPython.display import Markdown, display
+display(Markdown(open(os.path.join(P.results, "summary.md")).read()))
+for f in summary["figures"]:
+    display(Image(f, width=900))''',
     r'''#@title E. Run status (also saved to results/logs/status.json; errors in results/logs/errors/)
 runlog.summary()
 if os.path.exists(os.path.join(LOGS, "LATEST_ERROR.txt")):
     print("\nMost recent error:\n" + open(os.path.join(LOGS, "LATEST_ERROR.txt")).read()[-3000:])''',
     r'''#@title F. Send logs and results to GitHub (branch colab-results) so Claude can read them
 from ocsd import sync
-try:
+if PUSH_RESULTS:
     sync.push_results(P.results, sync.colab_token())
-except Exception as e:
-    print("[sync] failed:", e)''',
+else:
+    print("Results retained on Drive:", P.results)''',
 ], "RUN_ALL.ipynb")
 
 # ============================================================================ push logs only
 nb([
     "MD:# Send the latest logs/results from Drive to GitHub (no GPU needed)\n\n"
     "Use this when a run already finished (or crashed) and Claude needs to read the logs. "
-    "Requires the Colab secret `GH_TOKEN` (key icon on the left).",
+    "Select RUN_ID (blank = latest), set PUSH_RESULTS=True and provide the Colab secret `GH_TOKEN` "
+    "(key icon on the left) to upload. REPO_URL blank uses DRIVE_ROOT/code.",
     SETUP,
     r'''import os, subprocess, sys
 from google.colab import drive
 drive.mount("/content/drive")
 CODE = "/content/KLTN_OCSD"
-if os.path.exists(CODE):
-    subprocess.run(f"git -C {CODE} fetch -q origin {BRANCH} && git -C {CODE} reset -q --hard origin/{BRANCH}", shell=True, check=True)
+if not REPO_URL:
+    CODE = os.path.join(DRIVE_ROOT, "code")
+elif os.path.exists(CODE):
+    print("Using existing checkout:", CODE)
 else:
-    subprocess.run(f"git clone -q -b {BRANCH} {REPO_URL} {CODE}", shell=True, check=True)
+    subprocess.run(["git", "clone", "-q", "-b", BRANCH, REPO_URL, CODE], check=True)
 sys.path.insert(0, CODE)
 from ocsd import sync
-sync.push_results(os.path.join(DRIVE_ROOT, "results"), sync.colab_token())''',
+RESULTS = sync.results_for_run(DRIVE_ROOT, RUN_ID)
+print("Selected results:", RESULTS)
+if PUSH_RESULTS:
+    sync.push_results(RESULTS, sync.colab_token())
+else:
+    print("Set PUSH_RESULTS=True to upload this run, including its manifest")''',
 ], "00_push_logs.ipynb")
 
 # ============================================================================ demo từng mô-đun
@@ -270,7 +312,7 @@ nb([
     "OCSD đầy đủ. Bảng kiểm tra cho biết số đối tượng phát hiện được.",
     SETUP, MOUNT, INSTALL,
     r'''#@title Khởi chạy ứng dụng
-!pip install -q gradio
+subprocess.run([sys.executable, "-m", "pip", "install", "-q", "gradio"], check=True)
 from ocsd.app import launch
 launch(backbone=E.backbone, share=True)''',
 ], "02_app_gradio.ipynb")
