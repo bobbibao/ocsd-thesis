@@ -391,7 +391,8 @@ def _gen_signatures(E: ExperimentConfig, tuned: Optional[Dict] = None, defaults:
         sig = {m: c.to_dict() for m, c in var.items()}
         for m, (kind, c) in bls.items():
             d = c.to_dict()
-            sig[m] = (d if kind in ("grounded_repair", "grounded_repair_no_m2", "grounded_repair_sparse") else
+            sig[m] = (d if kind in ("grounded_repair", "grounded_repair_no_m2", "grounded_repair_sparse",
+                                   "gligen_layout5", "gligen_semantic5", "semantic_repair") else
                       {f: d[f] for f in set(BASELINE_FIELDS[kind]) | {"height", "width", "steps", "guidance", "negative_prompt"}})
         for d in sig.values():
             if sp == "quickdraw":
@@ -465,8 +466,9 @@ def experiment_plan(P: Paths, E: ExperimentConfig) -> List[Dict]:
     E4/alpha nằm trong tập cảnh đã học định danh để dùng lại M2/M3 (tiết kiệm GPU). priority: 0 = main tables, then
     the power job (1) and the sweeps (2), which run after everything else. E.skip_jobs drops jobs by name prefix."""
     t = TIERS[E.tier]
-    if E.tier in ("screen", "repair_screen"):
+    if E.tier in ("screen", "repair_screen", "semantic_screen"):
         from .screening import METHODS, REPAIR_METHODS
+        from .semantic import METHODS as SEMANTIC_METHODS
         scenes = list_scenes(P.benchmarks, "quickdraw", exclude=_qd_from(P, 1))
         if len(scenes) != 12:
             raise RuntimeError("Screen requires all 12 benchmark cells; finish data preparation first")
@@ -475,7 +477,7 @@ def experiment_plan(P: Paths, E: ExperimentConfig) -> List[Dict]:
             if not {os.path.basename(d) for d in scenes} <= development:
                 raise RuntimeError("Screen would reuse held-out scenes; use a separate development data root")
         return [dict(name="screen_quickdraw", split="quickdraw", scenes=scenes,
-                     methods=list(REPAIR_METHODS if E.tier == "repair_screen" else METHODS), seeds=E.seeds, priority=0)]
+                     methods=list(SEMANTIC_METHODS if E.tier == "semantic_screen" else REPAIR_METHODS if E.tier == "repair_screen" else METHODS), seeds=E.seeds, priority=0)]
     main = [m for m in MAIN if not (m in ("gligen", "t2i_adapter", "gligen_bon") and E.backbone != "sd15")]
     free = [m for m in main if m not in ("ocsd", "zhang2025")]
     ex = excluded_scenes(P, E)
@@ -584,10 +586,11 @@ def tier_baselines(E: ExperimentConfig, P: Optional[Paths] = None, tuned_bl: Opt
         out[b] = (b, c)
     for name, (b, field, value) in PARETO_BASELINES.items():
         out[name] = (b, base.replace(**{field: value}))
-    if E.tier in ("screen", "repair_screen"):
+    if E.tier in ("screen", "repair_screen", "semantic_screen"):
         c = base.replace(use_identity=False, blend_mode="joint", m2_per_seed=True,
                          use_energy=False, use_region_attn=False, use_scene_cn=True, alpha=0.4)
-        out.update({name: (name, c) for name in ("grounded_repair", "grounded_repair_no_m2", "grounded_repair_sparse")})
+        out.update({name: (name, c) for name in ("grounded_repair", "grounded_repair_no_m2", "grounded_repair_sparse",
+                                   "gligen_layout5", "gligen_semantic5", "semantic_repair")})
     return out
 
 
@@ -628,7 +631,7 @@ def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None,
     from .vision import Vision
     if eng is None:
         eng = Engine.from_pretrained(E.backbone, "cuda", E.fp16, cache_dir=P.cache,
-                                     load_adapter=E.tier not in ("screen", "repair_screen"))
+                                     load_adapter=E.tier not in ("screen", "repair_screen", "semantic_screen"))
     if vis is None:
         vis = Vision("cuda", cache_dir=P.cache)
     if TIERS[E.tier].get("tune"):
@@ -643,7 +646,7 @@ def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None,
     print(f"Còn {sum(len(x[2]) for x in todo)} ảnh trên {len(todo)} cảnh")
     stats = runner.run_items(todo, max_minutes=max_minutes)
     progress = log_progress(P, E)
-    if E.tier not in ("screen", "repair_screen"):
+    if E.tier not in ("screen", "repair_screen", "semantic_screen"):
         estimate(P, E)
     if stats["failed"] or any(j["todo"] for j in progress.values()) or runner.pending_items(items):
         raise RuntimeError("Generation incomplete (errors or time budget); completed artifacts saved. Resume this RUN_ID before evaluation.")
@@ -780,7 +783,7 @@ def report(P: Paths, E: ExperimentConfig):
     from . import report as R
     if P.run_id and any(j['todo'] for j in log_progress(P, E).values()):
         raise RuntimeError("Cannot publish a complete report for an unfinished run; resume generation first")
-    if E.tier in ("screen", "repair_screen"):
+    if E.tier in ("screen", "repair_screen", "semantic_screen"):
         from .screening import screen_report
         return screen_report(P, E)
     tabs = R.build_all(P.results)
