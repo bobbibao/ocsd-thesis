@@ -1,5 +1,7 @@
 # Semantic routing: prospective development experiment
 
+**Completed outcome:** the first run did not improve the sparse-M2 comparison. Do not scale up; see [results](SEMANTIC_20261029_RESULTS.md). The protocol below is preserved for reproduction. RUN_ALL now defaults to repair_screen.
+
 The prior sparse-M2 screen reduced sampler work but retained wrong backgrounds, colors and malformed replacements. This experiment tests a limited routing policy against stronger selection controls. It does not claim an improvement before pretrained results and independent review.
 
 ## Fixed policy (version 1)
