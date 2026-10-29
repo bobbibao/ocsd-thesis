@@ -8,7 +8,7 @@ Mục tiêu: từ **phác thảo cảnh + câu mô tả**, sinh ảnh có **đú
 ## Phiên bản tối ưu và định danh thực nghiệm
 
 Xem [runbook](docs/EXPERIMENT_RUNBOOK.md), [audit](docs/OPTIMIZATION_AUDIT.md) và
-[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `semantic_screen`,
+[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `repair_screen`,
 lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi resume. Con trỏ mới nhất là
 `results/latest_run.json`; kết quả cũ được giữ nguyên. Bộ QuickDraw mới dùng seed theo scene và
 `data/benchmarks_v2/`. Chưa có số liệu GPU chứng minh tăng chất lượng từ các sửa đổi này.
@@ -17,7 +17,7 @@ lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi 
 
 1. [Mở RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 2. Runtime → Change runtime type → **GPU L4** (hoặc A100).
-3. Giữ `TIER="semantic_screen"` để kiểm tra sửa theo loại lỗi với 48 ảnh trước lượt dài, rồi Runtime → **Run all**.
+3. Mặc định `TIER="repair_screen"` có 48 ảnh; không chạy lại nếu đã có kết quả trước lượt dài, rồi Runtime → **Run all**.
    Xem [protocol screening](docs/SEMANTIC_SCREEN.md). Chưa có bằng chứng biến thể mới vượt baseline.
 4. Kết quả nằm trong Google Drive: `MyDrive/KLTN_OCSD/results/runs/<run_id>/`
    (`run_manifest.json`, `summary.md`, `summary.json`, `progress.json`, `tables/`, `figures/`, `user_study/`).
@@ -151,4 +151,4 @@ python tests/test_v2_ablation.py    # the 10 OCSD-v2 ablation rows end to end on
 
 The earlier `repair_screen` tier (48 outputs) compares: sparse M2 repair versus full repair, GLIGEN and best-of-2. Start a fresh run with blank RUN_ID; this is an unvalidated efficiency experiment. See [protocol and recovery](docs/SPARSE_REPAIR_SCREEN.md). Export the completed run's tables, images and repair diagnostics using `03_export_screen_review.ipynb` on CPU without a GitHub token.
 
-The current default is `semantic_screen`; see [semantic routing protocol](docs/SEMANTIC_SCREEN.md). This is an unvalidated development experiment with five-candidate controls and blind-review cards, not a paper run.
+The current default is `repair_screen`. The semantic routing screen failed to improve the development results; see [negative result and stop decision](docs/SEMANTIC_20261029_RESULTS.md). `semantic_screen` remains available for reproduction, not recommended scaling.

@@ -110,12 +110,12 @@ nb([
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
     "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
-    SETUP.replace('TIER       = "pilot"', 'TIER       = "semantic_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'), MOUNT, INSTALL,
-    "MD:## Sàng lọc trước khi chạy dài\nMặc định `semantic_screen`: 12 cảnh × 4 phương pháp × 1 seed = 48 ảnh; "
-    "không M3, COCO, FID/KID hoặc tuning. So sánh GLIGEN best-of-5 theo layout/semantic, sparse M2 và sửa theo loại lỗi. "
-    "CLIP chỉ là tín hiệu chọn/sửa ảnh; cần đánh giá OWLv2 và chấm ảnh ẩn tên phương pháp. "
-    "Không tự chuyển sang paper/full. MAX_MINUTES giới hạn stage sinh ảnh giữa các cảnh, "
-    "không giới hạn tổng thời gian tải/cài đặt/đánh giá hoặc compute units. Xem docs/SEMANTIC_SCREEN.md.",
+    SETUP.replace('TIER       = "pilot"', 'TIER       = "repair_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'), MOUNT, INSTALL,
+    "MD:## Trạng thái sau thử nghiệm semantic\nMặc định trở lại `repair_screen` (48 ảnh). "
+    "Lần chạy semantic 20261029T061148Z_c663e968 không cải thiện so với sparse M2; "
+    "không chạy lại nếu đã có kết quả, không tăng lên paper/full. `semantic_screen` vẫn có để tái lập. "
+    "Xem docs/SEMANTIC_20261029_RESULTS.md. MAX_MINUTES là giới hạn mềm của stage sinh ảnh, "
+    "không phải giới hạn toàn bộ compute units.",
     "MD:## A. Bộ dữ liệu\nQuickDraw-Scenes (tổng hợp, 12 ô: số đối tượng 1/3/5/8+ × độ phức tạp đơn giản/trung bình/phức tạp) "
     "và COCO-Sketch (ảnh thật COCO val2017, phác thảo PiDiNet, mặt nạ thật). Lần đầu mất ~10–20 phút (tải COCO 1 GB).",
     r'''#@title A. Build benchmarks (skipped if already built for this tier)

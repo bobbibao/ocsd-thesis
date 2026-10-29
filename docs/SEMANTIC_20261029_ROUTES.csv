@@ -1,0 +1,13 @@
+sid,route,accepted,work,background_flag
+qd_1_complex_000,keep,0,60,False
+qd_1_medium_000,keep,0,60,False
+qd_1_simple_000,global,0,300,True
+qd_3_complex_000,global,1,300,False
+qd_3_medium_000,keep,0,60,False
+qd_3_simple_000,local,1,280,False
+qd_5_complex_000,global,1,300,False
+qd_5_medium_000,global,0,300,True
+qd_5_simple_000,global,0,300,False
+qd_8p_complex_000,global,0,300,True
+qd_8p_medium_000,global,0,300,True
+qd_8p_simple_000,global,0,300,False
