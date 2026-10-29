@@ -538,7 +538,7 @@ def repair_regions(scene: Scene, ctx: SceneCond, c: Dict, dets: Sequence[dict], 
 
 def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, img: np.ndarray, c: Dict,
                  dets: Sequence[dict], seed: int, lambda0: float, log: Optional[dict] = None,
-                 protect_matched: bool = False, diagnose=None) -> Optional[np.ndarray]:
+                 protect_matched: bool = False, diagnose=None, replacement_ids=None) -> Optional[np.ndarray]:
     """M5(d) repair (joint mode): re-noise `img` to (1 - repair_strength) of the trajectory and denoise again only
     inside repair_regions - the rest is held to the previous image at every step (and pasted back at the end), and a
     missing object's M2 latent is re-imposed for the same alpha fraction of the remaining steps. Region attention
@@ -548,6 +548,13 @@ def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, i
     use_id = prep.id_tokens is not None
     ctx = scene_cond(eng, scene, cfg, prep.id_tokens, prep.fg)
     M, missing = repair_regions(scene, ctx, c, dets, H)
+    for i in replacement_ids or ():
+        if i not in missing:
+            raise ValueError('Replacement target must be released in repair matching')
+        x0,y0,x1,y1 = scene.objects[i].box
+        x0,y0 = max(0,int(np.floor(x0))),max(0,int(np.floor(y0)))
+        x1,y1 = min(H,int(np.ceil(x1))),min(H,int(np.ceil(y1)))
+        M[y0:y1,x0:x1] = True
     proposed = M.copy()
     if protect_matched:
         M = protect_regions(M, ctx.region_masks, c, dets)
