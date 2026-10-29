@@ -241,6 +241,7 @@ class Runner:
         if unknown:
             raise KeyError(f"Phương pháp không xác định: {sorted({m for m, _ in unknown})}")
         two_branch = [x for x in todo if x[0] in self.baselines and self.baselines[x[0]][0] in COLLAGE_BASELINES]
+        gligen_pool = {}  # per-scene only; identical configs/seeds share generation across semantic controls
         # ---- baseline một nhánh
         for m, s in [x for x in todo if x[0] in self.baselines and x not in two_branch]:
             kind, cfg = self.baselines[m]
@@ -248,25 +249,56 @@ class Runner:
             compute_before = dict(eng.compute)
             if torch.cuda.is_available():
                 torch.cuda.reset_peak_memory_stats()
-            if kind in ("grounded_repair", "grounded_repair_no_m2", "grounded_repair_sparse"):
+            if kind in ("grounded_repair", "grounded_repair_no_m2", "grounded_repair_sparse",
+                        "gligen_layout5", "gligen_semantic5", "semantic_repair"):
                 from .screening import grounded_repair
                 def get_objects(indices=None):
                     started = time.time()
+                    m2_before = dict(eng.compute)
                     key, objs, elapsed = self._objects(split, scene, cfg, s, indices)
                     log.update(m2_key=key, prep_times=dict(m2=elapsed), m2_lookup_seconds=time.time()-started,
                                m2_object_ids=list(range(scene.n)) if indices is None else indices,
                                m2_candidate_count=(scene.n if indices is None else len(indices))*cfg.K)
+                    cache_meta = json.loads(Path(self.obj_dir(split, key, scene.sid), 'objects.json').read_text())
+                    log['m2_compute'] = cache_meta.get('compute', {})
+                    log['m2_compute_in_this_call'] = eng.compute_delta(m2_before)
                     return objs
                 def diagnose(name, image):
                     path = os.path.join(self.out_root, split, m, '_diagnostics', f'{scene.sid}_s{s}', name + '.png')
                     _save_png(path, image)
                     log.setdefault('diagnostics', {})[os.path.relpath(path, self.out_root)] = file_hash(path)
-                img = grounded_repair(eng, vis, scene, s, cfg, self.backbone, self.cache_dir, log,
-                                      get_objects, use_m2=kind != "grounded_repair_no_m2",
-                                      sparse=kind == "grounded_repair_sparse", diagnose=diagnose)
+                if kind in ("gligen_layout5", "gligen_semantic5", "semantic_repair"):
+                    from .semantic import generate as semantic_generate, _gligen
+                    def make_gligen(sample_seed):
+                        key = (digest(cfg.to_dict()), sample_seed)
+                        if key not in gligen_pool:
+                            before = dict(eng.compute)
+                            started = time.time()
+                            image = _gligen(eng, scene, sample_seed, cfg, self.backbone, self.cache_dir)
+                            gligen_pool[key] = (image, time.time()-started, eng.compute_delta(before))
+                        else:
+                            _, elapsed, work = gligen_pool[key]
+                            log['gligen_reused_seconds'] = log.get('gligen_reused_seconds',0) + elapsed
+                            cached = log.setdefault('gligen_compute_cached', {})
+                            for field, value in work.items():
+                                cached[field] = cached.get(field,0) + value
+                        return gligen_pool[key][0]
+                    img = semantic_generate(kind, eng, vis, scene, s, cfg, self.backbone, self.cache_dir,
+                                            log, get_objects, diagnose, make_gligen=make_gligen)
+                else:
+                    img = grounded_repair(eng, vis, scene, s, cfg, self.backbone, self.cache_dir, log,
+                                          get_objects, use_m2=kind != "grounded_repair_no_m2",
+                                          sparse=kind == "grounded_repair_sparse", diagnose=diagnose)
             else:
                 img = run_baseline(kind, eng, vis, scene, s, cfg, self.backbone, self.cache_dir, log)
             log["compute"] = eng.compute_delta(compute_before)
+            if 'sampling_work_cap' in log:
+                fields = ('unet_sample_calls', 'controlnet_sample_calls', 'gligen_unet_sample_calls')
+                work = sum(log['compute'].get(k,0) + log.get('gligen_compute_cached',{}).get(k,0) + log.get('m2_compute',{}).get(k,0)
+                           - log.get('m2_compute_in_this_call',{}).get(k,0) for k in fields)
+                log['standalone_sampling_work'] = work
+                if work > log['sampling_work_cap']:
+                    raise RuntimeError('Semantic sampler exceeded its declared work cap')
             self._write(split, m, scene, s, img, log, cfg)
             stats["done"] += 1
         # ---- họ OCSD: nhóm theo bộ đối tượng M2 (theo seed nếu m2_per_seed) rồi khóa M3
