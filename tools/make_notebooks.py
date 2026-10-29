@@ -325,7 +325,7 @@ launch(backbone=E.backbone, share=True)''',
 nb([
     "MD:# Export completed screen evidence (CPU only)\n\nBlank RUN_ID selects the latest run. "
     "Downloads result tables, final images, and repair diagnostics after checking manifest hashes. "
-    "No model download or inference. Attach the ZIP in chat; no GitHub token is needed.",
+    "No model download or inference. Attach the metrics ZIP first, then all image ZIPs; each is below 32 MiB. No GitHub token is needed.",
     r'''from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 from google.colab import drive, files
@@ -357,11 +357,38 @@ for relative, digest in manifest['artifacts'].items():
     assert hashlib.sha256(p.read_bytes()).hexdigest() == digest, f'Changed: {p}'
     selected.append((p, relative))
 assert selected, 'No artifacts found'
-archive = '/content/ocsd_review_' + RUN_ID + '.zip'
-with ZipFile(archive, 'w', ZIP_DEFLATED) as z:
-    z.write(manifest_path, 'run_manifest.json')
-    for p, relative in selected:
-        z.write(p, relative)
+# Bound uncompressed size conservatively; each ZIP is independently readable.
+MAX_PART_BYTES = 24 * 2**20
+archives = []
+def export_parts(label, entries):
+    part, group = 1, []
+    manifest_size = manifest_path.stat().st_size
+    size = manifest_size
+    def write_group(group, part):
+        archive = f'/content/ocsd_review_{RUN_ID}_{label}_{part:02d}.zip'
+        with ZipFile(archive, 'w', ZIP_DEFLATED) as z:
+            z.write(manifest_path, 'run_manifest.json')
+            for p, relative in group:
+                z.write(p, relative)
+        assert Path(archive).stat().st_size < 32 * 2**20, 'Archive exceeds transfer limit'
+        archives.append(archive)
+    for p, relative in sorted(entries, key=lambda entry: entry[1]):
+        item_size = p.stat().st_size + len(relative.encode('utf-8')) * 2 + 512
+        assert manifest_size + item_size < MAX_PART_BYTES, f'Single artifact too large: {relative}'
+        if group and size + item_size > MAX_PART_BYTES:
+            write_group(group, part)
+            part += 1
+            group, size = [], manifest_size
+        group.append((p, relative))
+        size += item_size
+    if group:
+        write_group(group, part)
+
+export_parts('metrics', [(p, rel) for p, rel in selected if p.suffix.lower() != '.png'])
+export_parts('images', [(p, rel) for p, rel in selected if p.suffix.lower() == '.png'])
 print('Exported existing files; no model execution:', len(selected), 'run:', RUN_ID)
-files.download(archive)''',
+print('Upload metrics first, then every image part. If browser blocks downloads, use Colab Files:')
+for archive in archives:
+    print(archive, round(Path(archive).stat().st_size / 2**20, 2), 'MiB')
+    files.download(archive)''',
 ], "03_export_screen_review.ipynb")

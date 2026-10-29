@@ -16,7 +16,7 @@ The report compares sparse repair against all three controls using paired tests.
 
 Both repair variants save before/candidate images for every attempted edit, including rejected candidates, editable and excluded masks, missing original IDs, matched-object assignments and detector boxes. The candidate image is saved before acceptance. Final outputs still fall back to the best image on rejection. Empty edit masks are saved too. Diagnostic files have checksums in output metadata and missing/changed diagnostic files invalidate that output's resume check. No additional diffusion is used to produce these diagnostics; saving them adds I/O.
 
-After completion, use `03_export_screen_review.ipynb` on CPU. Blank RUN_ID selects the latest run; specify the printed ID when several runs exist. It exports manifest-verified result tables, final images and diagnostic files into one ZIP without a GitHub token. It requires a completed run and does not run inference. Attach this ZIP for review. The manifest includes diagnostics recursively.
+After completion, use `03_export_screen_review.ipynb` on CPU. Blank RUN_ID selects the latest run; specify the printed ID when several runs exist. It exports manifest-verified result tables, final images and diagnostic files into separate metrics and image ZIP parts below 32 MiB each, without a GitHub token. It requires a completed run and does not run inference. Attach the metrics ZIP first, then all image parts for review. If multiple downloads are blocked by the browser, download the printed paths from the Colab Files sidebar. The manifest includes diagnostics recursively.
 
 ## Offline checks
 
