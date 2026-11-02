@@ -1,0 +1,13 @@
+sid,seed,route,internal_opr,internal_count_error,independent_opr,independent_count_error,joint_layout_success,signals,human_verified
+qd_1_complex_000,0,keep,1.0,0,1.0,0,1.0,no_box_metric_failure,no
+qd_1_medium_000,0,keep,1.0,0,1.0,0,1.0,no_box_metric_failure,no
+qd_1_simple_000,0,keep,1.0,0,1.0,0,1.0,no_box_metric_failure,no
+qd_3_complex_000,0,keep,1.0,0,1.0,0,1.0,no_box_metric_failure,no
+qd_3_medium_000,0,keep,1.0,0,1.0,0,1.0,no_box_metric_failure,no
+qd_3_simple_000,0,keep,1.0,3,1.0,6,0.0,count_error_without_missing_target;independent_count_error,no
+qd_5_complex_000,0,single_instance,1.0,0,0.8,1,0.0,detector_class_count_disagreement;independent_missing_instances;independent_count_error;independent_instance_iou_below_half;independent_relation_error,no
+qd_5_medium_000,0,single_instance,1.0,0,1.0,1,0.0,detector_class_count_disagreement;independent_count_error,no
+qd_5_simple_000,0,keep,1.0,0,1.0,0,1.0,no_box_metric_failure,no
+qd_8p_complex_000,0,single_instance,0.6666666666666666,3,0.6666666666666666,3,0.0,independent_missing_instances;independent_count_error;independent_instance_iou_below_half;independent_relation_error,no
+qd_8p_medium_000,0,single_instance,0.625,3,0.625,4,0.0,independent_missing_instances;independent_count_error;independent_instance_iou_below_half;independent_relation_error,no
+qd_8p_simple_000,0,single_instance,0.625,4,0.5,6,0.0,independent_missing_instances;independent_count_error;independent_instance_iou_below_half;independent_relation_error,no
