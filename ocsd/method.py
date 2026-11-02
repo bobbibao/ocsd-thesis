@@ -538,7 +538,7 @@ def repair_regions(scene: Scene, ctx: SceneCond, c: Dict, dets: Sequence[dict], 
 
 def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, img: np.ndarray, c: Dict,
                  dets: Sequence[dict], seed: int, lambda0: float, log: Optional[dict] = None,
-                 protect_matched: bool = False, diagnose=None, replacement_ids=None, focus_ids=None, isolate_replacement=False) -> Optional[np.ndarray]:
+                 protect_matched: bool = False, diagnose=None, replacement_ids=None, focus_ids=None, isolate_replacement=False, replacement_extra_ids=None) -> Optional[np.ndarray]:
     """M5(d) repair (joint mode): re-noise `img` to (1 - repair_strength) of the trajectory and denoise again only
     inside repair_regions - the rest is held to the previous image at every step (and pasted back at the end), and a
     missing object's M2 latent is re-imposed for the same alpha fraction of the remaining steps. Region attention
@@ -585,6 +585,16 @@ def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, i
         x0,y0 = max(0,int(np.floor(x0))),max(0,int(np.floor(y0)))
         x1,y1 = min(H,int(np.ceil(x1))),min(H,int(np.ceil(y1)))
         M[y0:y1,x0:x1] = True
+    if replacement_extra_ids is not None:
+        if not isolate_replacement or not protect_matched or len(replacement_ids or ()) != 1:
+            raise ValueError('Extra replacement requires one isolated, protected target')
+        for jd in replacement_extra_ids:
+            if jd < 0 or jd >= len(dets) or any(j == jd for j,_ in c['matched']):
+                raise ValueError('Cannot replace a protected detection')
+            x0,y0,x1,y1=dets[jd]['box']
+            x0,y0=max(0,int(np.floor(x0))),max(0,int(np.floor(y0)))
+            x1,y1=min(H,int(np.ceil(x1))),min(H,int(np.ceil(y1)))
+            M[y0:y1,x0:x1]=True
     proposed = M.copy()
     if protect_matched:
         M = protect_regions(M, ctx.region_masks, c, dets)
