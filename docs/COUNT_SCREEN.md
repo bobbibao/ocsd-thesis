@@ -44,3 +44,7 @@ Open the current GitHub `RUN_ALL.ipynb` in a fresh GPU runtime. Leave `TIER="cou
 Inspect whether the bicycle count improves while both trains, requested position and image quality are retained. Review the before/candidate/final, including rejected edits; a detector-only gain is not sufficient. If successful, freeze the policy and test new scenes/paired seeds plus stronger instance-conditioned baselines; do not call this single selected failure a model-wide win. If unsuccessful, stop this variant rather than increase retry budgets or relax guards on this scene.
 
 This change does not solve the airplane false acceptance, elephant pose, per-instance colors, background mismatch or crowded bird/rabbit scene. Those require stronger conditioning and independently validated semantic/shape evaluation. No SOTA, paper score or pretrained quality improvement is claimed before the GPU test.
+
+## Completed first diagnostic
+
+[Results](COUNT_20261102_RESULTS.md): both new arms reduce detector count error to zero, but bicycle shape and residual fragments remain concerning. Do not rerun this diagnostic or escalate based on detector scores alone. The next step is the small offline review packet linked in the results.

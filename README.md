@@ -164,3 +164,5 @@ Review tiếp theo: [bộ chấm ảnh tiếng Việt, mở offline](docs/HUMAN_
 Đã nhận [review người dùng và kết luận cập nhật](docs/HUMAN_REVIEW_20261102_RESULTS.md): xác nhận sửa chó, phát hiện false acceptance ở máy bay và lỗi dư xe đạp; chưa chứng minh cải thiện shape/realism.
 
 Triển khai mới: [count-aware replacement](docs/COUNT_SCREEN.md), default `count_screen` chỉ 4 ảnh. Kiểm tra cơ chế trên CPU không chứng minh chất lượng; chưa chạy pretrained model cho biến thể này.
+
+Kết quả `count_screen`: [detector đếm đúng nhưng hình xe còn méo/mảnh thừa](docs/COUNT_20261102_RESULTS.md). Đã có bộ review mới 1 cảnh; chưa cần chạy lại Colab.

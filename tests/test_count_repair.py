@@ -101,6 +101,7 @@ class Count(unittest.TestCase):
                 result=report(p,e)
             self.assertEqual(result['n_images'],4);self.assertEqual(result['research_claim'],'unproven')
             self.assertTrue(pd.read_csv(Path(p.results)/'tables/screen_paired.csv').empty)
+            self.assertFalse(any(c.endswith(('_lo','_hi')) for c in pd.read_csv(Path(p.results)/'tables/screen_means.csv').columns))
 
 
 if __name__=='__main__':unittest.main(verbosity=2)
