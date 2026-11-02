@@ -1,0 +1,58 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OCSD — Review ảnh</title>
+<style>
+*{box-sizing:border-box}select,input{max-width:100%}#scene{min-width:0;max-width:100%;flex:1 1 260px}article{min-width:0}body{font:17px/1.5 system-ui,sans-serif;color:#172337;background:#f3f5f8;margin:0}header,main{max-width:1500px;margin:auto;padding:20px}h1{font-size:26px}button,select,input,textarea{font:inherit;padding:8px;border:1px solid #aab5c4;border-radius:6px}button{cursor:pointer;background:#fff}button.primary{background:#174a9c;color:white}nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}.panel,article{background:white;padding:18px;border-radius:10px;margin:14px 0;border:1px solid #d3dae4}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:14px}.grid article{margin:0}img{max-width:100%;height:auto;cursor:zoom-in}.input{display:flex;gap:20px;flex-wrap:wrap}.input img{width:320px}.input>div{flex:1;min-width:280px}label.field{display:flex;justify-content:space-between;gap:10px;margin:10px 0;align-items:center}label.field span{max-width:58%}small{display:block;color:#465268;font-size:13px}textarea{box-sizing:border-box;width:100%;min-height:90px}#status{font-weight:bold;color:#174a9c}dialog{max-width:95vw;max-height:95vh}dialog img{display:block;max-height:85vh;width:auto}summary{cursor:pointer}#warning{color:#9b2600}a{color:#174a9c}
+</style>
+<header><h1>So phác thảo + mô tả với ảnh sinh ra</h1>
+<p>Bạn đang giúp tìm lỗi để cải tiến mô hình. Không cần biết kỹ thuật. Chấm từng ảnh theo yêu cầu, không cần chọn ảnh “đẹp nhất”. Nhãn A–D được xáo trộn riêng cho từng cảnh.</p>
+<details class="panel" open><summary><b>Hướng dẫn chấm (đọc một lần)</b></summary>
+<ol><li>Đọc mô tả tiếng Việt và nhìn phác thảo; danh sách đối tượng tiếng Anh là tham chiếu bổ sung.</li><li>Nhìn từng ảnh A–D bên dưới. Bấm ảnh để phóng to. Ảnh giống hệt được gộp: một lần chấm áp dụng cho các nhãn trong nhóm.</li><li>Mỗi tiêu chí chọn: <b>0 = sai rõ</b>; <b>1 = đúng một phần</b>; <b>2 = đúng đầy đủ</b>; <b>? = không chắc</b>; <b>N/A = không áp dụng</b>. Chưa chọn nghĩa là chưa chấm, khác với “không chắc”. Với số lượng, chỉ chọn 2 khi đủ và không thừa từng loại; chọn 1 nếu vẫn nhận ra các đối tượng nhưng đếm sai, 0 nếu sai nghiêm trọng/không thể tách.</li><li>Ở ô ghi chú, mô tả lỗi cụ thể, ví dụ: “cần 4 ngựa + 1 chó; tôi thấy 5 ngựa, thiếu chó”. Ghi số lượng thực thấy nếu đếm được. Không cần thuật ngữ.</li><li>Bấm <b>Tải kết quả JSON</b> để lưu và gửi lại file đó trong chat. Có thể gửi bản chấm dở. Nếu nghỉ giữa chừng, tải JSON trước; lần sau bấm Nhập JSON để tiếp tục.</li></ol>
+<p>Quan hệ: N/A nếu chỉ có một vật. Đặc điểm: N/A nếu mô tả không yêu cầu màu/chất liệu/kích thước. Nếu phác thảo quá mơ hồ, chọn “?” cho hình dáng hoặc quan hệ, đừng đoán. Không suy luận màu từ nét vẽ đen.</p>
+<p>Đây là review phát triển mô hình. Bạn đã xem một số kết quả trước đó nên không coi đây là nghiên cứu người dùng mù độc lập. Các câu trả lời không được dùng như nhãn test để tuyên bố SOTA.</p></details>
+<label>Tên/mã người chấm (tùy chọn): <input id="reviewer" placeholder="VD: reviewer_01"></label>
+<nav><button class="primary" id="download">Tải kết quả JSON</button><label>Nhập JSON <input type="file" id="import" accept=".json,application/json"></label><span id="status" aria-live="polite"></span></nav>
+<p id="warning">Trình duyệt có thể không lưu dữ liệu khi mở file cục bộ. Luôn tải JSON trước khi đóng trang.</p>
+</header><main><nav><button id="prev">← Trước</button><select id="scene" aria-label="Chọn cảnh"></select><button id="next">Tiếp →</button></nav><div id="content"></div><p>Chưa chắc thì chọn “?”. Gửi JSON ngay cả khi chưa chấm đủ; không cần chạy Colab.</p></main>
+<dialog id="zoom"><button id="close">Đóng ảnh</button><img id="large" alt="Ảnh phóng to"></dialog>
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>
+'use strict';
+const data=JSON.parse(document.getElementById('payload').textContent), $=id=>document.getElementById(id);
+const storageKey=data.schema+':'+data.run_id;
+const validScores=['','0','1','2','?','NA'];
+const keys=data.criteria.map(x=>x[0]);
+let state={schema:data.schema,run_id:data.run_id,reviewer_id:'',ratings:{}}, index=0;
+function groupKey(s,g){return s.item+':'+g.labels.join('');}
+function validate(x){
+ if(x.schema!==data.schema||x.run_id!==data.run_id||!x.ratings||typeof x.ratings!=='object'||Array.isArray(x.ratings)||typeof x.reviewer_id!=='string')throw Error('Sai phiên bản hoặc run ID.');
+ const allowed=new Set(data.scenes.flatMap(s=>s.groups.map(g=>groupKey(s,g))));
+ for(const [k,r] of Object.entries(x.ratings)){
+  if(!allowed.has(k)||!r||typeof r!=='object'||Array.isArray(r))throw Error('Mục đánh giá không hợp lệ.');
+  for(const c of keys)if(r[c]!==undefined&&!validScores.includes(r[c]))throw Error('Điểm không hợp lệ.');
+  if(r.comment!==undefined&&typeof r.comment!=='string')throw Error('Ghi chú không hợp lệ.');
+ }
+ return {schema:x.schema,run_id:x.run_id,reviewer_id:x.reviewer_id,ratings:x.ratings};
+}
+try{const raw=localStorage.getItem(storageKey);if(raw)state=validate(JSON.parse(raw));}catch(e){/* JSON export remains available. */}
+function progress(){let n=0,total=0;for(const s of data.scenes)for(const g of s.groups){total+=keys.length;const r=state.ratings[groupKey(s,g)]||{};n+=keys.filter(k=>r[k]!==undefined&&r[k]!=='').length;}$('status').textContent=`Đã trả lời ${n}/${total} mục (có thể gửi bản dở)`;}
+function save(){try{localStorage.setItem(storageKey,JSON.stringify(state));}catch(e){$('warning').textContent='Không tự lưu được. Hãy tải JSON trước khi đóng trang.';}progress();}
+function el(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;}
+function picture(hash,alt){const img=el('img');img.src=data.images[hash];img.alt=alt;img.tabIndex=0;const show=()=>{$('large').src=img.src;$('large').alt=alt;$('zoom').showModal();};img.onclick=show;img.onkeydown=e=>{if(e.key==='Enter')show();};return img;}
+function render(){
+ const s=data.scenes[index], host=$('content');host.replaceChildren();$('scene').value=String(index);$('prev').disabled=index===0;$('next').disabled=index===data.scenes.length-1;
+ const input=el('section');input.className='panel input';input.append(picture(s.sketch,'Phác thảo đầu vào'));const detail=el('div');detail.append(el('h2',`Cảnh ${index+1}/${data.scenes.length}`),el('p',s.caption_vi||s.caption),el('small','Mô tả gốc: '+s.caption));
+ const list=el('ul');for(const o of s.objects)list.append(el('li',`Đối tượng ${o.index+1}: ${o.phrase}`));const fold=el('details');fold.append(el('summary','Danh sách đối tượng (tiếng Anh)'),list);detail.append(fold);input.append(detail);host.append(input);
+ const grid=el('div');grid.className='grid';
+ for(const g of s.groups){const k=groupKey(s,g),r=state.ratings[k]||{},card=el('article');card.append(el('h3','Ảnh '+g.labels.join(' = ')),picture(g.image,'Kết quả '+g.labels.join(', ')));
+ if(g.labels.length>1)card.append(el('small','Các nhãn này có file ảnh giống hệt; chỉ chấm một lần.'));
+ for(const [criterion,title,hint] of data.criteria){const label=el('label');label.className='field';const span=el('span',title);span.append(el('small',hint));const select=el('select');select.setAttribute('aria-label',title+' ảnh '+g.labels.join(' '));for(const [v,t] of [['','— Chưa chấm —'],['0','0 · Sai rõ'],['1','1 · Một phần'],['2','2 · Đầy đủ'],['?','? · Không chắc'],['NA','N/A']]){const option=el('option',t);option.value=v;select.append(option);}select.value=r[criterion]||'';select.onchange=()=>{(state.ratings[k]??={})[criterion]=select.value;save();};label.append(span,select);card.append(label);}
+ const notes=el('textarea');notes.placeholder='Bạn thấy bao nhiêu con/vật? Thiếu, thừa, sai màu, sai vị trí hoặc méo ở đâu?';notes.setAttribute('aria-label','Ghi chú ảnh '+g.labels.join(' '));notes.value=r.comment||'';notes.oninput=()=>{(state.ratings[k]??={}).comment=notes.value;save();};card.append(notes);grid.append(card);
+ }host.append(grid);progress();
+}
+data.scenes.forEach((s,i)=>{const o=el('option',`Cảnh ${i+1}: ${s.caption_vi||s.caption}`);o.value=String(i);$('scene').append(o);});
+$('reviewer').value=state.reviewer_id;$('reviewer').oninput=()=>{state.reviewer_id=$('reviewer').value;save();};
+$('scene').onchange=()=>{index=Number($('scene').value);render();};$('prev').onclick=()=>{index--;render();};$('next').onclick=()=>{index++;render();};$('close').onclick=()=>$('zoom').close();
+$('download').onclick=()=>{const output={...state,exported_at:new Date().toISOString(),scale:{'0':'wrong','1':'partial','2':'correct','?':'uncertain','NA':'not_applicable'},rows:[]};for(const s of data.scenes)for(const g of s.groups)for(const label of g.labels)output.rows.push({item:s.item,label,group:groupKey(s,g),image_sha256:g.image,...Object.fromEntries(keys.map(k=>[k,state.ratings[groupKey(s,g)]?.[k]||''])),comment:state.ratings[groupKey(s,g)]?.comment||''});const url=URL.createObjectURL(new Blob([JSON.stringify(output,null,2)],{type:'application/json'}));const a=el('a');a.href=url;a.download='ocsd_review_'+data.run_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+$('import').onchange=async()=>{try{const file=$('import').files[0];if(!file)return;const incoming=validate(JSON.parse(await file.text()));if(Object.keys(state.ratings).length&&!confirm('Thay các câu trả lời hiện tại bằng file này? Hãy tải bản hiện tại trước nếu muốn giữ.'))return;state=incoming;$('reviewer').value=state.reviewer_id;save();render();}catch(e){alert('Không nhập được: '+e.message);}finally{$('import').value='';}};
+render();
+</script></html>

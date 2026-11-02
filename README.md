@@ -157,3 +157,5 @@ The prior default was `repair_screen`. The semantic routing screen failed to imp
 2026-11-02: default updated to `instance_screen`, a controlled one-object conditioning ablation. See [research review](docs/RESEARCH_20261102.md) and [protocol](docs/INSTANCE_SCREEN.md). No state-of-the-art or quality improvement claim is established.
 
 2026-11-03: [Completed instance screen](docs/INSTANCE_20261102_RESULTS.md): focused conditioning improves two development scenes versus matched global conditioning; all four methods still pass joint layout success on 6/12 scenes. No repeat or paper/full run is recommended from this evidence.
+
+Review tiếp theo: [bộ chấm ảnh tiếng Việt, mở offline](docs/HUMAN_REVIEW_VI.md) và [hướng tối ưu theo lỗi đếm/hình dạng](docs/RESEARCH_NEXT_INSTANCE_REPAIR.md). Không cần chạy lại Colab để review.
