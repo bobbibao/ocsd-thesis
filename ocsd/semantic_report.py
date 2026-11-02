@@ -101,6 +101,9 @@ def report(P, E):
     if 'joint_layout_success' in ps:
         summary_metrics.append('joint_layout_success');paired_metrics.append('joint_layout_success')
     summary = R.summarize(ps,metrics=summary_metrics)
+    if E.tier == 'count_screen':
+        # One deliberately selected scene cannot estimate population uncertainty.
+        summary = summary.drop(columns=[c for c in summary.columns if c.endswith(('_lo','_hi'))])
     tests = (pd.DataFrame(columns=['ref','other','metric','n','diff','p']) if E.tier=='count_screen' else
              R.paired_tests(ps,ref=ref,others=[m for m in methods if m!=ref],metrics=paired_metrics))
     tables = Path(P.results)/'tables'; tables.mkdir(parents=True,exist_ok=True)
