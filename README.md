@@ -8,7 +8,7 @@ Mục tiêu: từ **phác thảo cảnh + câu mô tả**, sinh ảnh có **đú
 ## Phiên bản tối ưu và định danh thực nghiệm
 
 Xem [runbook](docs/EXPERIMENT_RUNBOOK.md), [audit](docs/OPTIMIZATION_AUDIT.md) và
-[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `repair_screen`,
+[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `instance_screen`,
 lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi resume. Con trỏ mới nhất là
 `results/latest_run.json`; kết quả cũ được giữ nguyên. Bộ QuickDraw mới dùng seed theo scene và
 `data/benchmarks_v2/`. Chưa có số liệu GPU chứng minh tăng chất lượng từ các sửa đổi này.
@@ -17,8 +17,8 @@ lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi 
 
 1. [Mở RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 2. Runtime → Change runtime type → **GPU L4** (hoặc A100).
-3. Mặc định `TIER="repair_screen"` có 48 ảnh; không chạy lại nếu đã có kết quả trước lượt dài, rồi Runtime → **Run all**.
-   Xem [protocol screening](docs/SEMANTIC_SCREEN.md). Chưa có bằng chứng biến thể mới vượt baseline.
+3. Mặc định `TIER="instance_screen"` có 48 ảnh cuối, kiểm tra điều kiện theo đối tượng trước lượt dài, rồi Runtime → **Run all**.
+   Xem [protocol screening](docs/INSTANCE_SCREEN.md). Chưa có bằng chứng biến thể mới vượt baseline.
 4. Kết quả nằm trong Google Drive: `MyDrive/KLTN_OCSD/results/runs/<run_id>/`
    (`run_manifest.json`, `summary.md`, `summary.json`, `progress.json`, `tables/`, `figures/`, `user_study/`).
 
@@ -31,6 +31,7 @@ Thiết kế cho **Google Colab Pro**. GPU và mức tiêu thụ compute units p
 
 | Tier | QuickDraw-Scenes | Học định danh (OCSD, Zhang) | COCO-Sketch | Seed | DDIM / K / M3 | Ước tính |
 |---|---|---|---|---|---|---|
+| `instance_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | ablation điều kiện cục bộ, chưa có kết quả GPU |
 | `semantic_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo GPU; 48 ảnh cuối, nhiều ứng viên; xem protocol |
 | `repair_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo GPU; giới hạn sinh ảnh 20 phút giữa các scene |
 | `screen` | 12 cảnh × 7 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo; giới hạn sinh ảnh 20 phút giữa các scene, chưa gồm tải/đánh giá |
@@ -151,4 +152,6 @@ python tests/test_v2_ablation.py    # the 10 OCSD-v2 ablation rows end to end on
 
 The earlier `repair_screen` tier (48 outputs) compares: sparse M2 repair versus full repair, GLIGEN and best-of-2. Start a fresh run with blank RUN_ID; this is an unvalidated efficiency experiment. See [protocol and recovery](docs/SPARSE_REPAIR_SCREEN.md). Export the completed run's tables, images and repair diagnostics using `03_export_screen_review.ipynb` on CPU without a GitHub token.
 
-The current default is `repair_screen`. The semantic routing screen failed to improve the development results; see [negative result and stop decision](docs/SEMANTIC_20261029_RESULTS.md). `semantic_screen` remains available for reproduction, not recommended scaling.
+The prior default was `repair_screen`. The semantic routing screen failed to improve the development results; see [negative result and stop decision](docs/SEMANTIC_20261029_RESULTS.md). `semantic_screen` remains available for reproduction, not recommended scaling.
+
+2026-11-02: default updated to `instance_screen`, a controlled one-object conditioning ablation. See [research review](docs/RESEARCH_20261102.md) and [protocol](docs/INSTANCE_SCREEN.md). No state-of-the-art or quality improvement claim is established.

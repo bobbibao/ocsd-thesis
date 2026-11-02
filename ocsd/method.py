@@ -538,7 +538,7 @@ def repair_regions(scene: Scene, ctx: SceneCond, c: Dict, dets: Sequence[dict], 
 
 def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, img: np.ndarray, c: Dict,
                  dets: Sequence[dict], seed: int, lambda0: float, log: Optional[dict] = None,
-                 protect_matched: bool = False, diagnose=None, replacement_ids=None) -> Optional[np.ndarray]:
+                 protect_matched: bool = False, diagnose=None, replacement_ids=None, focus_ids=None, isolate_replacement=False) -> Optional[np.ndarray]:
     """M5(d) repair (joint mode): re-noise `img` to (1 - repair_strength) of the trajectory and denoise again only
     inside repair_regions - the rest is held to the previous image at every step (and pasted back at the end), and a
     missing object's M2 latent is re-imposed for the same alpha fraction of the remaining steps. Region attention
@@ -547,9 +547,39 @@ def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, i
     lh = H // eng.vae_factor
     use_id = prep.id_tokens is not None
     ctx = scene_cond(eng, scene, cfg, prep.id_tokens, prep.fg)
+    if focus_ids is not None:
+        if list(focus_ids) != list(replacement_ids or ()) or not isolate_replacement:
+            raise ValueError('Focus and isolated replacement target must agree')
+        if len(focus_ids) != 1 or cfg.use_energy or cfg.use_region_attn or use_id:
+            raise ValueError('Focused repair requires one target, no region attention, energy or identity')
+        i = focus_ids[0]
+        if i < 0 or i >= scene.n:
+            raise ValueError('Invalid focus index')
+        target = scene.objects[i]
+        # Change conditioning only; full-scene masks below still protect other objects.
+        prompt = f'a photo of a single {target.phrase} {scene.bg}, high quality'
+        # Do not negate an ancestor of the requested class (e.g. bird while drawing a duck).
+        related = {'duck': {'bird'}, 'sailboat': {'boat'}}.get(target.cls, set())
+        other_classes = sorted({o.cls for o in scene.objects} - {target.cls} - related)
+        negative = cfg.negative_prompt + (', ' + ', '.join(other_classes) if other_classes else '')
+        ctx.text, ctx.emb_g, ctx.emb_u = prompt, eng.encode([prompt]), eng.encode([negative])
+        ctx.eot = eng.eot_index(prompt)
+        if cfg.use_scene_cn:
+            ctx.control = eng.control_tensor(sketch_to_control(target.sketch))
+        if log is not None:
+            log['focus_conditioning'] = dict(original_index=i, prompt=prompt, negative_prompt=negative,
+                                             control='target_sketch_only')
+    if isolate_replacement and diagnose is not None:
+        control_sketch = scene.objects[focus_ids[0]].sketch if focus_ids is not None else scene.sketch
+        diagnose('conditioning_control', sketch_to_control(control_sketch))
     M, missing = repair_regions(scene, ctx, c, dets, H)
+    if replacement_ids is not None and any(i < 0 or i >= scene.n or c['matched'][i][0] >= 0 for i in replacement_ids):
+        raise ValueError('Replacement target must be released in repair matching')
+    if isolate_replacement and replacement_ids is not None:
+        missing = list(replacement_ids)
+        M = np.any([ctx.region_masks[i] for i in missing], axis=0) if missing else np.zeros((H,H),bool)
     for i in replacement_ids or ():
-        if i not in missing:
+        if i < 0 or i >= scene.n or c['matched'][i][0] >= 0:
             raise ValueError('Replacement target must be released in repair matching')
         x0,y0,x1,y1 = scene.objects[i].box
         x0,y0 = max(0,int(np.floor(x0))),max(0,int(np.floor(y0)))
