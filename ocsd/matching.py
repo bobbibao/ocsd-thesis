@@ -65,3 +65,15 @@ def verify_score(c: Dict) -> float:
 def verify_pass(c: Dict) -> bool:
     ra = 1.0 if np.isnan(c["ra"]) else c["ra"]
     return c["opr"] == 1.0 and c["oce_c"] == 0 and ra == 1.0
+
+
+def joint_layout_success(c: Dict, min_iou: float = 0.5) -> float:
+    """Exact class/count coverage, every box IoU >= threshold, all applicable relations.
+
+    A box-layout endpoint, NOT silhouette/shape or aesthetic correctness.
+    """
+    pairs = c['matched']
+    relations = c['ra']
+    return float(bool(pairs) and c['opr'] == 1.0 and c['oce_c'] == 0
+                 and all(j >= 0 and iou >= min_iou for j, iou in pairs)
+                 and (np.isnan(relations) or relations == 1.0))

@@ -111,6 +111,9 @@ def _eval_one(m, sid, s, sdir, p, split, vis, det_fn, det_thr, iou_thr, out_root
                opr=c["opr"], oce=c["oce"], oce_c=c["oce_c"], count_acc=c["count_acc"], miou=c["miou"],
                ra=c["ra"], ra_cond=c["ra_cond"], miou_matched=c["miou_matched"], n_gen=c["n_gen"],
                n_preserved=c["n_preserved"], missing="|".join(c["missing"]))
+    from .matching import joint_layout_success
+    row['joint_layout_success'] = joint_layout_success(c)
+    row['min_instance_iou'] = min((iou if j >= 0 else 0.0 for j,iou in c['matched']), default=0.)
     row["clip"] = float(vis.clip.score([img], [scene.caption])[0])
     crops = [_crop(img, o.box) for o in scene.objects]
     row["obj_clip"] = float(np.mean(vis.clip.score(crops, [f"a photo of a {o.phrase}" for o in scene.objects])))
