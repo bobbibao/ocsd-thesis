@@ -8,7 +8,7 @@ Mục tiêu: từ **phác thảo cảnh + câu mô tả**, sinh ảnh có **đú
 ## Phiên bản tối ưu và định danh thực nghiệm
 
 Xem [runbook](docs/EXPERIMENT_RUNBOOK.md), [audit](docs/OPTIMIZATION_AUDIT.md) và
-[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `instance_screen`,
+[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `count_screen`,
 lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi resume. Con trỏ mới nhất là
 `results/latest_run.json`; kết quả cũ được giữ nguyên. Bộ QuickDraw mới dùng seed theo scene và
 `data/benchmarks_v2/`. Chưa có số liệu GPU chứng minh tăng chất lượng từ các sửa đổi này.
@@ -17,8 +17,8 @@ lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi 
 
 1. [Mở RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 2. Runtime → Change runtime type → **GPU L4** (hoặc A100).
-3. Mặc định `TIER="instance_screen"` có 48 ảnh cuối, kiểm tra điều kiện theo đối tượng trước lượt dài, rồi Runtime → **Run all**.
-   Xem [protocol screening](docs/INSTANCE_SCREEN.md). Chưa có bằng chứng biến thể mới vượt baseline.
+3. Mặc định `TIER="count_screen"` chỉ có 4 ảnh cuối trên một cảnh lỗi xe đạp đã biết, rồi Runtime → **Run all**.
+   Xem [protocol chẩn đoán sửa đếm](docs/COUNT_SCREEN.md). Chưa có bằng chứng biến thể mới vượt baseline.
 4. Kết quả nằm trong Google Drive: `MyDrive/KLTN_OCSD/results/runs/<run_id>/`
    (`run_manifest.json`, `summary.md`, `summary.json`, `progress.json`, `tables/`, `figures/`, `user_study/`).
 
@@ -31,6 +31,7 @@ Thiết kế cho **Google Colab Pro**. GPU và mức tiêu thụ compute units p
 
 | Tier | QuickDraw-Scenes | Học định danh (OCSD, Zhang) | COCO-Sketch | Seed | DDIM / K / M3 | Ước tính |
 |---|---|---|---|---|---|---|
+| `count_screen` | 1 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | thử cơ chế sửa đối tượng bị lặp, chưa có kết quả GPU |
 | `instance_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | đã chạy; có cải thiện cục bộ, chưa tăng joint success |
 | `semantic_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo GPU; 48 ảnh cuối, nhiều ứng viên; xem protocol |
 | `repair_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo GPU; giới hạn sinh ảnh 20 phút giữa các scene |
@@ -161,3 +162,5 @@ The prior default was `repair_screen`. The semantic routing screen failed to imp
 Review tiếp theo: [bộ chấm ảnh tiếng Việt, mở offline](docs/HUMAN_REVIEW_VI.md) và [hướng tối ưu theo lỗi đếm/hình dạng](docs/RESEARCH_NEXT_INSTANCE_REPAIR.md). Không cần chạy lại Colab để review.
 
 Đã nhận [review người dùng và kết luận cập nhật](docs/HUMAN_REVIEW_20261102_RESULTS.md): xác nhận sửa chó, phát hiện false acceptance ở máy bay và lỗi dư xe đạp; chưa chứng minh cải thiện shape/realism.
+
+Triển khai mới: [count-aware replacement](docs/COUNT_SCREEN.md), default `count_screen` chỉ 4 ảnh. Kiểm tra cơ chế trên CPU không chứng minh chất lượng; chưa chạy pretrained model cho biến thể này.

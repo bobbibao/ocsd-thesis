@@ -1,0 +1,70 @@
+{
+  "source_run": "20261102T165132Z_e9ea4c56",
+  "note": "Routing replay only; no new images or quality measurement",
+  "scenes": [
+    {
+      "sid": "qd_1_complex_000",
+      "target": null,
+      "extra_detection_indices": []
+    },
+    {
+      "sid": "qd_1_medium_000",
+      "target": null,
+      "extra_detection_indices": []
+    },
+    {
+      "sid": "qd_1_simple_000",
+      "target": null,
+      "extra_detection_indices": []
+    },
+    {
+      "sid": "qd_3_complex_000",
+      "target": null,
+      "extra_detection_indices": []
+    },
+    {
+      "sid": "qd_3_medium_000",
+      "target": null,
+      "extra_detection_indices": []
+    },
+    {
+      "sid": "qd_3_simple_000",
+      "target": 0,
+      "extra_detection_indices": [
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "sid": "qd_5_complex_000",
+      "target": null,
+      "extra_detection_indices": []
+    },
+    {
+      "sid": "qd_5_medium_000",
+      "target": null,
+      "extra_detection_indices": []
+    },
+    {
+      "sid": "qd_5_simple_000",
+      "target": null,
+      "extra_detection_indices": []
+    },
+    {
+      "sid": "qd_8p_complex_000",
+      "target": null,
+      "extra_detection_indices": []
+    },
+    {
+      "sid": "qd_8p_medium_000",
+      "target": null,
+      "extra_detection_indices": []
+    },
+    {
+      "sid": "qd_8p_simple_000",
+      "target": null,
+      "extra_detection_indices": []
+    }
+  ]
+}

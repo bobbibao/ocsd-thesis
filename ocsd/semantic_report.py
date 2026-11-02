@@ -68,6 +68,9 @@ def report(P, E):
     if E.tier == 'instance_screen':
         from .instance_repair import METHODS as methods
         ref = 'instance_repair_focus'
+    if E.tier == 'count_screen':
+        from .count_repair import METHODS as methods
+        ref = 'instance_repair_count'
     df = R.load_per_image(P.results, 'quickdraw')
     expected = {(m,Path(s).name,int(seed)) for j in plan for m in j['methods'] for s in j['scenes'] for seed in j['seeds']}
     found = [(r.method,r.sid,int(r.seed)) for r in df.itertuples()]
@@ -93,17 +96,18 @@ def report(P, E):
     ps = R.per_scene(df)
     summary_metrics=['opr','oce_c','miou','ra','clip','standalone_time_s','sampling_work']
     paired_metrics=['opr','oce_c','miou','ra','obj_clip']
-    if E.tier == 'instance_screen' and 'joint_layout_success' not in ps:
+    if E.tier in ('instance_screen','count_screen') and 'joint_layout_success' not in ps:
         raise RuntimeError('Instance screen requires the joint layout endpoint; rerun evaluation')
     if 'joint_layout_success' in ps:
         summary_metrics.append('joint_layout_success');paired_metrics.append('joint_layout_success')
     summary = R.summarize(ps,metrics=summary_metrics)
-    tests = R.paired_tests(ps,ref=ref,others=[m for m in methods if m!=ref],metrics=paired_metrics)
+    tests = (pd.DataFrame(columns=['ref','other','metric','n','diff','p']) if E.tier=='count_screen' else
+             R.paired_tests(ps,ref=ref,others=[m for m in methods if m!=ref],metrics=paired_metrics))
     tables = Path(P.results)/'tables'; tables.mkdir(parents=True,exist_ok=True)
     summary.to_csv(tables/'screen_means.csv',index=False)
     tests.to_csv(tables/'screen_paired.csv',index=False)
     work.to_csv(tables/'sampling_work.csv',index=False)
-    review_packet(P,plan,require_sketch=E.tier=='instance_screen')
+    review_packet(P,plan,require_sketch=E.tier in ('instance_screen','count_screen'))
     result = dict(tier=E.tier,decision='requires_blind_review',research_claim='unproven',
                   n_images=len(df),n_scenes=df.sid.nunique(),figures=[],tables=['screen_means','screen_paired','sampling_work'])
     atomic_json(Path(P.results)/'summary.json',result)
@@ -114,5 +118,5 @@ def report(P, E):
         'before inspecting review_key.json. No automatic paper/full escalation.\n\n'
         'Sampling work sums batch-weighted UNet and ControlNet calls; it excludes CLIP/GDINO/SAM/VAE and I/O. '
         'It is a budget proxy, not equal FLOPs or equal wall time. Standalone times charge cached M2 and shared GLIGEN generation durations; these are reconstructed costs, not independent timed runs. '
-        'All 12 scenes remain development data.\n')
+        'All scenes remain development data. Count screen is a one-scene mechanism diagnostic, with no significance tests.\n')
     return result
