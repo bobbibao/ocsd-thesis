@@ -34,12 +34,25 @@ def generate(kind,eng,vis,scene,seed,cfg,backbone,cache_dir,log,get_objects,diag
     dets=vis.gdino(best,[o.cls for o in scene.objects],thr=cfg.verify_thr)
     check=consistency(scene,dets,size=cfg.height)
     target,coverage=choose_target(scene,check,dets,cfg.height)
+    count_route=False; extra_ids=[]
+    if target is None and kind in ('instance_repair_count','instance_repair_count_global'):
+        from .count_repair import choose_count_target
+        target,extra_ids=choose_count_target(scene,check,dets)
+        count_route=target is not None
+    focused=kind in ('instance_repair_focus','instance_repair_count')
+    # Both new arms retain the existing experimental missing-object behavior.
+    if not count_route and kind=='instance_repair_count_global':focused=True
+    repair_check=check
+    if count_route:
+        repair_check=dict(check,matched=list(check['matched']))
+        repair_check['matched'][target]=(-1,0.)
     repair_steps=cfg.steps-min(max(int(round((1-cfg.repair_strength)*cfg.steps)),0),cfg.steps-1)
     planned=2*cfg.steps+4*cfg.K*cfg.obj_steps+4*repair_steps
     cap=10*cfg.steps
-    log.update(experimental=True,route='keep' if target is None else 'single_instance',target=target,
+    log.update(experimental=True,route='keep' if target is None else 'count_replacement' if count_route else 'single_instance',target=target,
                target_coverage=coverage,sampling_work_cap=cap,planned_local_work=planned,
-               policy_version=1,focused=kind=='instance_repair_focus',
+               policy_version=2 if kind.startswith('instance_repair_count') else 1,focused=focused,
+               count_extra_ids=extra_ids,
                scene_spec=dict(caption=scene.caption,bg=scene.bg,
                                objects=[dict(index=i,cls=o.cls,phrase=o.phrase,box=o.box) for i,o in enumerate(scene.objects)]))
     history=[dict(kind='initial',check=check,detections=dets)]
@@ -49,9 +62,10 @@ def generate(kind,eng,vis,scene,seed,cfg,backbone,cache_dir,log,get_objects,diag
             raise ValueError('Requested instance repair exceeds the fixed sampler-work budget')
         objs=get_objects([target]);prep=Prepared(objs,compose_foreground(scene,objs,cfg),None)
         emit=lambda name,img:diagnose('local_'+name,img)
-        candidate=repair_scene(eng,scene,prep,cfg,best,check,dets,seed+100003,cfg.lambda0,log,
+        candidate=repair_scene(eng,scene,prep,cfg,best,repair_check,dets,seed+100003,cfg.lambda0,log,
                                protect_matched=True,replacement_ids=[target],isolate_replacement=True,
-                               focus_ids=[target] if kind=='instance_repair_focus' else None,diagnose=emit)
+                               focus_ids=[target] if focused else None,diagnose=emit,
+                               **(dict(replacement_extra_ids=extra_ids) if count_route else {}))
         if candidate is None:
             history.append(dict(kind='local',accepted=False,reason='empty_edit_mask'))
         else:
@@ -60,6 +74,8 @@ def generate(kind,eng,vis,scene,seed,cfg,backbone,cache_dir,log,get_objects,diag
             after=consistency(scene,after_dets,size=cfg.height)
             clips=vis.clip.score([best,candidate],[scene.caption,scene.caption])
             accepted,reason=accept_repair(check,after,float(clips[0]),float(clips[1]))
+            if count_route and accepted and after['oce_c'] >= check['oce_c']:
+                accepted,reason=False,'count_not_improved'
             history.append(dict(kind='local',accepted=accepted,reason=reason,check=after,detections=after_dets,
                                 score=verify_score(after),clip_before=float(clips[0]),clip_after=float(clips[1])))
             if accepted:best=candidate

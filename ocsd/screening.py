@@ -91,7 +91,7 @@ def grounded_repair(eng, vis, scene, seed, cfg, backbone, cache_dir, log, get_ob
 
 def screen_report(P, E):
     """Report the complete fixed screening population; never auto-escalate to a paper run."""
-    if E.tier in ('semantic_screen','instance_screen'):
+    if E.tier in ('semantic_screen','instance_screen','count_screen'):
         from .semantic_report import report
         return report(P, E)
     from . import report as R
