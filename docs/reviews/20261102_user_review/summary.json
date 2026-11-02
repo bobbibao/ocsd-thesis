@@ -1,0 +1,13 @@
+{
+  "run_id": "20261102T165132Z_e9ea4c56",
+  "review_sha256": "bb148244d4b833fba44efbc981ef6369749a100e76c90aeacb4ab58eff34adac",
+  "unique_image_groups": 25,
+  "groups_with_numeric_scores": 11,
+  "groups_with_comments": 12,
+  "unique_numeric_answers": 88,
+  "possible_unique_answers": 200,
+  "scenes_with_any_response": 12,
+  "expanded_method_rows": 48,
+  "reviewer_count": 1,
+  "evidence_scope": "single user development review; duplicate labels are not independent ratings; no significance test"
+}

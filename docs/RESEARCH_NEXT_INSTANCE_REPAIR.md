@@ -19,7 +19,7 @@ The [Vietnamese packet](HUMAN_REVIEW_VI.md) provides originals, captions and met
 2. If people confirm counts are already correct, work on duplicate/class-alias handling and independent verifier calibration, not image regeneration. Do not fit detector thresholds to these twelve scenes.
 3. If class/count improves but shape does not, test target shape conditioning separately from prompt and negative-prompt changes. The existing focused arm changes all three and cannot identify which causes the benefit.
 
-Human annotations will inform which branch merits implementation. Adding an extra-removal operation now on disputed detector counts risks erasing valid content. The current final-only review cannot establish whether the CLIP guard rejected a useful intermediate candidate; that question needs a separately anonymized before/candidate packet if it becomes a priority.
+The [received user review](HUMAN_REVIEW_20261102_RESULTS.md) now confirms extra bicycles, a useful dog replacement, and major semantic/shape/appearance failures. It does not confirm the boat presence/count gain reported by the detector. These annotations prioritize count-aware editing and verifier/shape work. Adding an extra-removal operation now on disputed detector counts risks erasing valid content. The current final-only review cannot establish whether the CLIP guard rejected a useful intermediate candidate; that question needs a separately anonymized before/candidate packet if it becomes a priority.
 
 ## Stronger reference methods and fair inputs
 
