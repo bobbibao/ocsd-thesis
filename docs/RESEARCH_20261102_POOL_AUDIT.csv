@@ -1,0 +1,13 @@
+sid,candidates,route,bg_proxy_pass,attributes_proxy_pass,complete_proxy_pass,best_internal_opr,final_internal_opr,final_bg_proxy_pass
+qd_1_complex_000,5,keep,5,3,2,1.0,1.0,True
+qd_1_medium_000,5,keep,3,5,3,1.0,1.0,True
+qd_1_simple_000,5,global,3,5,1,1.0,1.0,False
+qd_3_complex_000,5,global,5,0,0,1.0,1.0,True
+qd_3_medium_000,5,keep,5,1,1,1.0,1.0,True
+qd_3_simple_000,5,local,5,1,0,1.0,1.0,True
+qd_5_complex_000,5,global,5,0,0,0.8,0.8,True
+qd_5_medium_000,5,global,0,3,0,0.8,0.8,False
+qd_5_simple_000,5,global,3,0,0,1.0,1.0,True
+qd_8p_complex_000,5,global,1,0,0,0.7777777777777778,0.5555555555555556,False
+qd_8p_medium_000,5,global,2,0,0,0.625,0.625,False
+qd_8p_simple_000,5,global,5,2,0,0.625,0.625,True
