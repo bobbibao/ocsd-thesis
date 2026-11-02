@@ -159,3 +159,5 @@ The prior default was `repair_screen`. The semantic routing screen failed to imp
 2026-11-03: [Completed instance screen](docs/INSTANCE_20261102_RESULTS.md): focused conditioning improves two development scenes versus matched global conditioning; all four methods still pass joint layout success on 6/12 scenes. No repeat or paper/full run is recommended from this evidence.
 
 Review tiếp theo: [bộ chấm ảnh tiếng Việt, mở offline](docs/HUMAN_REVIEW_VI.md) và [hướng tối ưu theo lỗi đếm/hình dạng](docs/RESEARCH_NEXT_INSTANCE_REPAIR.md). Không cần chạy lại Colab để review.
+
+Đã nhận [review người dùng và kết luận cập nhật](docs/HUMAN_REVIEW_20261102_RESULTS.md): xác nhận sửa chó, phát hiện false acceptance ở máy bay và lỗi dư xe đạp; chưa chứng minh cải thiện shape/realism.

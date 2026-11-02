@@ -1,0 +1,53 @@
+item,label,group,image_sha256,method,presence,count,layout,shape,relations,attributes,background,realism,comment
+qd_1_complex_000_s0,A,qd_1_complex_000_s0:ABCD,f09b6ee72b29432abf5f90570da7c56aacf150cc3d8ffb919d1126a8805720e6,instance_repair_focus,0,0,0,0,0,0,0,0,"sai hoàn toàn, sketch và mô tả là máy bay mà ảnh tạo ra lại là mái che của sân nhà
+"
+qd_1_complex_000_s0,B,qd_1_complex_000_s0:ABCD,f09b6ee72b29432abf5f90570da7c56aacf150cc3d8ffb919d1126a8805720e6,grounded_repair_sparse,0,0,0,0,0,0,0,0,"sai hoàn toàn, sketch và mô tả là máy bay mà ảnh tạo ra lại là mái che của sân nhà
+"
+qd_1_complex_000_s0,C,qd_1_complex_000_s0:ABCD,f09b6ee72b29432abf5f90570da7c56aacf150cc3d8ffb919d1126a8805720e6,gligen_layout5,0,0,0,0,0,0,0,0,"sai hoàn toàn, sketch và mô tả là máy bay mà ảnh tạo ra lại là mái che của sân nhà
+"
+qd_1_complex_000_s0,D,qd_1_complex_000_s0:ABCD,f09b6ee72b29432abf5f90570da7c56aacf150cc3d8ffb919d1126a8805720e6,instance_repair,0,0,0,0,0,0,0,0,"sai hoàn toàn, sketch và mô tả là máy bay mà ảnh tạo ra lại là mái che của sân nhà
+"
+qd_1_medium_000_s0,A,qd_1_medium_000_s0:ACD,dde1d35029fd92094b5998add6873d933f09cfca66d916a060fc8f3dcb8388a8,grounded_repair_sparse,2,2,2,2,2,2,2,1,
+qd_1_medium_000_s0,B,qd_1_medium_000_s0:B,055cd7e9e94fa25a7fc15fc5fd028044d1b484ddfd081dae65e80afd6f8ef7fd,gligen_layout5,2,2,2,2,2,2,2,1,"ảnh B tự nhiên hơn A,C,D"
+qd_1_medium_000_s0,C,qd_1_medium_000_s0:ACD,dde1d35029fd92094b5998add6873d933f09cfca66d916a060fc8f3dcb8388a8,instance_repair,2,2,2,2,2,2,2,1,
+qd_1_medium_000_s0,D,qd_1_medium_000_s0:ACD,dde1d35029fd92094b5998add6873d933f09cfca66d916a060fc8f3dcb8388a8,instance_repair_focus,2,2,2,2,2,2,2,1,
+qd_1_simple_000_s0,A,qd_1_simple_000_s0:ABCD,b49f6f032d00121653fb1db605422db2d66bdb492af62881cb1c92d3392d2fa0,instance_repair_focus,1,2,1,2,1,1,0,1,mô tả là đồng cỏ xanh nhưng ảnh sinh ra không thấy đồng cỏ xanh mà chỉ có cái cây
+qd_1_simple_000_s0,B,qd_1_simple_000_s0:ABCD,b49f6f032d00121653fb1db605422db2d66bdb492af62881cb1c92d3392d2fa0,gligen_layout5,1,2,1,2,1,1,0,1,mô tả là đồng cỏ xanh nhưng ảnh sinh ra không thấy đồng cỏ xanh mà chỉ có cái cây
+qd_1_simple_000_s0,C,qd_1_simple_000_s0:ABCD,b49f6f032d00121653fb1db605422db2d66bdb492af62881cb1c92d3392d2fa0,grounded_repair_sparse,1,2,1,2,1,1,0,1,mô tả là đồng cỏ xanh nhưng ảnh sinh ra không thấy đồng cỏ xanh mà chỉ có cái cây
+qd_1_simple_000_s0,D,qd_1_simple_000_s0:ABCD,b49f6f032d00121653fb1db605422db2d66bdb492af62881cb1c92d3392d2fa0,instance_repair,1,2,1,2,1,1,0,1,mô tả là đồng cỏ xanh nhưng ảnh sinh ra không thấy đồng cỏ xanh mà chỉ có cái cây
+qd_3_complex_000_s0,A,qd_3_complex_000_s0:A,96f357e12448603d39f9a7f623a51954b56fc2569cd2f986970fd20ac83b95de,gligen_layout5,,,,,,,,,đủ số lượng và đúng đối tượng nhưng đối tượng 3 cũng bị biến thành màu xanh
+qd_3_complex_000_s0,B,qd_3_complex_000_s0:BCD,793b4e9955acb737ffff2d05a749419842ef02d6febd07c6a4448e80f838c46e,instance_repair_focus,,,,,,,,,đủ số lượng và đúng đối tượng nhưng tất cả đối tượng sai màu sắc
+qd_3_complex_000_s0,C,qd_3_complex_000_s0:BCD,793b4e9955acb737ffff2d05a749419842ef02d6febd07c6a4448e80f838c46e,grounded_repair_sparse,,,,,,,,,đủ số lượng và đúng đối tượng nhưng tất cả đối tượng sai màu sắc
+qd_3_complex_000_s0,D,qd_3_complex_000_s0:BCD,793b4e9955acb737ffff2d05a749419842ef02d6febd07c6a4448e80f838c46e,instance_repair,,,,,,,,,đủ số lượng và đúng đối tượng nhưng tất cả đối tượng sai màu sắc
+qd_3_medium_000_s0,A,qd_3_medium_000_s0:ABD,414a5f47f9adc76ad5ecce3caecf18553d4b606f2d17bb0cc8062a6b5778d333,instance_repair,,,,,,,,,đủ và đúng đối tượng nhưng voi đang quay sai hướng với sketch
+qd_3_medium_000_s0,B,qd_3_medium_000_s0:ABD,414a5f47f9adc76ad5ecce3caecf18553d4b606f2d17bb0cc8062a6b5778d333,instance_repair_focus,,,,,,,,,đủ và đúng đối tượng nhưng voi đang quay sai hướng với sketch
+qd_3_medium_000_s0,C,qd_3_medium_000_s0:C,e95962b955431deb1451002831e8290e0b628fa9e7e32d98d7febd824b66cee4,gligen_layout5,,,,,,,,,đủ và đúng đối tượng nhưng voi đang quay sai hướng với sketch
+qd_3_medium_000_s0,D,qd_3_medium_000_s0:ABD,414a5f47f9adc76ad5ecce3caecf18553d4b606f2d17bb0cc8062a6b5778d333,grounded_repair_sparse,,,,,,,,,đủ và đúng đối tượng nhưng voi đang quay sai hướng với sketch
+qd_3_simple_000_s0,A,qd_3_simple_000_s0:ABCD,2381fde2c37e5da7bcbe9bae39ec8c754da6eca9f4b81a7a30348aef33bc2cd1,instance_repair_focus,1,0,1,1,1,1,1,1,"xe đạp sai màu và sai số lượng (mô tả một xe mà ảnh sinh ra có rất nhiều xe), tàu đúng vị trí, màu sắc nhưng chưa tự nhiên"
+qd_3_simple_000_s0,B,qd_3_simple_000_s0:ABCD,2381fde2c37e5da7bcbe9bae39ec8c754da6eca9f4b81a7a30348aef33bc2cd1,gligen_layout5,1,0,1,1,1,1,1,1,"xe đạp sai màu và sai số lượng (mô tả một xe mà ảnh sinh ra có rất nhiều xe), tàu đúng vị trí, màu sắc nhưng chưa tự nhiên"
+qd_3_simple_000_s0,C,qd_3_simple_000_s0:ABCD,2381fde2c37e5da7bcbe9bae39ec8c754da6eca9f4b81a7a30348aef33bc2cd1,grounded_repair_sparse,1,0,1,1,1,1,1,1,"xe đạp sai màu và sai số lượng (mô tả một xe mà ảnh sinh ra có rất nhiều xe), tàu đúng vị trí, màu sắc nhưng chưa tự nhiên"
+qd_3_simple_000_s0,D,qd_3_simple_000_s0:ABCD,2381fde2c37e5da7bcbe9bae39ec8c754da6eca9f4b81a7a30348aef33bc2cd1,instance_repair,1,0,1,1,1,1,1,1,"xe đạp sai màu và sai số lượng (mô tả một xe mà ảnh sinh ra có rất nhiều xe), tàu đúng vị trí, màu sắc nhưng chưa tự nhiên"
+qd_5_complex_000_s0,A,qd_5_complex_000_s0:A,01b9e7cf8326c184cbc65741618b665fe5c91732bf3a51b6336f27806607332d,gligen_layout5,2,2,1,1,1,1,2,1,
+qd_5_complex_000_s0,B,qd_5_complex_000_s0:B,02561a253e348cac2be885ed4e0bd53a593fbc529d2dfa96e8b4ec794ea5afdc,instance_repair_focus,2,2,2,2,2,1,2,1,
+qd_5_complex_000_s0,C,qd_5_complex_000_s0:CD,2577c4bc815238bcafcb0b0f2dce95fdc2bec7917c0586b6d5a34c0ad18d3954,grounded_repair_sparse,2,2,2,2,2,1,2,1,
+qd_5_complex_000_s0,D,qd_5_complex_000_s0:CD,2577c4bc815238bcafcb0b0f2dce95fdc2bec7917c0586b6d5a34c0ad18d3954,instance_repair,2,2,2,2,2,1,2,1,
+qd_5_medium_000_s0,A,qd_5_medium_000_s0:ABD,4defb7a4643d42c037d74d81d0cbef4394533da31afc8e2f6d60a2decb9a66ba,gligen_layout5,0,1,1,1,1,1,1,1,
+qd_5_medium_000_s0,B,qd_5_medium_000_s0:ABD,4defb7a4643d42c037d74d81d0cbef4394533da31afc8e2f6d60a2decb9a66ba,grounded_repair_sparse,0,1,1,1,1,1,1,1,
+qd_5_medium_000_s0,C,qd_5_medium_000_s0:C,bf800fad76755e12441398760253856c7ebdde4977373bfdc6437815749371bd,instance_repair_focus,2,2,2,1,2,1,2,1,ảnh này có chó nhưng chưa tự nhiên lắm
+qd_5_medium_000_s0,D,qd_5_medium_000_s0:ABD,4defb7a4643d42c037d74d81d0cbef4394533da31afc8e2f6d60a2decb9a66ba,instance_repair,0,1,1,1,1,1,1,1,
+qd_5_simple_000_s0,A,qd_5_simple_000_s0:ABCD,3cb8184473abcafd4879acd7b2db26696e923e6edeb491c08a9e21fd5cb6f561,instance_repair,2,2,2,1,1,1,1,0,
+qd_5_simple_000_s0,B,qd_5_simple_000_s0:ABCD,3cb8184473abcafd4879acd7b2db26696e923e6edeb491c08a9e21fd5cb6f561,grounded_repair_sparse,2,2,2,1,1,1,1,0,
+qd_5_simple_000_s0,C,qd_5_simple_000_s0:ABCD,3cb8184473abcafd4879acd7b2db26696e923e6edeb491c08a9e21fd5cb6f561,instance_repair_focus,2,2,2,1,1,1,1,0,
+qd_5_simple_000_s0,D,qd_5_simple_000_s0:ABCD,3cb8184473abcafd4879acd7b2db26696e923e6edeb491c08a9e21fd5cb6f561,gligen_layout5,2,2,2,1,1,1,1,0,
+qd_8p_complex_000_s0,A,qd_8p_complex_000_s0:A,1ef2574321034cfecd0e269de90dad961951ec1a9857486ae2d200135dc474a8,grounded_repair_sparse,,,,,,,,,
+qd_8p_complex_000_s0,B,qd_8p_complex_000_s0:B,cc237ce35782b4af7e40c620026671e5d86c1f0c728e0c7e2dc97767a7f04981,instance_repair,,,,,,,,,
+qd_8p_complex_000_s0,C,qd_8p_complex_000_s0:C,d0b03d40b296d811cbbce4ea1b652afb96c6ff05c685bb104b2452d450341afb,instance_repair_focus,,,,,,,,,
+qd_8p_complex_000_s0,D,qd_8p_complex_000_s0:D,1ed8a33d9daf35b0a4e1ad77d74324a0916debfed61ee64d8a8519fefcd9aac7,gligen_layout5,,,,,,,,,ảnh D đúng nhất nhưng sai màu ghế và chó
+qd_8p_medium_000_s0,A,qd_8p_medium_000_s0:A,a4ed126717dd86df7449d989014466597e8b969ef2a072bed80069ea4fd9c11b,grounded_repair_sparse,,,,,,,,,
+qd_8p_medium_000_s0,B,qd_8p_medium_000_s0:BD,06549847260f63bccd342843d375031f71d26bc772b3ee503aa3d781eb62a27d,instance_repair_focus,,,,,,,,,
+qd_8p_medium_000_s0,C,qd_8p_medium_000_s0:C,331b20dc144155c2cc6c42af560f7e170b88b90966485ecd40379003d5428f9e,gligen_layout5,,,,,,,,,"ảnh C đúng nhất, nhưng chó chưa giống làm, màu tàu còn sai. chưa thực tế lắm"
+qd_8p_medium_000_s0,D,qd_8p_medium_000_s0:BD,06549847260f63bccd342843d375031f71d26bc772b3ee503aa3d781eb62a27d,instance_repair,,,,,,,,,
+qd_8p_simple_000_s0,A,qd_8p_simple_000_s0:AC,0d72b3b6cc53a150042fd8cd88f37e052ee491bfb5c789a0fea05141586b835b,grounded_repair_sparse,,,,,,,,,
+qd_8p_simple_000_s0,B,qd_8p_simple_000_s0:B,52dacfd6a6bfbbd684bc2bc1db537120bd0dd4c0d59d5771d708fabbde206ed8,instance_repair_focus,,,,,,,,,
+qd_8p_simple_000_s0,C,qd_8p_simple_000_s0:AC,0d72b3b6cc53a150042fd8cd88f37e052ee491bfb5c789a0fea05141586b835b,gligen_layout5,,,,,,,,,
+qd_8p_simple_000_s0,D,qd_8p_simple_000_s0:D,67ef14330315efc7dc3cd7bd6360c2f16c1398f13981ee9a31ab026bd3df4400,instance_repair,,,,,,,,,"tất cả ảnh ABCD đều sinh ra tới 3 con vịt, chưa thấy thỏ, và chim cũng bị hòa trộn"
