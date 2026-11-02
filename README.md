@@ -31,7 +31,7 @@ Thiết kế cho **Google Colab Pro**. GPU và mức tiêu thụ compute units p
 
 | Tier | QuickDraw-Scenes | Học định danh (OCSD, Zhang) | COCO-Sketch | Seed | DDIM / K / M3 | Ước tính |
 |---|---|---|---|---|---|---|
-| `instance_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | ablation điều kiện cục bộ, chưa có kết quả GPU |
+| `instance_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | đã chạy; có cải thiện cục bộ, chưa tăng joint success |
 | `semantic_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo GPU; 48 ảnh cuối, nhiều ứng viên; xem protocol |
 | `repair_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo GPU; giới hạn sinh ảnh 20 phút giữa các scene |
 | `screen` | 12 cảnh × 7 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo; giới hạn sinh ảnh 20 phút giữa các scene, chưa gồm tải/đánh giá |
@@ -155,3 +155,5 @@ The earlier `repair_screen` tier (48 outputs) compares: sparse M2 repair versus 
 The prior default was `repair_screen`. The semantic routing screen failed to improve the development results; see [negative result and stop decision](docs/SEMANTIC_20261029_RESULTS.md). `semantic_screen` remains available for reproduction, not recommended scaling.
 
 2026-11-02: default updated to `instance_screen`, a controlled one-object conditioning ablation. See [research review](docs/RESEARCH_20261102.md) and [protocol](docs/INSTANCE_SCREEN.md). No state-of-the-art or quality improvement claim is established.
+
+2026-11-03: [Completed instance screen](docs/INSTANCE_20261102_RESULTS.md): focused conditioning improves two development scenes versus matched global conditioning; all four methods still pass joint layout success on 6/12 scenes. No repeat or paper/full run is recommended from this evidence.

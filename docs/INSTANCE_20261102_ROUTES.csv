@@ -1,0 +1,13 @@
+sid,target_original_index,global_conditioning_outcome,focused_conditioning_outcome,sampling_work_each
+qd_1_complex_000,,keep,keep,60
+qd_1_medium_000,,keep,keep,60
+qd_1_simple_000,,keep,keep,60
+qd_3_complex_000,,keep,keep,60
+qd_3_medium_000,,keep,keep,60
+qd_3_simple_000,,keep,keep,60
+qd_5_complex_000,1,lost_object,accepted,280
+qd_5_medium_000,4,count_or_layout_regressed,accepted,280
+qd_5_simple_000,,keep,keep,60
+qd_8p_complex_000,4,accepted,accepted,280
+qd_8p_medium_000,0,clip_regressed,clip_regressed,280
+qd_8p_simple_000,4,accepted,accepted,280

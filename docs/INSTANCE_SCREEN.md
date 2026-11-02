@@ -35,6 +35,6 @@ These synthetic development scenes provide instance labels, boxes and masks deri
 
 ## Run and recover
 
-Use a fresh runtime and current GitHub `RUN_ALL.ipynb`, `TIER="instance_screen"`, blank RUN_ID. Old completed runs remain intact; code-contract changes prevent resuming them under this implementation. Forty-eight final images include multiple internal candidates. The default 20-minute generation limit is checked between scenes and excludes installation/download/evaluation. No GPU run has been executed for this new method here.
+Use a fresh runtime and current GitHub `RUN_ALL.ipynb`, `TIER="instance_screen"`, blank RUN_ID. Old completed runs remain intact; code-contract changes prevent resuming them under this implementation. Forty-eight final images include multiple internal candidates. The default 20-minute generation limit is checked between scenes and excludes installation/download/evaluation. The first GPU run is complete: see [results and limits](INSTANCE_20261102_RESULTS.md). Do not repeat it or escalate to paper/full based on this screen.
 
 After completion, use CPU-only `03_export_screen_review.ipynb` with the printed RUN_ID. It exports tables, input sketches, final images, rejected candidates and review cards in parts below 32 MiB. Send those parts. No GitHub token or inference is required for export.
