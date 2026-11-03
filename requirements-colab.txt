@@ -17,3 +17,6 @@ matplotlib
 scipy
 tabulate
 requests
+
+# CPU-only foreground refinement; weights are downloaded only for foreground_screen.
+onnxruntime==1.23.2

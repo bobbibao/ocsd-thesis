@@ -34,7 +34,9 @@ def generate(kind,eng,vis,scene,seed,cfg,backbone,cache_dir,log,get_objects,diag
     dets=vis.gdino(best,[o.cls for o in scene.objects],thr=cfg.verify_thr)
     check=consistency(scene,dets,size=cfg.height)
     target,coverage=choose_target(scene,check,dets,cfg.height)
-    from .clean_repair import FLAGS
+    from .clean_repair import FLAGS as CLEAN_FLAGS
+    from .foreground import CONTEXT_METHODS, REFINED_METHODS, predict_foreground, place_foreground
+    FLAGS={**CLEAN_FLAGS,**{m:(True,True) for m in CONTEXT_METHODS}}
     clean_flags=FLAGS.get(kind,(False,False))
     count_route=False; extra_ids=[]
     if target is None and (kind in ('instance_repair_count','instance_repair_count_global') or kind in FLAGS):
@@ -62,7 +64,15 @@ def generate(kind,eng,vis,scene,seed,cfg,backbone,cache_dir,log,get_objects,diag
     if target is not None:
         if planned>cap:
             raise ValueError('Requested instance repair exceeds the fixed sampler-work budget')
-        objs=get_objects([target]);prep=Prepared(objs,compose_foreground(scene,objs,cfg),None)
+        objs=get_objects([target]);placements={}
+        prep=Prepared(objs,compose_foreground(scene,objs,cfg,placements=placements) if count_route and kind in REFINED_METHODS else compose_foreground(scene,objs,cfg),None)
+        foreground_override=None
+        if count_route and kind in REFINED_METHODS:
+            probability=predict_foreground(objs[target].img,cache_dir,log)
+            foreground_override=place_foreground(objs[target].img,probability,objs[target].mask,objs[target].info,
+                                                 placements[target],cfg.height,prep.fg[1][target],hard=kind.endswith('_hard'))
+            diagnose('refined_probability',np.repeat((probability*255).round().astype(np.uint8)[...,None],3,axis=2))
+            log['foreground_placement']=list(placements[target])
         # Keep proposals in the review export: cache-only images were previously omitted.
         if target < len(objs) and hasattr(objs[target],'img'):
             diagnose('proposal',objs[target].img)
@@ -75,7 +85,8 @@ def generate(kind,eng,vis,scene,seed,cfg,backbone,cache_dir,log,get_objects,diag
                                protect_matched=True,replacement_ids=[target],isolate_replacement=True,
                                focus_ids=[target] if focused else None,diagnose=emit,
                                **(dict(replacement_extra_ids=extra_ids) if count_route else {}),
-                               **(dict(clean_init=clean_flags[0],clean_blend=clean_flags[1]) if count_route and kind in FLAGS else {}))
+                               **(dict(clean_init=clean_flags[0],clean_blend=clean_flags[1]) if count_route and kind in FLAGS else {}),
+                               **(dict(context_anchor=True,foreground_override=foreground_override) if count_route and kind in CONTEXT_METHODS else {}))
         if candidate is None:
             history.append(dict(kind='local',accepted=False,reason=log.get('repair_skip_reason','empty_edit_mask')))
         else:
@@ -91,6 +102,6 @@ def generate(kind,eng,vis,scene,seed,cfg,backbone,cache_dir,log,get_objects,diag
             if accepted:best=candidate
     wall=time.time()-t0
     log.update(verify=history,tries=len(history),execution_wall_time_s=wall,
-               scene_time=wall-log.get('m2_lookup_seconds',0)+log.get('gligen_reused_seconds',0),
+               scene_time=wall-log.get('m2_lookup_seconds',0)+log.get('gligen_reused_seconds',0)+log.get('foreground_reused_seconds',0),
                compute_includes_m2=True,peak_gb=_cuda_peak())
     return best

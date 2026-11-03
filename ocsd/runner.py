@@ -250,7 +250,7 @@ class Runner:
             if torch.cuda.is_available():
                 torch.cuda.reset_peak_memory_stats()
             if kind in ("grounded_repair", "grounded_repair_no_m2", "grounded_repair_sparse",
-                        "gligen_layout5", "gligen_semantic5", "semantic_repair", "instance_repair", "instance_repair_focus", "instance_repair_count", "instance_repair_count_global", "instance_repair_count_init", "instance_repair_count_blend", "instance_repair_count_clean"):
+                        "gligen_layout5", "gligen_semantic5", "semantic_repair", "instance_repair", "instance_repair_focus", "instance_repair_count", "instance_repair_count_global", "instance_repair_count_init", "instance_repair_count_blend", "instance_repair_count_clean", "instance_repair_count_context", "instance_repair_count_matte_hard", "instance_repair_count_matte_soft"):
                 from .screening import grounded_repair
                 def get_objects(indices=None):
                     started = time.time()
@@ -267,7 +267,7 @@ class Runner:
                     path = os.path.join(self.out_root, split, m, '_diagnostics', f'{scene.sid}_s{s}', name + '.png')
                     _save_png(path, image)
                     log.setdefault('diagnostics', {})[os.path.relpath(path, self.out_root)] = file_hash(path)
-                if kind in ("gligen_layout5", "gligen_semantic5", "semantic_repair", "instance_repair", "instance_repair_focus", "instance_repair_count", "instance_repair_count_global", "instance_repair_count_init", "instance_repair_count_blend", "instance_repair_count_clean"):
+                if kind in ("gligen_layout5", "gligen_semantic5", "semantic_repair", "instance_repair", "instance_repair_focus", "instance_repair_count", "instance_repair_count_global", "instance_repair_count_init", "instance_repair_count_blend", "instance_repair_count_clean", "instance_repair_count_context", "instance_repair_count_matte_hard", "instance_repair_count_matte_soft"):
                     from .semantic import generate as semantic_generate, _gligen
                     def make_gligen(sample_seed):
                         key = (digest(cfg.to_dict()), sample_seed)
@@ -284,7 +284,7 @@ class Runner:
                                 cached[field] = cached.get(field,0) + value
                         return gligen_pool[key][0]
                     generate_fn = semantic_generate
-                    if kind in ('instance_repair','instance_repair_focus','instance_repair_count','instance_repair_count_global','instance_repair_count_init','instance_repair_count_blend','instance_repair_count_clean'):
+                    if kind in ('instance_repair','instance_repair_focus','instance_repair_count','instance_repair_count_global','instance_repair_count_init','instance_repair_count_blend','instance_repair_count_clean','instance_repair_count_context','instance_repair_count_matte_hard','instance_repair_count_matte_soft'):
                         from .instance_repair import generate as generate_fn
                     img = generate_fn(kind, eng, vis, scene, s, cfg, self.backbone, self.cache_dir,
                                       log, get_objects, diagnose, make_gligen=make_gligen)

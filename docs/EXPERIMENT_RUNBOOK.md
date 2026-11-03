@@ -1,4 +1,4 @@
-> Current RUN_ALL default: `clean_screen`, one known bicycle failure × four initialization/blending controls, fresh RUN_ID. See [protocol](CLEAN_SCREEN.md). This is a mechanism diagnostic, not a paper run.
+> Current RUN_ALL default: `foreground_screen`, one known bicycle failure × four extraction/context-anchor controls, fresh RUN_ID. See [protocol](FOREGROUND_SCREEN.md). Learned extraction has been tested on CPU; scene-quality validation is still pending.
 
 # Chạy và xác minh phiên bản tối ưu trên Colab
 
