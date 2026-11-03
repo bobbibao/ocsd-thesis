@@ -1,5 +1,12 @@
 # Experiment changes
 
+## Direct instance-conditioning candidate and CPU preflight — 2026-11-03
+
+- Added an adapter to the pinned official InstanceDiffusion core: separate phrases/boxes and 20 real-ink sketch points per instance, without benchmark masks. This is an external baseline integration, not a new OCSD architecture or a measured quality gain. The inspected diffusers port nulls scribble embeddings, so it was not used for the sketch path.
+- Cached immutable UniFusion features within one image and restored sampler/convolution state on success and failure. On the small official-core CPU test, cached/uncached latents match exactly; conditioner evaluations fall from 34 to 4 while UNet calls remain 34. Added CLIP pre-projection equivalence and strict Transformers-4-to-5 weight-key mapping tests.
+- Added a strict real-checkpoint CPU compatibility probe with code/model hashes and ZIP logs, including dependency/download failures. Local real-weight verification is blocked by a Hugging Face proxy 403; no pretrained quality/FP16 claim is made.
+- RUN_ALL now defaults to `RUN_MODE="direct_preflight"` on CPU. Its legacy experiment stages are guarded; `RUN_MODE="experiment"` retains the old GPU workflow. No new GPU quality sweep or paper/full run is recommended until compatibility is reviewed. See [protocol and instructions](DIRECT_INSTANCE_PREFLIGHT.md).
+
 ## Review fallback and qualitative feedback — 2026-11-03
 
 - Fixed JavaScript-dependent image display: the review generator now embeds original images in static HTML and enables the form only after successful initialization. Added a normal PNG comparison with the same anonymous A–D mapping. A restricted HTML viewer no longer needs to run scripts to display the evidence; PNG is available when the viewer cannot render HTML at all.

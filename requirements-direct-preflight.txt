@@ -1,0 +1,10 @@
+# CPU compatibility check only. Keep Colab's torch/torchvision; no CUDA toolkit,
+# old upstream training environment, diffusers fork, CLIP vision or SDXL refiner.
+transformers==5.17.0
+huggingface_hub==1.33.0
+timm==1.0.30
+einops==0.8.2
+omegaconf==2.3.0
+PyYAML==6.0.3
+Pillow>=10
+numpy>=2
