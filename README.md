@@ -169,3 +169,5 @@ Triển khai mới: [count-aware replacement](docs/COUNT_SCREEN.md), default `co
 Kết quả `count_screen`: [detector đếm đúng nhưng hình xe còn méo/mảnh thừa](docs/COUNT_20261102_RESULTS.md). Đã có bộ review mới 1 cảnh; chưa cần chạy lại Colab.
 
 Tiếp theo: [clean_screen](docs/CLEAN_SCREEN.md) kiểm tra nguồn gây méo bằng ablation 2×2, xuất cả mẫu M2/mask/ảnh trước ghép. Đây là biến thể mới chưa kiểm chứng pretrained; không chạy lại count_screen cũ.
+
+Đã phân tích `clean_screen`: [ảnh trung gian cho thấy mask kéo nền gỗ vào bánh xe; cleanup chưa sửa được hình dáng](docs/CLEAN_20261103_RESULTS.md). Không cần chạy lại; bước tiếp theo là kiểm tra tách nền/ghép đối tượng trên dữ liệu đã có.
