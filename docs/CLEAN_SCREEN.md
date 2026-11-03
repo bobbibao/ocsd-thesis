@@ -50,3 +50,7 @@ All 47 CPU tests passed (3 new clean tests and 44 existing regressions). All fiv
 3. Export the printed new run ID with `03_export_screen_review.ipynb` on CPU, as before. Send the metrics and all image ZIP parts.
 
 The next review will include side-by-side originals/candidates and selected proposal diagnostics with explicit questions. No manual metric computation is required from the user.
+
+## Completed diagnostic
+
+[Results and stage images](CLEAN_20261103_RESULTS.md): the four-arm GPU ablation is complete. Cleanup did not convincingly fix bicycle shape; proposal-mask diagnostics reveal source wooden-board texture pasted inside the wheels. Stop this version and investigate foreground extraction offline. Do not repeat this run or scale up based on count/joint scores.
