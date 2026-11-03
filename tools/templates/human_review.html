@@ -1,6 +1,7 @@
 <!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OCSD — Review ảnh</title>
 <style>
+[hidden]{display:none!important}
 *{box-sizing:border-box}select,input{max-width:100%}#scene{min-width:0;max-width:100%;flex:1 1 260px}article{min-width:0}body{font:17px/1.5 system-ui,sans-serif;color:#172337;background:#f3f5f8;margin:0}header,main{max-width:1500px;margin:auto;padding:20px}h1{font-size:26px}button,select,input,textarea{font:inherit;padding:8px;border:1px solid #aab5c4;border-radius:6px}button{cursor:pointer;background:#fff}button.primary{background:#174a9c;color:white}nav{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}.panel,article{background:white;padding:18px;border-radius:10px;margin:14px 0;border:1px solid #d3dae4}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:14px}.grid article{margin:0}img{max-width:100%;height:auto;cursor:zoom-in}.input{display:flex;gap:20px;flex-wrap:wrap}.input img{width:320px}.input>div{flex:1;min-width:280px}label.field{display:flex;justify-content:space-between;gap:10px;margin:10px 0;align-items:center}label.field span{max-width:58%}small{display:block;color:#465268;font-size:13px}textarea{box-sizing:border-box;width:100%;min-height:90px}#status{font-weight:bold;color:#174a9c}dialog{max-width:95vw;max-height:95vh}dialog img{display:block;max-height:85vh;width:auto}summary{cursor:pointer}#warning{color:#9b2600}a{color:#174a9c}
 </style>
 <header><h1>So phác thảo + mô tả với ảnh sinh ra</h1>
@@ -9,15 +10,21 @@
 <ol><li>Đọc mô tả tiếng Việt và nhìn phác thảo; danh sách đối tượng tiếng Anh là tham chiếu bổ sung.</li><li>Nhìn từng ảnh A–D bên dưới. Bấm ảnh để phóng to. Ảnh giống hệt được gộp: một lần chấm áp dụng cho các nhãn trong nhóm.</li><li>Mỗi tiêu chí chọn: <b>0 = sai rõ</b>; <b>1 = đúng một phần</b>; <b>2 = đúng đầy đủ</b>; <b>? = không chắc</b>; <b>N/A = không áp dụng</b>. Chưa chọn nghĩa là chưa chấm, khác với “không chắc”. Với số lượng, chỉ chọn 2 khi đủ và không thừa từng loại; chọn 1 nếu vẫn nhận ra các đối tượng nhưng đếm sai, 0 nếu sai nghiêm trọng/không thể tách.</li><li>Ở ô ghi chú, mô tả lỗi cụ thể, ví dụ: “cần 4 ngựa + 1 chó; tôi thấy 5 ngựa, thiếu chó”. Ghi số lượng thực thấy nếu đếm được. Không cần thuật ngữ.</li><li>Bấm <b>Tải kết quả JSON</b> để lưu và gửi lại file đó trong chat. Có thể gửi bản chấm dở. Nếu nghỉ giữa chừng, tải JSON trước; lần sau bấm Nhập JSON để tiếp tục.</li></ol>
 <p>Quan hệ: N/A nếu chỉ có một vật. Đặc điểm: N/A nếu mô tả không yêu cầu màu/chất liệu/kích thước. Nếu phác thảo quá mơ hồ, chọn “?” cho hình dáng hoặc quan hệ, đừng đoán. Không suy luận màu từ nét vẽ đen.</p>
 <p>Đây là review phát triển mô hình. Bạn đã xem một số kết quả trước đó nên không coi đây là nghiên cứu người dùng mù độc lập. Các câu trả lời không được dùng như nhãn test để tuyên bố SOTA.</p></details>
+<div id="interactive-controls" hidden>
 <label>Tên/mã người chấm (tùy chọn): <input id="reviewer" placeholder="VD: reviewer_01"></label>
 <nav><button class="primary" id="download">Tải kết quả JSON</button><label>Nhập JSON <input type="file" id="import" accept=".json,application/json"></label><span id="status" aria-live="polite"></span></nav>
 <p id="warning">Trình duyệt có thể không lưu dữ liệu khi mở file cục bộ. Luôn tải JSON trước khi đóng trang.</p>
-</header><main><nav><button id="prev">← Trước</button><select id="scene" aria-label="Chọn cảnh"></select><button id="next">Tiếp →</button></nav><div id="content"></div><p>Chưa chắc thì chọn “?”. Gửi JSON ngay cả khi chưa chấm đủ; không cần chạy Colab.</p></main>
+</div>
+<p id="fallback-help">Nếu bảng chấm không hiện, bạn vẫn xem được ảnh bên dưới và trả lời ngay trong chat: “A: số lượng…, hình dáng…, tự nhiên…”. Bạn cũng có thể mở ảnh SCENE_01.png trong bộ review; không bắt buộc dùng HTML hay JSON.</p>
+</header><main><nav id="navigation" hidden><button id="prev">← Trước</button><select id="scene" aria-label="Chọn cảnh"></select><button id="next">Tiếp →</button></nav><div id="static-review">__STATIC_REVIEW__</div><div id="content" hidden></div><p>Chưa chắc thì chọn “?”. Có thể gửi nhận xét ngay trong chat; không cần chạy Colab.</p></main>
 <dialog id="zoom"><button id="close">Đóng ảnh</button><img id="large" alt="Ảnh phóng to"></dialog>
 <script id="payload" type="application/json">__PAYLOAD__</script>
 <script>
 'use strict';
 const data=JSON.parse(document.getElementById('payload').textContent), $=id=>document.getElementById(id);
+// Original PNGs are embedded in ordinary HTML, so evidence survives disabled
+// JavaScript or an initialization error. Reuse those sources for the form.
+data.images=Object.fromEntries(Array.from(document.querySelectorAll('#static-review img[data-image-hash]'),img=>[img.dataset.imageHash,img.src]));
 const storageKey=data.schema+':'+data.run_id;
 const validScores=['','0','1','2','?','NA'];
 const keys=data.criteria.map(x=>x[0]);
@@ -56,4 +63,6 @@ $('scene').onchange=()=>{index=Number($('scene').value);render();};$('prev').onc
 $('download').onclick=()=>{const output={...state,exported_at:new Date().toISOString(),scale:{'0':'wrong','1':'partial','2':'correct','?':'uncertain','NA':'not_applicable'},rows:[]};for(const s of data.scenes)for(const g of s.groups)for(const label of g.labels)output.rows.push({item:s.item,label,group:groupKey(s,g),image_sha256:g.image,...Object.fromEntries(exportKeys.map(k=>[k,state.ratings[groupKey(s,g)]?.[k]||''])),comment:state.ratings[groupKey(s,g)]?.comment||''});const url=URL.createObjectURL(new Blob([JSON.stringify(output,null,2)],{type:'application/json'}));const a=el('a');a.href=url;a.download='ocsd_review_'+data.run_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 $('import').onchange=async()=>{try{const file=$('import').files[0];if(!file)return;const incoming=validate(JSON.parse(await file.text()));if(Object.keys(state.ratings).length&&!confirm('Thay các câu trả lời hiện tại bằng file này? Hãy tải bản hiện tại trước nếu muốn giữ.'))return;state=incoming;$('reviewer').value=state.reviewer_id;save();render();}catch(e){alert('Không nhập được: '+e.message);}finally{$('import').value='';}};
 render();
+$('interactive-controls').hidden=false;$('navigation').hidden=false;$('content').hidden=false;
+$('static-review').hidden=true;$('fallback-help').hidden=true;
 </script></html>

@@ -2,8 +2,58 @@
 import argparse
 import base64
 import hashlib
+import html
+import io
 import json
 from pathlib import Path
+import re
+import textwrap
+
+
+def static_review(scenes, images):
+    """Render the evidence before JavaScript; a restricted viewer still shows images."""
+    def picture(digest, label):
+        return (f'<img data-image-hash="{digest}" src="{images[digest]}" '
+                f'alt="{html.escape(label, quote=True)}">')
+    parts = []
+    for i, scene in enumerate(scenes, 1):
+        parts.append(f'<section class="panel"><h2>Cảnh {i}</h2><div class="input">')
+        parts.append(picture(scene['sketch'], 'Phác thảo đầu vào'))
+        parts.append('<div><p>' + html.escape(scene['caption_vi'] or scene['caption']) + '</p>')
+        parts.append('<small>Mô tả gốc: ' + html.escape(scene['caption']) + '</small></div></div><div class="grid">')
+        for group in scene['groups']:
+            label = ' = '.join(group['labels'])
+            parts.append('<article><h3>Ảnh ' + html.escape(label) + '</h3>')
+            parts.append(picture(group['image'], 'Kết quả ' + label) + '</article>')
+        parts.append('</div></section>')
+    return ''.join(parts)
+
+
+def comparison_images(scenes, images, out):
+    """Plain PNG evidence, with the same anonymous labels and no browser dependency."""
+    from PIL import Image, ImageDraw, ImageFont
+    try:
+        font = ImageFont.truetype('DejaVuSans.ttf', 22)
+    except OSError:
+        font = ImageFont.load_default()
+    def decode(digest):
+        return Image.open(io.BytesIO(base64.b64decode(images[digest].split(',', 1)[1]))).convert('RGB')
+    names = []
+    for i, scene in enumerate(scenes, 1):
+        sheet = Image.new('RGB', (1024, 288 + 544 * ((len(scene['groups']) + 1) // 2)), 'white')
+        draw = ImageDraw.Draw(sheet)
+        sketch = decode(scene['sketch']); sketch.thumbnail((256, 256))
+        sheet.paste(sketch, (8, 24))
+        draw.text((280, 24), f'Scene {i} - sketch and caption', fill='black', font=font)
+        for line, text in enumerate(textwrap.wrap(scene['caption'], width=48)):
+            draw.text((280, 70 + line*28), text, fill='black', font=font)
+        for j, group in enumerate(scene['groups']):
+            x, y = j % 2 * 512, 288 + j // 2 * 544
+            draw.text((x+8, y+2), ' = '.join(group['labels']), fill='black', font=font)
+            img = decode(group['image']); img.thumbnail((512, 512))
+            sheet.paste(img, (x, y+32))
+        name = f'SCENE_{i:02}.png'; sheet.save(out / name); names.append(name)
+    return names
 
 SCHEMA = 'ocsd-human-review-v1'
 CRITERIA = [
@@ -81,14 +131,17 @@ def build(root, out, criteria=None):
         raise ValueError('Empty review packet')
     # No method key, metrics, acceptance decisions or recommended ratings in the reviewer payload.
     payload = dict(schema=SCHEMA, run_id=rid, criteria=selected,
-                   all_criteria_keys=[c[0] for c in CRITERIA], scenes=scenes, images=images)
+                   all_criteria_keys=[c[0] for c in CRITERIA], scenes=scenes, images=list(images))
     serialized = json.dumps(payload, ensure_ascii=False).replace('<', '\\u003c')
     template = Path(__file__).with_name('templates').joinpath('human_review.html').read_text()
     out = Path(out); out.mkdir(parents=True, exist_ok=True)
-    (out / 'REVIEW.html').write_text(template.replace('__PAYLOAD__', serialized))
+    replacements = {'__PAYLOAD__': serialized, '__STATIC_REVIEW__': static_review(scenes, images)}
+    (out / 'REVIEW.html').write_text(re.sub(r'__(?:PAYLOAD|STATIC_REVIEW)__',
+                                           lambda match: replacements[match.group()], template))
+    static_images = comparison_images(scenes, images, out)
     summary = dict(run_id=rid, scenes=len(scenes), original_rows=sum(len(x['labels']) for s in scenes for x in s['groups']),
                    unique_rating_cards=sum(len(s['groups']) for s in scenes), schema=SCHEMA,
-                   criteria=[c[0] for c in selected])
+                   criteria=[c[0] for c in selected], static_images=static_images)
     (out / 'packet_summary.json').write_text(json.dumps(summary, indent=2))
     return summary
 

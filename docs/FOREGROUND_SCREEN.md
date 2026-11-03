@@ -1,6 +1,6 @@
 # Foreground extraction and context anchors: completed diagnostic protocol
 
-> Completed: run `20261103T035056Z_dc40e4b5`. [Results and audit](FOREGROUND_20261103_RESULTS.md) show reduced wheel-background contamination but persistent geometry/realism failures. Do not repeat this sweep or scale it up. The text below preserves the prospective protocol; GPU execution is no longer pending.
+> Completed: run `20261103T035056Z_dc40e4b5`. [Results and user review](FOREGROUND_20261103_RESULTS.md) favor learned extraction, with count/shape accepted on this scene and naturalness still limited. Do not repeat this sweep or scale it up. The text below preserves the prospective protocol; GPU execution and user review are no longer pending.
 
 ## Offline evidence before spending more Colab GPU time
 
