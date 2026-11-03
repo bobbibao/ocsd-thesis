@@ -1,0 +1,29 @@
+{
+  "run_id": "20261102T181111Z_be735f1b",
+  "item": "qd_3_simple_000_s0",
+  "source": "user chat, qualitative feedback",
+  "review_date_local": "2026-11-03",
+  "timezone": "Asia/Saigon",
+  "labels": [
+    "B",
+    "C"
+  ],
+  "methods": {
+    "B": "instance_repair_count_global",
+    "C": "instance_repair_count"
+  },
+  "verbatim": "ảnh B và C đã xuất hiện xe đạp màu vàng nhưng còn rất méo mó, và ảnh cũng chưa được tự nhiên lắm",
+  "numeric_scores": null,
+  "confirmed": [
+    "yellow bicycle appears in B and C",
+    "bicycle remains very distorted",
+    "images lack naturalness"
+  ],
+  "not_established": [
+    "exact bicycle count",
+    "absence of residual fragments",
+    "preference between B and C",
+    "generalization to other scenes"
+  ],
+  "decision": "count correction alone does not meet visual quality objective; do not scale up this version"
+}
