@@ -8,9 +8,9 @@ Mục tiêu: từ **phác thảo cảnh + câu mô tả**, sinh ảnh có **đú
 ## Phiên bản tối ưu và định danh thực nghiệm
 
 **Cập nhật 03/11/2026:** đã phân tích đủ [foreground_screen](docs/FOREGROUND_20261103_RESULTS.md).
-Tách nền làm bánh xe sạch hơn, nhưng hình dáng và độ tự nhiên vẫn chưa đạt; chưa chứng minh model tốt hơn tổng thể.
-**Hiện không cần chạy lại Colab.** Tải [review 4 ảnh](docs/reviews/ocsd-foreground-review-20261103.zip),
-giải nén, mở `REVIEW.html` và chấm 3 tiêu chí (số lượng, hình dáng, tự nhiên); gửi JSON tải từ trang.
+Người dùng đã xác nhận A–D đủ số lượng/hình dáng; A và B chính xác nhất, tương đương theo cảm nhận, nhưng chưa tự nhiên.
+**Đã nhận review, không cần chấm lại hay chạy lại Colab.** Có thể [xem A–D trực tiếp bằng ảnh PNG](docs/reviews/foreground_20261103_ABCD.png).
+[Bộ review](docs/reviews/ocsd-foreground-review-20261103.zip) cũng đã có PNG và HTML hiển thị ảnh khi tắt JavaScript.
 
 Xem [runbook](docs/EXPERIMENT_RUNBOOK.md), [audit](docs/OPTIMIZATION_AUDIT.md) và
 [changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `foreground_screen`,
@@ -36,7 +36,7 @@ Thiết kế cho **Google Colab Pro**. GPU và mức tiêu thụ compute units p
 
 | Tier | QuickDraw-Scenes | Học định danh (OCSD, Zhang) | COCO-Sketch | Seed | DDIM / K / M3 | Ước tính |
 |---|---|---|---|---|---|---|
-| `foreground_screen` | 1 cảnh × 4 đối chứng | không | không | 1 | 30 / 2 / 0 | đã chạy: sạch nền bánh xe hơn, vẫn méo; dừng sweep |
+| `foreground_screen` | 1 cảnh × 4 đối chứng | không | không | 1 | 30 / 2 / 0 | user ưu tiên A/B, count/shape đạt; tự nhiên chưa đạt; dừng sweep |
 | `clean_screen` | 1 cảnh × 4 đối chứng | không | không | 1 | 30 / 2 / 0 | đã chạy: chưa sửa được hình dáng |
 | `count_screen` | 1 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | đã chạy: count tự động đạt, hình dáng chưa đạt |
 | `instance_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | đã chạy; có cải thiện cục bộ, chưa tăng joint success |
@@ -178,4 +178,4 @@ Tiếp theo: [clean_screen](docs/CLEAN_SCREEN.md) kiểm tra nguồn gây méo b
 
 Đã phân tích `clean_screen`: [ảnh trung gian cho thấy mask kéo nền gỗ vào bánh xe; cleanup chưa sửa được hình dáng](docs/CLEAN_20261103_RESULTS.md). Không cần chạy lại; bước tiếp theo là kiểm tra tách nền/ghép đối tượng trên dữ liệu đã có.
 
-Đã kiểm tra ảnh cuối của [foreground_screen](docs/FOREGROUND_20261103_RESULTS.md): phần nền gỗ giảm rõ trong bánh xe nhưng khung/chi tiết vẫn méo. Giữ tách nền như thành phần thử nghiệm, dừng sweep xe đạp và chưa nâng lên paper/full.
+Đã kiểm tra ảnh cuối và nhận [review foreground_screen](docs/FOREGROUND_20261103_RESULTS.md): người dùng ưu tiên hai nhánh tách nền học được, chấp nhận số lượng/hình dáng, nhưng độ tự nhiên chưa đạt. Ưu tiên tiếp theo là độ tự nhiên trong khi giữ kết quả count/shape; chưa nâng lên paper/full.

@@ -1,4 +1,4 @@
-> Current status: `foreground_screen` is complete, run `20261103T035056Z_dc40e4b5`. [Result](FOREGROUND_20261103_RESULTS.md): cleaner wheel interiors, persistent geometry/realism failures. No GPU rerun is requested. Use the [offline review packet](reviews/ocsd-foreground-review-20261103.zip). RUN_ALL retains this tier for reproduction; no new quality candidate is promoted.
+> Current status: `foreground_screen` is complete, run `20261103T035056Z_dc40e4b5`; user review is received. [Result](FOREGROUND_20261103_RESULTS.md): count/shape accepted on this scene, A/B jointly preferred, naturalness still limited. No rerating or GPU rerun is requested. [Direct PNG comparison](reviews/foreground_20261103_ABCD.png) works without HTML. RUN_ALL retains this tier for reproduction; no broad quality claim is made.
 
 # Chạy và xác minh phiên bản tối ưu trên Colab
 

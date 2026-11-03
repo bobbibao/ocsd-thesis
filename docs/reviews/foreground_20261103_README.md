@@ -1,7 +1,9 @@
 # Review xe đạp — chỉ cần 4 ảnh, không chạy Colab
 
+**Không bắt buộc mở HTML:** mở `SCENE_01.png` để xem phác thảo, mô tả và ảnh A–D trong một ảnh thông thường. Bạn có thể nhận xét ngay trong chat. Nếu đã gửi nhận xét, không cần chấm lại hay gửi JSON.
+
 1. Giải nén `ocsd-foreground-review-20261103.zip` trên máy tính.
-2. Mở `REVIEW.html` bằng Chrome, Edge hoặc Firefox. Trang chạy offline, không cần cài thư viện hay đăng nhập.
+2. Mở `SCENE_01.png` bằng trình xem ảnh. Nếu muốn dùng bảng điểm, mở `REVIEW.html` bằng Chrome, Edge hoặc Firefox. Trang có ảnh nhúng sẵn và chạy offline; nếu trình xem không chạy bảng điểm, dùng PNG và trả lời trong chat.
 3. Đọc câu mô tả và xem phác thảo ở đầu trang: **một xe đạp vàng và hai đoàn tàu xanh dương gần ga tàu**.
 4. Xem bốn ảnh A–D cạnh nhau. Bấm từng ảnh để phóng to. Nhãn chỉ dùng để ghi câu trả lời; không cần biết phương pháp nào tạo ảnh.
 5. Với mỗi ảnh, chấm **3 mục** bên dưới (tổng cộng 12 lựa chọn):
@@ -27,6 +29,6 @@ Chi tiết thừa hoặc vị trí ghép bất thường: ...
 Không cần tính điểm trung bình, đọc bảng kỹ thuật hoặc chọn một ảnh thắng nếu bạn không phân biệt được.
 
 6. Bấm **Tải kết quả JSON** ở đầu trang.
-7. Gửi lại file **`ocsd_review_20261103T035056Z_dc40e4b5.json`** trong chat. Đây là định dạng đầu ra cần gửi; không cần viết JSON bằng tay hay gửi ảnh chụp màn hình.
+7. Gửi lại file **`ocsd_review_20261103T035056Z_dc40e4b5.json`** trong chat nếu dùng bảng điểm. Hoặc gửi nhận xét bằng lời, chẳng hạn: `A: số lượng…, hình dáng…, tự nhiên…; B: …; C: …; D: …`. Không cần viết JSON bằng tay hay gửi ảnh chụp màn hình.
 
 Nếu nghỉ giữa chừng, tải JSON trước khi đóng trang. Lần sau mở lại HTML và bấm **Nhập JSON** để tiếp tục. Có thể gửi bản chấm dở. Trang không tự tải câu trả lời lên mạng.
