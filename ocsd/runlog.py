@@ -70,7 +70,7 @@ def start(results_dir: str, code_dir: str = "") -> str:
 def environment(code_dir: str = "") -> dict:
     env = dict(time=time.strftime("%Y-%m-%d %H:%M:%S"), python=sys.version.split()[0])
     for mod in ("torch", "torchvision", "diffusers", "transformers", "peft", "accelerate", "huggingface_hub",
-                "torchmetrics", "controlnet_aux", "numpy"):
+                "torchmetrics", "controlnet_aux", "numpy", "onnxruntime"):
         try:
             import importlib.metadata as md
             env[mod] = md.version(mod.replace("_", "-") if mod == "controlnet_aux" else mod)

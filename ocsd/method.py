@@ -286,7 +286,7 @@ def _token_positions(tok, prompt: str, words: Sequence[str]) -> List[List[int]]:
 
 
 # ============================================================================ M4
-def compose_foreground(scene: Scene, objs: List[ObjectResult], cfg: OCSDConfig):
+def compose_foreground(scene: Scene, objs: List[ObjectResult], cfg: OCSDConfig, placements=None):
     """Đặt các ảnh đối tượng vào đúng vị trí phác thảo (tìm tỉ lệ/độ dịch tối đa IoU với m_i), xa trước gần sau."""
     H = cfg.height
     canvas = np.full((H, H, 3), 255, np.uint8)
@@ -304,6 +304,7 @@ def compose_foreground(scene: Scene, objs: List[ObjectResult], cfg: OCSDConfig):
             iou = mask_iou(pm, scene.objects[i].mask)
             if iou > best_iou:
                 best, best_iou = (s, dx, dy), iou
+        if placements is not None:placements[i]=best
         canvas, pm = paste_back(canvas, None, r.img, r.mask, r.info, *best)
         for j in range(scene.n):     # đối tượng gần hơn che khuất đối tượng xa hơn
             if j != i:
@@ -538,7 +539,7 @@ def repair_regions(scene: Scene, ctx: SceneCond, c: Dict, dets: Sequence[dict], 
 
 def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, img: np.ndarray, c: Dict,
                  dets: Sequence[dict], seed: int, lambda0: float, log: Optional[dict] = None,
-                 protect_matched: bool = False, diagnose=None, replacement_ids=None, focus_ids=None, isolate_replacement=False, replacement_extra_ids=None, clean_init=False, clean_blend=False) -> Optional[np.ndarray]:
+                 protect_matched: bool = False, diagnose=None, replacement_ids=None, focus_ids=None, isolate_replacement=False, replacement_extra_ids=None, clean_init=False, clean_blend=False, foreground_override=None, context_anchor=False) -> Optional[np.ndarray]:
     """M5(d) repair (joint mode): re-noise `img` to (1 - repair_strength) of the trajectory and denoise again only
     inside repair_regions - the rest is held to the previous image at every step (and pasted back at the end), and a
     missing object's M2 latent is re-imposed for the same alpha fraction of the remaining steps. Region attention
@@ -617,27 +618,42 @@ def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, i
             return None
         from .clean_repair import clean_canvas
         seed_image,background=clean_canvas(img,M,prep.fg[0],prep.fg[1][replacement_ids[0]])
+        if foreground_override is not None:
+            rgb,alpha=foreground_override
+            if rgb.shape!=img.shape or alpha.shape!=M.shape or not np.isfinite(alpha).all() or alpha.min()<0 or alpha.max()>1:
+                raise ValueError('Invalid placed foreground')
+            alpha=alpha*M
+            if not (alpha>0).any():
+                if log is not None:log['repair_skip_reason']='empty_refined_foreground'
+                return None
+            seed_image=np.rint(background*(1-alpha[...,None])+rgb*alpha[...,None]).clip(0,255).astype(np.uint8)
+            if diagnose is not None:diagnose('foreground_probability',np.repeat((alpha*255).round().astype(np.uint8)[...,None],3,axis=2))
         if diagnose is not None:
             diagnose('clean_background',background)
             diagnose('clean_seed',seed_image)
     if log is not None:
         log['repair_canvas']=dict(clean_init=bool(clean_init),clean_blend=bool(clean_blend),
-                                  extra_vae_encodes=int(clean_init),background_fill='telea_radius_3' if clean_init or clean_blend else None)
+                                  extra_vae_encodes=int(clean_init and not context_anchor),context_anchor=bool(context_anchor),background_fill='telea_radius_3' if clean_init or clean_blend else None)
     ts = eng.set_timesteps(cfg.steps)
     T = len(ts)
     start = min(max(int(round((1 - cfg.repair_strength) * T)), 0), T - 1)
     z0 = eng.to_latent(img)
     noise = eng.randn(seed + 31337, 1, H, H)
     anchors = [(z0, noise, 1 - _lat_mask(M, lh, lh, eng.device, eng.dtype)[None, None], T)]
+    start_latent=eng.to_latent(seed_image) if clean_init else z0
+    if context_anchor and not (clean_init and clean_blend):
+        raise ValueError('Context anchor requires a clean canvas in both factors')
+    if foreground_override is not None and not context_anchor:
+        raise ValueError('Refined foreground requires a context anchor')
     if missing and prep.fg is not None and cfg.use_blend:
         until = start + int(round((1 - cfg.alpha) * (T - start)))
-        miss = np.any([prep.fg[1][i] for i in missing], 0)
+        miss = np.any([prep.fg[1][i] for i in missing], 0).astype(np.float32)
+        if foreground_override is not None:miss=foreground_override[1].copy()
         if protect_matched:
-            miss &= M
+            miss *= M
         if miss.any() and until > start:
-            anchors.append((eng.to_latent(prep.fg[0]), eng.randn(seed + 7919, 1, H, H),
+            anchors.append((start_latent if context_anchor else eng.to_latent(prep.fg[0]), eng.randn(seed + 7919, 1, H, H),
                             _lat_mask(miss, lh, lh, eng.device, eng.dtype)[None, None], until))
-    start_latent=eng.to_latent(seed_image) if clean_init else z0
     energy_E = []
     with torch.no_grad(), _SceneRun(eng, ctx, cfg, use_id):
         z = _denoise(eng, ctx, cfg, ts, start, eng.q_sample(start_latent, noise, ts[start]), lambda0, anchors, use_id, energy_E)

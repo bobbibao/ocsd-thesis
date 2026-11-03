@@ -1,0 +1,22 @@
+{
+  "source_run": "20261103T010052Z_be837def",
+  "item": "qd_3_simple_000_s0",
+  "source_method": "instance_repair_count",
+  "source_image_sha256": "f3906432907f8cca7ed6564c1111e1b37f0325f97759c9ff9d1473f9fcf9c2d9",
+  "source_mask_sha256": "699a9fd74067d35beab3a7e87c9ad0926376fc767e9c087a5096f2ea169dfa67",
+  "model_sha256": "5600024376f572a557870a5eb0afb1e5961636bef4e1e22132025467d0f03333",
+  "model": {
+    "url": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/BiRefNet-general-bb_swin_v1_tiny-epoch_232.onnx",
+    "sha256": "5600024376f572a557870a5eb0afb1e5961636bef4e1e22132025467d0f03333",
+    "onnxruntime": "1.23.2",
+    "provider": "CPUExecutionProvider",
+    "actual_wall_s": 32.63888938399759,
+    "standalone_forward_s": 26.904865937001887,
+    "forward_calls_in_this_method": 1
+  },
+  "opencv": "5.0.0",
+  "grabcut_retained_area_fraction": 0.4843324250681199,
+  "learned_probability_mass_fraction": 0.47540263353421375,
+  "quality_metrics": "none; area/mass fractions are not accuracy or preservation scores",
+  "inference_scope": "one saved proposal, CPU only; no new scene diffusion"
+}
