@@ -106,7 +106,7 @@ def runtime_versions():
     names = ['torch', 'torchvision', 'diffusers', 'transformers', 'peft', 'accelerate', 'huggingface_hub',
              'torchmetrics', 'controlnet_aux', 'numpy', 'pandas', 'scipy', 'torch-fidelity', 'timm',
              'scikit-image', 'opencv-python-headless', 'pillow', 'einops', 'pycocotools', 'matplotlib',
-             'tokenizers', 'safetensors']
+             'tokenizers', 'safetensors', 'onnxruntime']
     out = {}
     for name in names:
         try:

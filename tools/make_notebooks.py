@@ -11,7 +11,7 @@ SETUP = r'''#@title 1. Cấu hình (chỉ sửa ô này)
 REPO_URL   = "https://github.com/bobbibao/ocsd-thesis.git"  #@param {type:"string"}
 BRANCH     = "main"                                             #@param {type:"string"}
 DRIVE_ROOT = "/content/drive/MyDrive/KLTN_OCSD"                 #@param {type:"string"}
-TIER       = "pilot"   #@param ["clean_screen", "count_screen", "instance_screen", "semantic_screen", "repair_screen", "screen", "pilot", "paper", "full"]
+TIER       = "pilot"   #@param ["foreground_screen", "clean_screen", "count_screen", "instance_screen", "semantic_screen", "repair_screen", "screen", "pilot", "paper", "full"]
 BACKBONE   = "sd15"    #@param ["sd15", "sd21"]
 MAX_MINUTES = 600      #@param {type:"number"}
 SKIP_JOBS  = ""        #@param {type:"string"}
@@ -69,7 +69,7 @@ from ocsd import runlog
 from ocsd.config import Paths, ExperimentConfig, TIERS
 P = Paths(DRIVE_ROOT); P.makedirs()
 E = ExperimentConfig(backbone=BACKBONE, tier=TIER, skip_jobs=SKIP_JOBS,
-                     extra_detectors=() if TIER in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen") else ("owlv2", "owlv2d", "detr"))
+                     extra_detectors=() if TIER in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen") else ("owlv2", "owlv2d", "detr"))
 from ocsd.provenance import start_run
 P, RUN = start_run(P, E, run_id=RUN_ID)
 RUN_ID = P.run_id
@@ -110,19 +110,19 @@ nb([
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
     "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
-    SETUP.replace('TIER       = "pilot"', 'TIER       = "clean_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'), MOUNT, INSTALL,
-    "MD:## Thử nghiệm loại bỏ chi tiết cũ trong vùng sửa\nMặc định `clean_screen`: 1 cảnh xe đạp × 4 đối chứng "
-    "= 4 ảnh cuối. Tách hai yếu tố: khởi tạo vùng sửa và ảnh nền dùng khi ghép cuối. "
-    "Cùng seed, mask, mẫu M2 và số bước; có thêm xử lý CPU/VAE được ghi log. "
-    "Mẫu đối tượng, mask, ảnh nền và ảnh trước ghép đều được export để tìm nguồn gây méo. "
-    "Đây là thử cơ chế trên cảnh đã biết, chưa chứng minh tăng chất lượng. Xem docs/CLEAN_SCREEN.md. "
-    "Dùng RUN_ID mới; không chạy paper/full.",
+    SETUP.replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'), MOUNT, INSTALL,
+    "MD:## Thử nghiệm tách nền đối tượng\nMặc định `foreground_screen`: 1 cảnh xe đạp × 4 đối chứng "
+    "= 4 ảnh cuối. So sánh clean cũ, anchor có nền cảnh, mask học được dạng cứng và dạng mềm. "
+    "BiRefNet-lite chạy CPU, tải khoảng 224 MB một lần và kiểm tra SHA-256. "
+    "Không gửi ảnh ra dịch vụ ngoài. Cùng mẫu M2, vị trí, vùng sửa và số bước diffusion; "
+    "chi phí tách nền ghi riêng. Kết quả tách nền offline có triển vọng nhưng ảnh cuối chưa kiểm chứng. "
+    "Xem docs/FOREGROUND_SCREEN.md. Dùng RUN_ID mới; không chạy paper/full.",
     "MD:## A. Bộ dữ liệu\nQuickDraw-Scenes (tổng hợp, 12 ô: số đối tượng 1/3/5/8+ × độ phức tạp đơn giản/trung bình/phức tạp) "
     "và COCO-Sketch (ảnh thật COCO val2017, phác thảo PiDiNet, mặt nạ thật). Lần đầu mất ~10–20 phút (tải COCO 1 GB).",
     r'''#@title A. Build benchmarks (skipped if already built for this tier)
 from ocsd import stages
 with RUN.stage("A_data"):
-    stages.setup_data(P, TIER, with_coco=TIER not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen"))
+    stages.setup_data(P, TIER, with_coco=TIER not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen"))
     RUN.seal_data()
     RUN.plan(E)
 from IPython.display import Image, display
@@ -155,7 +155,7 @@ _GLIGEN.clear()
 import gc
 gc.collect(); torch.cuda.empty_cache()
 with RUN.stage("C_evaluate"):
-    vis = stages.evaluate(P, E, vis=vis, fid=TIER not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen"))''',
+    vis = stages.evaluate(P, E, vis=vis, fid=TIER not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen"))''',
     "MD:## D. Báo cáo",
     r'''#@title D. Tables, figures, statistics, summary
 with RUN.stage("D_report"):
@@ -341,8 +341,8 @@ assert re.fullmatch(r'[A-Za-z0-9_-]+', RUN_ID), 'Invalid RUN_ID'
 manifest_path = ROOT / 'results' / 'runs' / RUN_ID / 'run_manifest.json'
 manifest = json.loads(manifest_path.read_text())
 assert manifest['status'] == 'complete', 'Run is incomplete: resume before interpreting results'
-assert manifest['contract']['experiment']['tier'] in ('screen', 'repair_screen', 'semantic_screen', 'instance_screen', 'count_screen', 'clean_screen')
-methods = {'gligen', 'gligen_bon', 'grounded_repair', 'grounded_repair_no_m2', 'grounded_repair_sparse', 'semantic_repair', 'gligen_layout5', 'gligen_semantic5', 'instance_repair', 'instance_repair_focus', 'instance_repair_count', 'instance_repair_count_global', 'instance_repair_count_init', 'instance_repair_count_blend', 'instance_repair_count_clean'}
+assert manifest['contract']['experiment']['tier'] in ('screen', 'repair_screen', 'semantic_screen', 'instance_screen', 'count_screen', 'clean_screen', 'foreground_screen')
+methods = {'gligen', 'gligen_bon', 'grounded_repair', 'grounded_repair_no_m2', 'grounded_repair_sparse', 'semantic_repair', 'gligen_layout5', 'gligen_semantic5', 'instance_repair', 'instance_repair_focus', 'instance_repair_count', 'instance_repair_count_global', 'instance_repair_count_init', 'instance_repair_count_blend', 'instance_repair_count_clean', 'instance_repair_count_context', 'instance_repair_count_matte_hard', 'instance_repair_count_matte_soft'}
 selected = []
 for relative, digest in manifest['artifacts'].items():
     rel = Path(relative)
