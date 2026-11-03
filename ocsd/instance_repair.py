@@ -34,12 +34,14 @@ def generate(kind,eng,vis,scene,seed,cfg,backbone,cache_dir,log,get_objects,diag
     dets=vis.gdino(best,[o.cls for o in scene.objects],thr=cfg.verify_thr)
     check=consistency(scene,dets,size=cfg.height)
     target,coverage=choose_target(scene,check,dets,cfg.height)
+    from .clean_repair import FLAGS
+    clean_flags=FLAGS.get(kind,(False,False))
     count_route=False; extra_ids=[]
-    if target is None and kind in ('instance_repair_count','instance_repair_count_global'):
+    if target is None and (kind in ('instance_repair_count','instance_repair_count_global') or kind in FLAGS):
         from .count_repair import choose_count_target
         target,extra_ids=choose_count_target(scene,check,dets)
         count_route=target is not None
-    focused=kind in ('instance_repair_focus','instance_repair_count')
+    focused=kind in ('instance_repair_focus','instance_repair_count') or kind in FLAGS
     # Both new arms retain the existing experimental missing-object behavior.
     if not count_route and kind=='instance_repair_count_global':focused=True
     repair_check=check
@@ -61,13 +63,21 @@ def generate(kind,eng,vis,scene,seed,cfg,backbone,cache_dir,log,get_objects,diag
         if planned>cap:
             raise ValueError('Requested instance repair exceeds the fixed sampler-work budget')
         objs=get_objects([target]);prep=Prepared(objs,compose_foreground(scene,objs,cfg),None)
+        # Keep proposals in the review export: cache-only images were previously omitted.
+        if target < len(objs) and hasattr(objs[target],'img'):
+            diagnose('proposal',objs[target].img)
+            diagnose('proposal_mask',np.repeat((objs[target].mask.astype(np.uint8)*255)[...,None],3,axis=2))
+        if prep.fg is not None:
+            diagnose('placed_proposal',prep.fg[0])
+            diagnose('placed_proposal_mask',np.repeat((prep.fg[1][target].astype(np.uint8)*255)[...,None],3,axis=2))
         emit=lambda name,img:diagnose('local_'+name,img)
         candidate=repair_scene(eng,scene,prep,cfg,best,repair_check,dets,seed+100003,cfg.lambda0,log,
                                protect_matched=True,replacement_ids=[target],isolate_replacement=True,
                                focus_ids=[target] if focused else None,diagnose=emit,
-                               **(dict(replacement_extra_ids=extra_ids) if count_route else {}))
+                               **(dict(replacement_extra_ids=extra_ids) if count_route else {}),
+                               **(dict(clean_init=clean_flags[0],clean_blend=clean_flags[1]) if count_route and kind in FLAGS else {}))
         if candidate is None:
-            history.append(dict(kind='local',accepted=False,reason='empty_edit_mask'))
+            history.append(dict(kind='local',accepted=False,reason=log.get('repair_skip_reason','empty_edit_mask')))
         else:
             diagnose('local_candidate',candidate)
             after_dets=vis.gdino(candidate,[o.cls for o in scene.objects],thr=cfg.verify_thr)
