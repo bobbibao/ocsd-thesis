@@ -538,7 +538,7 @@ def repair_regions(scene: Scene, ctx: SceneCond, c: Dict, dets: Sequence[dict], 
 
 def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, img: np.ndarray, c: Dict,
                  dets: Sequence[dict], seed: int, lambda0: float, log: Optional[dict] = None,
-                 protect_matched: bool = False, diagnose=None, replacement_ids=None, focus_ids=None, isolate_replacement=False, replacement_extra_ids=None) -> Optional[np.ndarray]:
+                 protect_matched: bool = False, diagnose=None, replacement_ids=None, focus_ids=None, isolate_replacement=False, replacement_extra_ids=None, clean_init=False, clean_blend=False) -> Optional[np.ndarray]:
     """M5(d) repair (joint mode): re-noise `img` to (1 - repair_strength) of the trajectory and denoise again only
     inside repair_regions - the rest is held to the previous image at every step (and pasted back at the end), and a
     missing object's M2 latent is re-imposed for the same alpha fraction of the remaining steps. Region attention
@@ -608,6 +608,21 @@ def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, i
             editable_area=float(M.mean())))
     if not M.any():
         return None
+    seed_image=img
+    if clean_init or clean_blend:
+        if not protect_matched or not isolate_replacement or len(replacement_ids or ())!=1 or prep.fg is None:
+            raise ValueError('Clean repair requires one isolated protected M2 target')
+        if M.all() or not (prep.fg[1][replacement_ids[0]] & M).any():
+            if log is not None:log['repair_skip_reason']='no_clean_canvas_context_or_foreground'
+            return None
+        from .clean_repair import clean_canvas
+        seed_image,background=clean_canvas(img,M,prep.fg[0],prep.fg[1][replacement_ids[0]])
+        if diagnose is not None:
+            diagnose('clean_background',background)
+            diagnose('clean_seed',seed_image)
+    if log is not None:
+        log['repair_canvas']=dict(clean_init=bool(clean_init),clean_blend=bool(clean_blend),
+                                  extra_vae_encodes=int(clean_init),background_fill='telea_radius_3' if clean_init or clean_blend else None)
     ts = eng.set_timesteps(cfg.steps)
     T = len(ts)
     start = min(max(int(round((1 - cfg.repair_strength) * T)), 0), T - 1)
@@ -622,16 +637,20 @@ def repair_scene(eng: Engine, scene: Scene, prep: "Prepared", cfg: OCSDConfig, i
         if miss.any() and until > start:
             anchors.append((eng.to_latent(prep.fg[0]), eng.randn(seed + 7919, 1, H, H),
                             _lat_mask(miss, lh, lh, eng.device, eng.dtype)[None, None], until))
+    start_latent=eng.to_latent(seed_image) if clean_init else z0
     energy_E = []
     with torch.no_grad(), _SceneRun(eng, ctx, cfg, use_id):
-        z = _denoise(eng, ctx, cfg, ts, start, eng.q_sample(z0, noise, ts[start]), lambda0, anchors, use_id, energy_E)
+        z = _denoise(eng, ctx, cfg, ts, start, eng.q_sample(start_latent, noise, ts[start]), lambda0, anchors, use_id, energy_E)
     out = eng.to_image(z)[0].astype(np.float32)
     soft = np.clip(cv2.GaussianBlur(M.astype(np.float32), (0, 0), 4) * 1.5, 0, 1)[..., None]
     if protect_matched:
         soft *= M[..., None]  # preserve every pixel outside the permitted edit region exactly
     if log is not None:
         log.setdefault("repairs", []).append(dict(missing=len(missing), area=float(M.mean()), start=start))
-    return (img.astype(np.float32) * (1 - soft) + out * soft).round().clip(0, 255).astype(np.uint8)
+    composite_base=seed_image if clean_blend else img
+    if diagnose is not None and isolate_replacement:
+        diagnose("decoded_candidate",out.round().clip(0,255).astype(np.uint8))
+    return (composite_base.astype(np.float32) * (1 - soft) + out * soft).round().clip(0, 255).astype(np.uint8)
 
 
 def protect_regions(mask, region_masks, c, dets):
