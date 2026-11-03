@@ -79,14 +79,88 @@ E.save(os.path.join(P.results, "experiment_config.json"))
 print("RUN_ID:", RUN_ID, "results:", P.results)
 print(E)'''
 
+DIRECT_MOUNT = MOUNT.replace(
+    '#@title 2. Gắn Google Drive, kiểm tra GPU, chọn mã nguồn',
+    '#@title 2. Gắn Drive, kiểm tra loại runtime, lấy mã nguồn mới'
+).replace(
+    'gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True)\n'
+    'if gpu.returncode:\n    raise RuntimeError("Select a GPU runtime before Run all")\nprint(gpu.stdout)',
+    '''import shutil
+if RUN_MODE not in ("direct_preflight", "experiment"):
+    raise ValueError("Unknown RUN_MODE")
+gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True) if shutil.which("nvidia-smi") else None
+if RUN_MODE == "direct_preflight":
+    if RUN_ID:
+        raise ValueError("CPU preflight uses a separate log: leave RUN_ID empty")
+    if gpu is not None and gpu.returncode == 0:
+        raise RuntimeError("Bước này dùng CPU: Runtime > Change runtime type > Hardware accelerator: None, rồi Run all")
+    print("CPU preflight: kiểm tra trọng số thật; không sinh ảnh, không cần GH_TOKEN.")
+else:
+    if gpu is None or gpu.returncode:
+        raise RuntimeError("Experiment mode requires a GPU runtime")
+    print(gpu.stdout)''')
+
+DIRECT_PREFLIGHT = r'''#@title 3. Kiểm tra mô hình trực tiếp trên CPU và tải ZIP log
+if RUN_MODE == "direct_preflight":
+    import json, uuid
+    from pathlib import Path
+    from zipfile import ZipFile, ZIP_DEFLATED
+    from google.colab import files
+    DIRECT_OUT = Path(DRIVE_ROOT) / "results" / "direct_preflight" / ("attempt_" + uuid.uuid4().hex[:12])
+    DIRECT_OUT.mkdir(parents=True)
+    setup_log = DIRECT_OUT / "setup.log"
+    print("Cài thư viện và tải trọng số công khai (vài GB); lần đầu có thể mất nhiều phút.", flush=True)
+    installed = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r",
+                               os.path.join(CODE, "requirements-direct-preflight.txt")], capture_output=True, text=True)
+    setup_log.write_text(installed.stdout + "\n" + installed.stderr)
+    env = dict(os.environ, CUDA_VISIBLE_DEVICES="", PYTHONUNBUFFERED="1")
+    checked = subprocess.run([sys.executable, os.path.join(CODE, "tools", "preflight_direct.py"),
+                              "--cache", "/content/ocsd-direct-cache", "--out", str(DIRECT_OUT),
+                              "--setup-log", str(setup_log), "--setup-returncode", str(installed.returncode)], env=env)
+    latest = DIRECT_OUT / "latest_preflight.json"
+    if latest.exists():
+        result = json.loads(latest.read_text())
+        archive = result["archive"]
+        print("Kết quả kiểm tra:", result["status"])
+    else:
+        # Preserve even an OS kill/import crash; never download an older successful run.
+        archive = str(DIRECT_OUT / "ocsd_direct_preflight_incomplete.zip")
+        (DIRECT_OUT / "incomplete.json").write_text(json.dumps(dict(status="incomplete", returncode=checked.returncode,
+            message="Process stopped before the report completed. Review logs/RAM; no GPU run is recommended."), indent=2))
+        with ZipFile(archive, "w", ZIP_DEFLATED) as z:
+            for p in DIRECT_OUT.rglob("*"):
+                if p.is_file() and p.suffix in (".log", ".json"):
+                    z.write(p, str(p.relative_to(DIRECT_OUT)))
+        print("Kiểm tra chưa hoàn tất; đã giữ log để tìm lỗi.")
+    print("Gửi file ZIP này vào cuộc trò chuyện:", archive)
+    print("PASS chỉ xác nhận tương thích CPU. Chưa chứng minh ảnh đẹp hơn; chưa chuyển sang GPU/paper/full.")
+    try:
+        files.download(archive)
+    except Exception as exc:
+        print("Không tự tải được; lấy file theo đường dẫn Drive ở trên:", exc)
+else:
+    print("Experiment mode: bỏ qua CPU preflight.")'''
+
 def nb(cells, name):
     n = nbf.v4.new_notebook()
     n.metadata = {"accelerator": "GPU", "colab": {"gpuType": "L4", "machine_shape": "hm", "provenance": []},
                   "kernelspec": {"display_name": "Python 3", "name": "python3"},
                   "language_info": {"name": "python"}}
-    if name in ("00_push_logs.ipynb", "03_export_screen_review.ipynb"):
+    if name in ("00_push_logs.ipynb", "03_export_screen_review.ipynb", "RUN_ALL.ipynb"):
         n.metadata.pop('accelerator', None)
         n.metadata['colab'] = {'provenance': []}
+    if name == "RUN_ALL.ipynb":
+        # Keep the user's single entry point. No legacy stage may run in preflight mode,
+        # even when its dependency check fails and Colab continues to later cells.
+        guarded, experiment = [], False
+        for c in cells:
+            if c == INSTALL:
+                experiment = True
+            if experiment and not c.startswith("MD:"):
+                title, body = c.split('\n', 1)
+                c = title + '\nif RUN_MODE == "experiment":\n' + '\n'.join('    ' + line for line in body.splitlines())
+            guarded.append(c)
+        cells = guarded
     cells = [c.replace("start_run(P, E, run_id=RUN_ID)", f'start_run(P, E, run_id=RUN_ID, notebook="notebooks/{name}")') for c in cells]
     n.cells = [nbf.v4.new_markdown_cell(c[3:]) if c.startswith("MD:") else nbf.v4.new_code_cell(c) for c in cells]
     path = os.path.join(OUT, name)
@@ -108,14 +182,21 @@ nb([
     "**Cập nhật 03/11/2026:** đã nhận đủ `foreground_screen` của run `20261103T035056Z_dc40e4b5`. "
     "Đã nhận review: A–D đủ số lượng/hình dáng; A/B chính xác nhất nhưng chưa tự nhiên. **Không cần chấm lại hoặc chạy lại GPU ở bước này.** "
     "[Xem A–D bằng PNG, không cần HTML](https://raw.githubusercontent.com/bobbibao/ocsd-thesis/main/docs/reviews/foreground_20261103_ABCD.png). "
-    "Notebook giữ phép thử để tái lập; chưa có cấu hình mới được khuyến nghị chạy.\n\n"
-    "**Cách dùng:** Runtime → Change runtime type → GPU (L4 hoặc A100) → sửa ô 1 → Runtime → Run all.\n\n"
-    "Notebook chạy 4 giai đoạn: (A) dựng bộ dữ liệu, (B) sinh ảnh cho E1–E4 và khảo sát α, (C) đánh giá, "
+    "Hướng mới: điều kiện hóa trực tiếp từng đối tượng bằng nét phác thảo với lõi InstanceDiffusion chính thức. "
+    "Đây là ứng viên đang kiểm chứng, chưa có kết quả chứng minh chất lượng ảnh tốt hơn.\n\n"
+    "**Bước tiếp theo:** Runtime → Change runtime type → **Hardware accelerator: None (CPU)**. "
+    "Giữ `RUN_MODE=\"direct_preflight\"`, `RUN_ID=\"\"` → Runtime → **Run all**. "
+    "Notebook tải trọng số công khai (vài GB), kiểm tra tương thích CPU và tải về ZIP log nhỏ. "
+    "Gửi ZIP vào cuộc trò chuyện; không cần export screen hay GH_TOKEN. `PASS` chưa phải kết quả chất lượng ảnh. "
+    "Các ô A–F tự bỏ qua. [Chi tiết](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/DIRECT_INSTANCE_PREFLIGHT.md).\n\n"
+    "Chỉ khi chủ động tái lập thí nghiệm cũ: chọn `RUN_MODE=\"experiment\"` và GPU L4/A100. "
+    "Luồng này chạy 4 giai đoạn: (A) dựng bộ dữ liệu, (B) sinh ảnh cho E1–E4 và khảo sát α, (C) đánh giá, "
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
     "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
-    SETUP.replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'), MOUNT, INSTALL,
-    "MD:## Thử nghiệm tách nền đối tượng\nMặc định `foreground_screen`: 1 cảnh xe đạp × 4 đối chứng "
+    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "direct_preflight"  #@param ["direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'),
+    DIRECT_MOUNT, DIRECT_PREFLIGHT, INSTALL,
+    "MD:## Các ô dưới chỉ chạy khi RUN_MODE=experiment\nPhép thử cũ `foreground_screen`: 1 cảnh xe đạp × 4 đối chứng "
     "= 4 ảnh cuối. So sánh clean cũ, anchor có nền cảnh, mask học được dạng cứng và dạng mềm. "
     "BiRefNet-lite chạy CPU, tải khoảng 224 MB một lần và kiểm tra SHA-256. "
     "Không gửi ảnh ra dịch vụ ngoài. Cùng mẫu M2, vị trí, vùng sửa và số bước diffusion; "

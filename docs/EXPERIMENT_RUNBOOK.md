@@ -1,4 +1,4 @@
-> Current status: `foreground_screen` is complete, run `20261103T035056Z_dc40e4b5`; user review is received. [Result](FOREGROUND_20261103_RESULTS.md): count/shape accepted on this scene, A/B jointly preferred, naturalness still limited. No rerating or GPU rerun is requested. [Direct PNG comparison](reviews/foreground_20261103_ABCD.png) works without HTML. RUN_ALL retains this tier for reproduction; no broad quality claim is made.
+> Current status: `foreground_screen` is complete, run `20261103T035056Z_dc40e4b5`; user review is received. [Result](FOREGROUND_20261103_RESULTS.md): count/shape accepted on this scene, A/B jointly preferred, naturalness still limited. No rerating or GPU rerun is requested. RUN_ALL now defaults to a **CPU compatibility check** of a direct instance-conditioning candidate; see [instructions and evidence](DIRECT_INSTANCE_PREFLIGHT.md). Image quality remains unverified.
 
 # Chạy và xác minh phiên bản tối ưu trên Colab
 
@@ -7,10 +7,14 @@
 Notebook chính: [RUN_ALL.ipynb trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 Không cần chép ZIP lên Drive. Giữ REPO_URL của bobbibao/ocsd-thesis và BRANCH="main".
 
-Các bước dưới chỉ dành cho chủ động tái lập phép thử; lượt gửi ZIP mới nhất đã đủ, không cần chạy thêm.
+**Bước hiện tại:** mở runtime mới với **Hardware accelerator: None (CPU)**, giữ `RUN_MODE="direct_preflight"`, `RUN_ID=""`, rồi Run all. Ô 3 tải trọng số công khai, kiểm tra tương thích và tải về `ocsd_direct_preflight_….zip`; gửi ZIP đó vào cuộc trò chuyện. Không cần GH_TOKEN/export screen/chấm ảnh. Tải lần đầu có thể vài GB. Các ô thí nghiệm cũ tự bỏ qua, kể cả kiểm tra thất bại. `PASS` chưa phải ảnh tốt hơn. Log nằm riêng tại `results/direct_preflight/attempt_…/`; không dùng RUN_ID của thí nghiệm ảnh.
 
-1. Mở link Colab, chọn GPU L4/A100 và giữ DRIVE_ROOT đang dùng.
-2. Mặc định `TIER="foreground_screen"`, `BACKBONE="sd15"`, `RUN_ID=""`, `MAX_MINUTES=20`.
+## Tái lập thí nghiệm ảnh cũ khi cần
+
+Các bước dưới chỉ dành cho chủ động tái lập; lượt gửi ZIP foreground mới nhất đã đủ, không cần chạy lại phép thử đó.
+
+1. Mở link Colab, chọn GPU L4/A100, **`RUN_MODE="experiment"`** và giữ DRIVE_ROOT đang dùng.
+2. Chế độ này giữ `TIER="foreground_screen"`, `BACKBONE="sd15"`, `RUN_ID=""`, `MAX_MINUTES=20`.
    Đọc [kết quả foreground](FOREGROUND_20261103_RESULTS.md) trước khi tiêu GPU.
 3. Run all chỉ chạy screening 4 ảnh và đánh giá, không tự chạy pilot/paper/full.
 4. `PUSH_RESULTS=True` và Colab secret GH_TOKEN gửi log/kết quả lên colab-results như luồng cũ.
