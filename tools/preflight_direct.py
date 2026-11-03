@@ -27,11 +27,18 @@ def load_components(cache):
 
 
 class Tee:
+    """Copy text while preserving the wrapped terminal's file-like interface."""
     def __init__(self, terminal, file): self.terminal, self.file = terminal, file
     def write(self, text):
         self.terminal.write(text); self.file.write(text); self.flush()
         return len(text)
+    def writelines(self, lines):
+        for line in lines: self.write(line)
     def flush(self): self.terminal.flush(); self.file.flush()
+    def __getattr__(self, name):
+        # Transformers' loading report inspects isatty(); other consumers query
+        # encoding/errors/fileno. Forward these to the actual stream, as runlog does.
+        return getattr(self.terminal, name)
 
 
 def probe(model):
