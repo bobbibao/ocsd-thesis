@@ -1,4 +1,12 @@
-# Experiment changes — 2026-10-28
+# Experiment changes
+
+## Foreground result audit — 2026-11-03
+
+- Audited run `20261103T035056Z_dc40e4b5`: 81 artifact hashes, four exact CPU seed reconstructions, protected pixels, shared inputs and sampling counts. Learned extraction reduces visible wheel contamination, but geometry/naturalness remains inadequate. See [results](FOREGROUND_20261103_RESULTS.md).
+- Added a reproducible CPU audit and original-image review packet with three visible criteria; unshown criteria remain unanswered. No weights, inference settings, acceptance thresholds or additional GPU work changed.
+- Updated the notebook's opening status and current runbook: completed four-arm sweep; no rerun or paper/full recommendation. The existing tier remains reproducible.
+
+## Original optimization — 2026-10-28
 
 Base source: `8edd71a084a6a49ff3acc2e31f9a11594c16ecb5`. See Git history for the implementation commit.
 No new GPU quality results are claimed. Historical result reference: `colab-results@9851d9991c6d4a518b072865e047a451e1dc37ef`.

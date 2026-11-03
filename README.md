@@ -7,18 +7,23 @@ Mục tiêu: từ **phác thảo cảnh + câu mô tả**, sinh ảnh có **đú
 
 ## Phiên bản tối ưu và định danh thực nghiệm
 
+**Cập nhật 03/11/2026:** đã phân tích đủ [foreground_screen](docs/FOREGROUND_20261103_RESULTS.md).
+Tách nền làm bánh xe sạch hơn, nhưng hình dáng và độ tự nhiên vẫn chưa đạt; chưa chứng minh model tốt hơn tổng thể.
+**Hiện không cần chạy lại Colab.** Tải [review 4 ảnh](docs/reviews/ocsd-foreground-review-20261103.zip),
+giải nén, mở `REVIEW.html` và chấm 3 tiêu chí (số lượng, hình dáng, tự nhiên); gửi JSON tải từ trang.
+
 Xem [runbook](docs/EXPERIMENT_RUNBOOK.md), [audit](docs/OPTIMIZATION_AUDIT.md) và
 [changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `foreground_screen`,
 lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi resume. Con trỏ mới nhất là
 `results/latest_run.json`; kết quả cũ được giữ nguyên. Bộ QuickDraw mới dùng seed theo scene và
-`data/benchmarks_v2/`. Chưa có số liệu GPU chứng minh tăng chất lượng từ các sửa đổi này.
+`data/benchmarks_v2/`. Các kết quả phát triển hiện tại chưa chứng minh cải thiện chất lượng tổng thể trên tập chưa xem.
 
-## Chạy trên Google Colab (Run all)
+## Chạy trên Google Colab (khi cần tái lập)
 
 1. [Mở RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 2. Runtime → Change runtime type → **GPU L4** (hoặc A100).
 3. Mặc định `TIER="foreground_screen"` có 4 ảnh cuối: thử tách nền học được và anchor có nền cảnh, rồi Runtime → **Run all**.
-   Xem [protocol foreground](docs/FOREGROUND_SCREEN.md). Chưa có bằng chứng biến thể mới vượt baseline.
+   Xem [kết quả đã có](docs/FOREGROUND_20261103_RESULTS.md). Đây là phép thử đã hoàn thành; không cần chạy lại để gửi review.
 4. Kết quả nằm trong Google Drive: `MyDrive/KLTN_OCSD/results/runs/<run_id>/`
    (`run_manifest.json`, `summary.md`, `summary.json`, `progress.json`, `tables/`, `figures/`, `user_study/`).
 
@@ -31,9 +36,9 @@ Thiết kế cho **Google Colab Pro**. GPU và mức tiêu thụ compute units p
 
 | Tier | QuickDraw-Scenes | Học định danh (OCSD, Zhang) | COCO-Sketch | Seed | DDIM / K / M3 | Ước tính |
 |---|---|---|---|---|---|---|
-| `foreground_screen` | 1 cảnh × 4 đối chứng | không | không | 1 | 30 / 2 / 0 | tách nền đã thử CPU, ảnh cuối chưa kiểm chứng |
-| `clean_screen` | 1 cảnh × 4 đối chứng | không | không | 1 | 30 / 2 / 0 | tách khởi tạo/ghép, chưa có kết quả GPU |
-| `count_screen` | 1 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | thử cơ chế sửa đối tượng bị lặp, chưa có kết quả GPU |
+| `foreground_screen` | 1 cảnh × 4 đối chứng | không | không | 1 | 30 / 2 / 0 | đã chạy: sạch nền bánh xe hơn, vẫn méo; dừng sweep |
+| `clean_screen` | 1 cảnh × 4 đối chứng | không | không | 1 | 30 / 2 / 0 | đã chạy: chưa sửa được hình dáng |
+| `count_screen` | 1 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | đã chạy: count tự động đạt, hình dáng chưa đạt |
 | `instance_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | đã chạy; có cải thiện cục bộ, chưa tăng joint success |
 | `semantic_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo GPU; 48 ảnh cuối, nhiều ứng viên; xem protocol |
 | `repair_screen` | 12 cảnh × 4 phương pháp | không | không | 1 | 30 / 2 / 0 | chưa đo GPU; giới hạn sinh ảnh 20 phút giữa các scene |
@@ -173,4 +178,4 @@ Tiếp theo: [clean_screen](docs/CLEAN_SCREEN.md) kiểm tra nguồn gây méo b
 
 Đã phân tích `clean_screen`: [ảnh trung gian cho thấy mask kéo nền gỗ vào bánh xe; cleanup chưa sửa được hình dáng](docs/CLEAN_20261103_RESULTS.md). Không cần chạy lại; bước tiếp theo là kiểm tra tách nền/ghép đối tượng trên dữ liệu đã có.
 
-Tiến triển offline: [BiRefNet-lite tách được phần lớn nền gỗ trong bánh xe](docs/FOREGROUND_SCREEN.md), tốt hơn GrabCut trên ảnh đã lưu. Đã chuẩn bị `foreground_screen` để kiểm tra ảnh cuối; chưa tuyên bố cải thiện sinh cảnh.
+Đã kiểm tra ảnh cuối của [foreground_screen](docs/FOREGROUND_20261103_RESULTS.md): phần nền gỗ giảm rõ trong bánh xe nhưng khung/chi tiết vẫn méo. Giữ tách nền như thành phần thử nghiệm, dừng sweep xe đạp và chưa nâng lên paper/full.

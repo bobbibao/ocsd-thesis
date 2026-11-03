@@ -1,4 +1,4 @@
-> Current RUN_ALL default: `foreground_screen`, one known bicycle failure × four extraction/context-anchor controls, fresh RUN_ID. See [protocol](FOREGROUND_SCREEN.md). Learned extraction has been tested on CPU; scene-quality validation is still pending.
+> Current status: `foreground_screen` is complete, run `20261103T035056Z_dc40e4b5`. [Result](FOREGROUND_20261103_RESULTS.md): cleaner wheel interiors, persistent geometry/realism failures. No GPU rerun is requested. Use the [offline review packet](reviews/ocsd-foreground-review-20261103.zip). RUN_ALL retains this tier for reproduction; no new quality candidate is promoted.
 
 # Chạy và xác minh phiên bản tối ưu trên Colab
 
@@ -7,10 +7,12 @@
 Notebook chính: [RUN_ALL.ipynb trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 Không cần chép ZIP lên Drive. Giữ REPO_URL của bobbibao/ocsd-thesis và BRANCH="main".
 
+Các bước dưới chỉ dành cho chủ động tái lập phép thử; lượt gửi ZIP mới nhất đã đủ, không cần chạy thêm.
+
 1. Mở link Colab, chọn GPU L4/A100 và giữ DRIVE_ROOT đang dùng.
-2. Mặc định `TIER="instance_screen"`, `BACKBONE="sd15"`, `RUN_ID=""`, `MAX_MINUTES=20`.
-   Đọc [QUALITY_SCREEN.md](QUALITY_SCREEN.md) trước khi tiêu GPU: đây là giả thuyết chưa có kết quả chất lượng.
-3. Run all chỉ chạy screening 48 ảnh và đánh giá, không tự chạy pilot/paper/full.
+2. Mặc định `TIER="foreground_screen"`, `BACKBONE="sd15"`, `RUN_ID=""`, `MAX_MINUTES=20`.
+   Đọc [kết quả foreground](FOREGROUND_20261103_RESULTS.md) trước khi tiêu GPU.
+3. Run all chỉ chạy screening 4 ảnh và đánh giá, không tự chạy pilot/paper/full.
 4. `PUSH_RESULTS=True` và Colab secret GH_TOKEN gửi log/kết quả lên colab-results như luồng cũ.
    Thiếu token thì kết quả vẫn ở Drive; không yêu cầu đưa token vào code.
 5. Đọc summary.md, screen_means.csv, screen_paired.csv và ảnh. `do_not_scale_up` nghĩa là chưa nên
