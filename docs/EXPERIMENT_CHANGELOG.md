@@ -1,5 +1,11 @@
 # Experiment changes
 
+## Fix CPU preflight logging during CLIP loading — 2026-11-03
+
+- Audited uploaded run `20261103T140807Z_e0a5503f`: source hashes match, downloads finish, but Transformers' loading report fails because the preflight Tee lacks `isatty()`. The numerical probe has not run; this is not a quality result.
+- Forwarded stream capabilities/metadata to the wrapped terminal and kept `writelines` mirrored in the log. Added regression tests that fail before the fix, including real local CLIP loading inside the redirected preflight. Strict learned-weight checks remain enabled.
+- Corrected download guidance using the observed 13.6 GB checkpoint and 1.71 GB CLIP files. Retry Run all in the existing CPU runtime to retain cache and fetch the fix; no GPU rerun or parameter change. [Audit](DIRECT_PREFLIGHT_20261103_RESULTS.md).
+
 ## Direct instance-conditioning candidate and CPU preflight — 2026-11-03
 
 - Added an adapter to the pinned official InstanceDiffusion core: separate phrases/boxes and 20 real-ink sketch points per instance, without benchmark masks. This is an external baseline integration, not a new OCSD architecture or a measured quality gain. The inspected diffusers port nulls scribble embeddings, so it was not used for the sketch path.

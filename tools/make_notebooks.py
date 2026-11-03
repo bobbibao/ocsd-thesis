@@ -109,7 +109,7 @@ if RUN_MODE == "direct_preflight":
     DIRECT_OUT = Path(DRIVE_ROOT) / "results" / "direct_preflight" / ("attempt_" + uuid.uuid4().hex[:12])
     DIRECT_OUT.mkdir(parents=True)
     setup_log = DIRECT_OUT / "setup.log"
-    print("Cài thư viện và tải trọng số công khai (vài GB); lần đầu có thể mất nhiều phút.", flush=True)
+    print("Cài thư viện; dùng lại cache nếu còn. Tải mới: khoảng 13,6 GB checkpoint + 1,71 GB CLIP, chưa gồm tệp tạm.", flush=True)
     installed = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r",
                                os.path.join(CODE, "requirements-direct-preflight.txt")], capture_output=True, text=True)
     setup_log.write_text(installed.stdout + "\n" + installed.stderr)
@@ -186,7 +186,8 @@ nb([
     "Đây là ứng viên đang kiểm chứng, chưa có kết quả chứng minh chất lượng ảnh tốt hơn.\n\n"
     "**Bước tiếp theo:** Runtime → Change runtime type → **Hardware accelerator: None (CPU)**. "
     "Giữ `RUN_MODE=\"direct_preflight\"`, `RUN_ID=\"\"` → Runtime → **Run all**. "
-    "Notebook tải trọng số công khai (vài GB), kiểm tra tương thích CPU và tải về ZIP log nhỏ. "
+    "Đã sửa lỗi ghi log `Tee.isatty` của lượt CPU vừa nhận. Nếu phiên CPU vẫn còn, giữ phiên đó và Run all để ô 2 lấy code mới, ô 3 dùng lại cache. "
+    "Khi tải mới, trọng số chiếm khoảng 13,6 GB checkpoint + 1,71 GB CLIP, chưa gồm cache/tệp tạm. Notebook kiểm tra tương thích CPU và tải về ZIP log nhỏ. "
     "Gửi ZIP vào cuộc trò chuyện; không cần export screen hay GH_TOKEN. `PASS` chưa phải kết quả chất lượng ảnh. "
     "Các ô A–F tự bỏ qua. [Chi tiết](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/DIRECT_INSTANCE_PREFLIGHT.md).\n\n"
     "Chỉ khi chủ động tái lập thí nghiệm cũ: chọn `RUN_MODE=\"experiment\"` và GPU L4/A100. "
