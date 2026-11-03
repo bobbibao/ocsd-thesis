@@ -1,0 +1,34 @@
+{
+  "schema": "ocsd-direct-canary-v1",
+  "scene": "assets/direct_canary_v1/scene.json",
+  "seeds": [
+    0,
+    1
+  ],
+  "methods": [
+    "direct_box",
+    "direct_scribble"
+  ],
+  "steps": 50,
+  "mis": 0.36,
+  "alpha": 0.8,
+  "negative": "blurry, low quality, distorted, deformed, watermark, text",
+  "max_seconds": 600,
+  "max_unet_sample_calls": 864,
+  "precision": "UNet autocast float16, VAE float32",
+  "model_provenance": {
+    "source_commit": "722900ef03e3579fb693e65a1550333a4a162581",
+    "model_revisions": {
+      "xudongw/InstanceDiffusion": "fc74d76cde4a3dd0c3894e1764c8cf7299c77595",
+      "openai/clip-vit-large-patch14": "32bd64288804d66eefd0ccbe215aa642df71cc41"
+    },
+    "checkpoint_sha256": "b4de3f7877a1860b52837afe3a767ca92a2ef5084056048b503af80027cde1d1",
+    "checkpoint_state": "ema",
+    "phrase_text_weights_complete": true,
+    "base_conv_sha256": "0b6406769828fa6c5360c0187790e93964c167f646de271ce6510105b3a59ae6",
+    "ignored_nonlearned_text_buffers": [],
+    "config_sha256": "0d35e81804aa2fec6176dfa5a1f636159a6f51b94ed8748f63b1c00c191e9399"
+  },
+  "accepted_cpu_run": "20261103T142406Z_013a5f0e",
+  "accepted_cpu_report": "docs/direct_preflight_20261103_pass.json"
+}

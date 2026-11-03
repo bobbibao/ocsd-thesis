@@ -13,9 +13,8 @@ Người dùng đã xác nhận A–D đủ số lượng/hình dáng; A và B c
 [Bộ review](docs/reviews/ocsd-foreground-review-20261103.zip) cũng đã có PNG và HTML hiển thị ảnh khi tắt JavaScript.
 
 Hướng tiếp theo là [điều kiện hóa trực tiếp từng đối tượng bằng InstanceDiffusion](docs/DIRECT_INSTANCE_PREFLIGHT.md).
-Đã có adapter sketch và kiểm thử cache tương đương trên lõi thu nhỏ; **chưa có bằng chứng ảnh tốt hơn**.
-`RUN_ALL.ipynb` hiện mặc định `RUN_MODE="direct_preflight"`: kiểm tra trọng số thật trên **CPU**, xuất ZIP log để xác minh tương thích trước khi tiêu GPU. Môi trường phát triển bị chặn tải checkpoint Hugging Face nên chưa hoàn tất bước này tại đây.
-Đã nhận [log CPU trên Colab](docs/DIRECT_PREFLIGHT_20261103_RESULTS.md): tải trọng số xong, dừng do bộ ghi log thiếu `isatty()`. Đã sửa; chạy lại CPU theo hướng dẫn dưới để hoàn tất kiểm tra.
+Đã có adapter sketch; **CPU preflight với trọng số thật đã [PASS](docs/DIRECT_PREFLIGHT_20261103_PASS.md)**. Không cần chạy lại CPU. Cache trùng kết quả tính lại, scribble có tác động và UNet chạy hữu hạn; **chưa có bằng chứng ảnh tốt hơn**.
+`RUN_ALL.ipynb` hiện mặc định `RUN_MODE="direct_canary"`: [thử tối đa 4 ảnh trên GPU](docs/DIRECT_CANARY.md), một cảnh mới × hai seed × hai nhánh có/không có nét vẽ. Đây là thử nghiệm phát triển trước khi mở rộng, chưa phải so sánh với OCSD/ControlNet hay kết quả paper.
 
 Xem [runbook](docs/EXPERIMENT_RUNBOOK.md), [audit](docs/OPTIMIZATION_AUDIT.md) và
 [changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. Chế độ tái lập `RUN_MODE="experiment"` giữ tier `foreground_screen`,
@@ -23,14 +22,14 @@ lưu kết quả ảnh trong `results/runs/<run_id>/` và kiểm tra phiên bả
 `results/latest_run.json`; kết quả cũ được giữ nguyên. Bộ QuickDraw mới dùng seed theo scene và
 `data/benchmarks_v2/`. Các kết quả phát triển hiện tại chưa chứng minh cải thiện chất lượng tổng thể trên tập chưa xem.
 
-## Bước tiếp theo trên Google Colab — CPU
+## Bước tiếp theo trên Google Colab — canary 4 ảnh
 
-1. Tiếp tục RUN_ALL trong phiên CPU đang mở; nếu phiên đã mất, [mở RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
-2. Runtime → Change runtime type → **Hardware accelerator: None (CPU)**. Nếu phiên CPU vừa chạy còn hoạt động, giữ phiên đó để dùng lại cache.
-3. Giữ `RUN_MODE="direct_preflight"`, `RUN_ID=""`, rồi Runtime → **Run all**. Ô 2 lấy code mới, ô 3 kiểm tra lại. Tải mới cần khoảng 13,6 GB checkpoint + 1,71 GB CLIP và chỗ cho cache/tệp tạm; chưa sinh ảnh.
-4. Gửi file **`ocsd_direct_preflight_….zip`** notebook tải về vào cuộc trò chuyện, kể cả khi kiểm tra lỗi. File cũng nằm ở `MyDrive/KLTN_OCSD/results/direct_preflight/attempt_…/`. Không cần export screen hoặc GH_TOKEN.
+1. [Mở lại RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb) để nhận ô canary mới.
+2. Runtime → Change runtime type → **GPU L4 hoặc A100** (ít nhất 20 GiB VRAM).
+3. Giữ `RUN_MODE="direct_canary"`, `RUN_ID=""`, rồi **Run all**. Giới hạn tiến trình thử **600 giây** gồm tải/nạp/sinh ảnh, chưa gồm cài thư viện hay thời gian nhàn rỗi. Tải mới khoảng 13,6 GB checkpoint + 1,71 GB CLIP; đổi runtime có thể mất cache CPU.
+4. Gửi **`ocsd_direct_canary_….zip`** notebook tải về, kể cả khi lỗi. Nếu đủ ảnh, mở hai PNG `run/SO_SANH_seed0.png`, `run/SO_SANH_seed1.png` và điền `run/REVIEW_TEMPLATE.txt` (hoặc trả lời theo mẫu trong chat). Không cần HTML, export screen hoặc GH_TOKEN.
 
-`PASS` chỉ xác nhận tương thích CPU, chưa chứng minh chất lượng ảnh/FP16. Các stage thí nghiệm cũ tự bỏ qua. [Hướng dẫn và phạm vi kiểm tra](docs/DIRECT_INSTANCE_PREFLIGHT.md).
+ZIP nằm trong `MyDrive/KLTN_OCSD/results/direct_canary/attempt_…/`; ảnh hoàn tất được tái sử dụng khi cùng contract và checksum. `complete` chỉ nghĩa là đủ ảnh để xem, chưa phải chất lượng đạt. Các stage cũ tự bỏ qua. [Protocol và hướng dẫn chấm](docs/DIRECT_CANARY.md). Tải ZIP xong thì ngắt runtime GPU khi không dùng.
 
 Nếu chủ động tái lập thí nghiệm cũ, chọn `RUN_MODE="experiment"` và GPU L4/A100. Kết quả ở `results/runs/<run_id>/` như trước.
 Trong chế độ thí nghiệm, Colab ngắt kết nối hoặc hết giờ: dùng lại RUN_ID với cùng code/cấu hình, rồi **Run all lại**;

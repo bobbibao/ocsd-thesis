@@ -182,6 +182,20 @@ class OfficialCore(unittest.TestCase):
         self.assertEqual([m.scale for m in fusers],scales)
         self.assertTrue(all(torch.equal(v,original[k]) for k,v in model.input_blocks[0][0].state_dict().items()))
         self.assertFalse(model._forward_pre_hooks)
+        self.assertFalse(model._forward_hooks)
+
+    def test_timeout_and_nonfinite_stop_before_extra_unet_work(self):
+        model=self.model;batch=conditioning_batch(scene_condition(scene()),torch.randn(2,32))
+        noise=torch.randn(1,4,8,8);contexts=[torch.randn(1,5,32)]*3;negative=torch.randn(1,5,32)
+        base={k:v.clone() for k,v in model.input_blocks[0][0].state_dict().items()}
+        with self.assertRaises(TimeoutError) as caught:
+            sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2,deadline=0)
+        self.assertEqual(caught.exception.ocsd_compute['unet_calls'],0)
+        with patch.object(model,'forward',return_value=torch.full_like(noise,float('nan'))):
+            with self.assertRaisesRegex(RuntimeError,'Nonfinite UNet') as caught:
+                sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2)
+        self.assertEqual(caught.exception.ocsd_compute['unet_calls'],1)
+        self.assertFalse(model._forward_hooks);self.assertFalse(model._forward_pre_hooks)
 
 
 if __name__=='__main__':unittest.main()

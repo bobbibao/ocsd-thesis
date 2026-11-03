@@ -1,10 +1,10 @@
 # Điều kiện hóa trực tiếp từng đối tượng: kiểm tra CPU trước khi dùng GPU
 
-Ngày 03/11/2026. Trạng thái: đã có adapter và kiểm thử lõi trên CPU; **chưa hoàn tất kiểm tra trọng số thật, chưa đo cải thiện chất lượng ảnh**.
+Ngày 03/11/2026. **CPU preflight đã PASS** với trọng số thật trong run `20261103T142406Z_013a5f0e`: [kết quả](DIRECT_PREFLIGHT_20261103_PASS.md). Chưa đo cải thiện chất lượng ảnh. Bước tiếp theo là [canary GPU 4 ảnh](DIRECT_CANARY.md); không cần chạy lại CPU.
 
-Đã nhận [log Colab `20261103T140807Z_e0a5503f`](DIRECT_PREFLIGHT_20261103_RESULTS.md): tải trọng số thành công, nhưng bộ ghi log thiếu `isatty()` làm dừng bước nạp CLIP trước khi chạy probe. Đã sửa lỗi và tái hiện đường nạp CLIP trong kiểm thử. Cần chạy lại **CPU preflight**, chưa dùng GPU.
+Lịch sử: [log Colab `20261103T140807Z_e0a5503f`](DIRECT_PREFLIGHT_20261103_RESULTS.md) dừng do bộ ghi log thiếu `isatty()`. Lỗi đã sửa và lượt chạy lại đã đạt.
 
-## Việc cần làm trên Colab
+## Tái lập CPU preflight khi cần (đã hoàn tất)
 
 1. Nếu phiên Colab CPU vừa chạy vẫn còn hoạt động, **giữ nguyên phiên đó** để dùng lại trọng số đã tải. Nếu phiên đã mất, mở [RUN_ALL.ipynb từ main](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 2. Chọn **Runtime → Change runtime type → Hardware accelerator: None (CPU)**. Nếu đang giữ GPU, đổi về CPU trước khi chạy.

@@ -1,4 +1,4 @@
-> Current status: `foreground_screen` is complete, run `20261103T035056Z_dc40e4b5`; user review is received. [Result](FOREGROUND_20261103_RESULTS.md): count/shape accepted on this scene, A/B jointly preferred, naturalness still limited. No rerating or GPU rerun is requested. RUN_ALL now defaults to a **CPU compatibility check** of a direct instance-conditioning candidate; see [instructions and evidence](DIRECT_INSTANCE_PREFLIGHT.md). Image quality remains unverified.
+> Current status: foreground review is received; do not rerun that sweep. The direct model's real-weight CPU preflight has [passed](DIRECT_PREFLIGHT_20261103_PASS.md). RUN_ALL now defaults to a [four-image GPU canary](DIRECT_CANARY.md), with a 600-second process cap, paired seeds and PNG comparisons. Image quality and superiority remain unverified.
 
 # Chạy và xác minh phiên bản tối ưu trên Colab
 
@@ -7,7 +7,7 @@
 Notebook chính: [RUN_ALL.ipynb trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 Không cần chép ZIP lên Drive. Giữ REPO_URL của bobbibao/ocsd-thesis và BRANCH="main".
 
-**Bước hiện tại:** [log CPU đã nhận](DIRECT_PREFLIGHT_20261103_RESULTS.md) dừng do lỗi `Tee.isatty`, đã sửa. Giữ phiên CPU hiện tại nếu còn hoạt động để dùng lại cache, `RUN_MODE="direct_preflight"`, `RUN_ID=""`, rồi **Run all**. Ô 2 lấy bản sửa, ô 3 kiểm tra và tải về `ocsd_direct_preflight_….zip`; gửi ZIP đó vào cuộc trò chuyện. Nếu phiên đã mất, chọn **Hardware accelerator: None (CPU)** cho phiên mới. Không cần GH_TOKEN/export screen/chấm ảnh. Tải mới khoảng 13,6 GB checkpoint + 1,71 GB CLIP, chưa gồm cache/tệp tạm. Các ô thí nghiệm cũ tự bỏ qua, kể cả kiểm tra thất bại. `PASS` chưa phải ảnh tốt hơn. Log nằm riêng tại `results/direct_preflight/attempt_…/`; không dùng RUN_ID của thí nghiệm ảnh.
+**Bước hiện tại:** CPU preflight đã PASS, không chạy lại. Mở RUN_ALL mới từ main, chọn **GPU L4/A100**, giữ `RUN_MODE="direct_canary"`, `RUN_ID=""`, rồi **Run all**. Chạy tối đa 4 ảnh (hai seed, hai nhánh), giới hạn tiến trình 600 giây gồm tải/nạp/sinh ảnh, chưa gồm cài thư viện/nhàn rỗi. Tải mới khoảng 13,6 GB + 1,71 GB; đổi runtime có thể mất cache CPU. Gửi ZIP `ocsd_direct_canary_….zip`, kể cả khi lỗi. Nếu đủ ảnh, xem hai PNG và điền mẫu TXT theo [hướng dẫn](DIRECT_CANARY.md). Không cần GH_TOKEN/export screen/HTML; các stage cũ tự bỏ qua. Kết quả ở `results/direct_canary/`, dùng cache theo contract thay vì RUN_ID cũ. Chưa có kết luận chất lượng đạt hoặc thắng phương pháp khác.
 
 ## Tái lập thí nghiệm ảnh cũ khi cần
 
