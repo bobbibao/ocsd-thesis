@@ -1,0 +1,102 @@
+{
+  "run_id": "20261103T035056Z_dc40e4b5",
+  "source_manifest_sha256": "619069f1a6b97ace781bbd2dd8e8469c6e7cfb8f8367e29fb80d45e0abf17b47",
+  "source_git": {
+    "commit": "1ac6ec9cd13db87f1eb424314f13756888039ea4",
+    "status": ""
+  },
+  "verified_artifacts": 81,
+  "omitted_cache_artifacts": [
+    "outputs/runs/20261103T035056Z_dc40e4b5/quickdraw/_objects/K2_phrase_d58a843a9c0b556c_subset_d0bca111f8628137/qd_3_simple_000/obj_00.png",
+    "outputs/runs/20261103T035056Z_dc40e4b5/quickdraw/_objects/K2_phrase_d58a843a9c0b556c_subset_d0bca111f8628137/qd_3_simple_000/mask_00.png",
+    "outputs/runs/20261103T035056Z_dc40e4b5/quickdraw/_objects/K2_phrase_d58a843a9c0b556c_subset_d0bca111f8628137/qd_3_simple_000/sk_00.png",
+    "outputs/runs/20261103T035056Z_dc40e4b5/quickdraw/_objects/K2_phrase_d58a843a9c0b556c_subset_d0bca111f8628137/qd_3_simple_000/objects.json"
+  ],
+  "checks": {
+    "instance_repair_count_clean": {
+      "outside_pixels_unchanged": true,
+      "train_rectangles_unchanged": true,
+      "accepted_candidate_is_final": true,
+      "exact_cpu_seed_reconstruction": true,
+      "sampling_work": 280,
+      "final_sha256": "6ca01c853fe1e7a26ff1c8cd471565868aef29aaa25fa026992f45acc056f105",
+      "repair_canvas": {
+        "clean_init": true,
+        "clean_blend": true,
+        "extra_vae_encodes": 1,
+        "context_anchor": false,
+        "background_fill": "telea_radius_3"
+      },
+      "foreground_model": null
+    },
+    "instance_repair_count_context": {
+      "outside_pixels_unchanged": true,
+      "train_rectangles_unchanged": true,
+      "accepted_candidate_is_final": true,
+      "exact_cpu_seed_reconstruction": true,
+      "sampling_work": 280,
+      "final_sha256": "1435dd7c33f32143c26270cbd50bb5868600573378f885c8b0b612f33a653def",
+      "repair_canvas": {
+        "clean_init": true,
+        "clean_blend": true,
+        "extra_vae_encodes": 0,
+        "context_anchor": true,
+        "background_fill": "telea_radius_3"
+      },
+      "foreground_model": null
+    },
+    "instance_repair_count_matte_hard": {
+      "outside_pixels_unchanged": true,
+      "train_rectangles_unchanged": true,
+      "accepted_candidate_is_final": true,
+      "exact_cpu_seed_reconstruction": true,
+      "sampling_work": 280,
+      "final_sha256": "89178cf6abcff9f95d0da6fa26930b83a5aad89f26494a0df326015d26d1c1ca",
+      "repair_canvas": {
+        "clean_init": true,
+        "clean_blend": true,
+        "extra_vae_encodes": 0,
+        "context_anchor": true,
+        "background_fill": "telea_radius_3"
+      },
+      "foreground_model": {
+        "url": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/BiRefNet-general-bb_swin_v1_tiny-epoch_232.onnx",
+        "sha256": "5600024376f572a557870a5eb0afb1e5961636bef4e1e22132025467d0f03333",
+        "onnxruntime": "1.23.2",
+        "provider": "CPUExecutionProvider",
+        "actual_wall_s": 14.420967115000053,
+        "standalone_forward_s": 8.825448221999977,
+        "forward_calls_in_this_method": 1
+      }
+    },
+    "instance_repair_count_matte_soft": {
+      "outside_pixels_unchanged": true,
+      "train_rectangles_unchanged": true,
+      "accepted_candidate_is_final": true,
+      "exact_cpu_seed_reconstruction": true,
+      "sampling_work": 280,
+      "final_sha256": "ac5c2f79c487bd6ad28446cc1d488c47d39b3632689c7e9c1e2c75fca5e9de3e",
+      "repair_canvas": {
+        "clean_init": true,
+        "clean_blend": true,
+        "extra_vae_encodes": 0,
+        "context_anchor": true,
+        "background_fill": "telea_radius_3"
+      },
+      "foreground_model": {
+        "url": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/BiRefNet-general-bb_swin_v1_tiny-epoch_232.onnx",
+        "sha256": "5600024376f572a557870a5eb0afb1e5961636bef4e1e22132025467d0f03333",
+        "onnxruntime": "1.23.2",
+        "provider": "CPUExecutionProvider",
+        "actual_wall_s": 0.0025515659999655327,
+        "standalone_forward_s": 8.825448221999977,
+        "forward_calls_in_this_method": 0
+      }
+    }
+  },
+  "actual_shared_sampling_work": 460,
+  "common_inputs_masks_configuration": true,
+  "hard_soft_common_probability_placement": true,
+  "cpu_opencv": "5.0.0",
+  "quality_scope": "engineering inspection only; no new human ratings"
+}

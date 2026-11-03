@@ -5,6 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from tools.build_human_review import build
+from tools.analyze_human_review import analyze
 
 class HumanReview(unittest.TestCase):
     def test_verified_anonymous_packet_and_corruption(self):
@@ -32,6 +33,27 @@ class HumanReview(unittest.TestCase):
             payload=json.loads(raw)
             self.assertEqual(payload['scenes'][0]['groups'][0]['labels'],['A','B'])
             self.assertEqual(payload['scenes'][0]['caption'],spec['caption'])
+            # Focused forms must not manufacture scores for hidden criteria.
+            build(root,out,['count','shape','realism'])
+            html=(out/'REVIEW.html').read_text()
+            focused=json.loads(html.split('<script id="payload" type="application/json">')[1].split('</script>')[0])
+            self.assertEqual([c[0] for c in focused['criteria']],['count','shape','realism'])
+            ratings={};rows=[]
+            for scene in focused['scenes']:
+                for group in scene['groups']:
+                    k=scene['item']+':'+''.join(group['labels'])
+                    ratings[k]={'count':'2','shape':'?','realism':'1','comment':''}
+                    for label in group['labels']:
+                        rows.append(dict(item=scene['item'],label=label,group=k,image_sha256=group['image'],**ratings[k]))
+            review=Path(tmp)/'review.json'
+            review.write_text(json.dumps(dict(schema=focused['schema'],run_id='test',ratings=ratings,rows=rows)))
+            analyzed=Path(tmp)/'analyzed';analyze(root,review,analyzed)
+            import csv
+            with (analyzed/'ratings_by_method.csv').open() as f:scores=list(csv.DictReader(f))
+            self.assertTrue(all(r['presence']==r['layout']==r['attributes']=='' for r in scores))
+            self.assertTrue(all(r['shape']=='?' for r in scores))
+            for invalid in ([],['shape','shape'],['unknown']):
+                with self.assertRaisesRegex(ValueError,'unique known'):build(root,out,invalid)
             (root/rp/'review_blind/inputs/scene.png').write_bytes(b'changed')
             with self.assertRaisesRegex(ValueError,'changed manifest'): build(root,out)
 

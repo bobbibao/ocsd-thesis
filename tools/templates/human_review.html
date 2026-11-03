@@ -21,6 +21,7 @@ const data=JSON.parse(document.getElementById('payload').textContent), $=id=>doc
 const storageKey=data.schema+':'+data.run_id;
 const validScores=['','0','1','2','?','NA'];
 const keys=data.criteria.map(x=>x[0]);
+const exportKeys=data.all_criteria_keys||keys;
 let state={schema:data.schema,run_id:data.run_id,reviewer_id:'',ratings:{}}, index=0;
 function groupKey(s,g){return s.item+':'+g.labels.join('');}
 function validate(x){
@@ -28,7 +29,7 @@ function validate(x){
  const allowed=new Set(data.scenes.flatMap(s=>s.groups.map(g=>groupKey(s,g))));
  for(const [k,r] of Object.entries(x.ratings)){
   if(!allowed.has(k)||!r||typeof r!=='object'||Array.isArray(r))throw Error('Mục đánh giá không hợp lệ.');
-  for(const c of keys)if(r[c]!==undefined&&!validScores.includes(r[c]))throw Error('Điểm không hợp lệ.');
+  for(const c of exportKeys)if(r[c]!==undefined&&!validScores.includes(r[c]))throw Error('Điểm không hợp lệ.');
   if(r.comment!==undefined&&typeof r.comment!=='string')throw Error('Ghi chú không hợp lệ.');
  }
  return {schema:x.schema,run_id:x.run_id,reviewer_id:x.reviewer_id,ratings:x.ratings};
@@ -52,7 +53,7 @@ function render(){
 data.scenes.forEach((s,i)=>{const o=el('option',`Cảnh ${i+1}: ${s.caption_vi||s.caption}`);o.value=String(i);$('scene').append(o);});
 $('reviewer').value=state.reviewer_id;$('reviewer').oninput=()=>{state.reviewer_id=$('reviewer').value;save();};
 $('scene').onchange=()=>{index=Number($('scene').value);render();};$('prev').onclick=()=>{index--;render();};$('next').onclick=()=>{index++;render();};$('close').onclick=()=>$('zoom').close();
-$('download').onclick=()=>{const output={...state,exported_at:new Date().toISOString(),scale:{'0':'wrong','1':'partial','2':'correct','?':'uncertain','NA':'not_applicable'},rows:[]};for(const s of data.scenes)for(const g of s.groups)for(const label of g.labels)output.rows.push({item:s.item,label,group:groupKey(s,g),image_sha256:g.image,...Object.fromEntries(keys.map(k=>[k,state.ratings[groupKey(s,g)]?.[k]||''])),comment:state.ratings[groupKey(s,g)]?.comment||''});const url=URL.createObjectURL(new Blob([JSON.stringify(output,null,2)],{type:'application/json'}));const a=el('a');a.href=url;a.download='ocsd_review_'+data.run_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+$('download').onclick=()=>{const output={...state,exported_at:new Date().toISOString(),scale:{'0':'wrong','1':'partial','2':'correct','?':'uncertain','NA':'not_applicable'},rows:[]};for(const s of data.scenes)for(const g of s.groups)for(const label of g.labels)output.rows.push({item:s.item,label,group:groupKey(s,g),image_sha256:g.image,...Object.fromEntries(exportKeys.map(k=>[k,state.ratings[groupKey(s,g)]?.[k]||''])),comment:state.ratings[groupKey(s,g)]?.comment||''});const url=URL.createObjectURL(new Blob([JSON.stringify(output,null,2)],{type:'application/json'}));const a=el('a');a.href=url;a.download='ocsd_review_'+data.run_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 $('import').onchange=async()=>{try{const file=$('import').files[0];if(!file)return;const incoming=validate(JSON.parse(await file.text()));if(Object.keys(state.ratings).length&&!confirm('Thay các câu trả lời hiện tại bằng file này? Hãy tải bản hiện tại trước nếu muốn giữ.'))return;state=incoming;$('reviewer').value=state.reviewer_id;save();render();}catch(e){alert('Không nhập được: '+e.message);}finally{$('import').value='';}};
 render();
 </script></html>

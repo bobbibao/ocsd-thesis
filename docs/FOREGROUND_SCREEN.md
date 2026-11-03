@@ -1,4 +1,6 @@
-# Foreground extraction and context anchors: next bounded diagnostic
+# Foreground extraction and context anchors: completed diagnostic protocol
+
+> Completed: run `20261103T035056Z_dc40e4b5`. [Results and audit](FOREGROUND_20261103_RESULTS.md) show reduced wheel-background contamination but persistent geometry/realism failures. Do not repeat this sweep or scale it up. The text below preserves the prospective protocol; GPU execution is no longer pending.
 
 ## Offline evidence before spending more Colab GPU time
 
@@ -65,7 +67,7 @@ Tests cover checksum rejection, retained fractional coverage, no source-color bl
 
 All 51 CPU tests passed (4 new foreground tests plus 47 regressions); five notebooks validate and regenerate deterministically. No new pretrained scene diffusion has run here. This is the remaining validation dependency: a Colab GPU run is needed to determine whether the cleaner cutout survives denoising and improves visible bicycle structure. Passing count/box metrics alone is insufficient. If this bundle fails, do not keep tuning this one scene; prioritize direct instance/scribble-conditioned baselines and new validation data. No paper/full escalation, p-values or confidence intervals on this selected failure.
 
-## User steps
+## Reproduction steps (not a request for another run)
 
 Open the current GitHub `RUN_ALL.ipynb` in a fresh GPU runtime. Keep `TIER="foreground_screen"`, `RUN_ID=""`, then Run all. There are four final images plus diagnostics. The first learned arm downloads about 224 MB of public weights and processes the selected proposal on CPU.
 

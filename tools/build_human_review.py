@@ -32,7 +32,13 @@ CAPTIONS = {
 }
 
 
-def build(root, out):
+def build(root, out, criteria=None):
+    selected = CRITERIA
+    if criteria is not None:
+        available = {c[0]: c for c in CRITERIA}
+        if not criteria or len(set(criteria)) != len(criteria) or set(criteria) - set(available):
+            raise ValueError('Expected unique known review criteria')
+        selected = [available[c] for c in criteria]
     root = Path(root).resolve()
     manifest = json.loads((root / 'run_manifest.json').read_text())
     rid = manifest['run_id']
@@ -74,13 +80,15 @@ def build(root, out):
     if not scenes:
         raise ValueError('Empty review packet')
     # No method key, metrics, acceptance decisions or recommended ratings in the reviewer payload.
-    payload = dict(schema=SCHEMA, run_id=rid, criteria=CRITERIA, scenes=scenes, images=images)
+    payload = dict(schema=SCHEMA, run_id=rid, criteria=selected,
+                   all_criteria_keys=[c[0] for c in CRITERIA], scenes=scenes, images=images)
     serialized = json.dumps(payload, ensure_ascii=False).replace('<', '\\u003c')
     template = Path(__file__).with_name('templates').joinpath('human_review.html').read_text()
     out = Path(out); out.mkdir(parents=True, exist_ok=True)
     (out / 'REVIEW.html').write_text(template.replace('__PAYLOAD__', serialized))
     summary = dict(run_id=rid, scenes=len(scenes), original_rows=sum(len(x['labels']) for s in scenes for x in s['groups']),
-                   unique_rating_cards=sum(len(s['groups']) for s in scenes), schema=SCHEMA)
+                   unique_rating_cards=sum(len(s['groups']) for s in scenes), schema=SCHEMA,
+                   criteria=[c[0] for c in selected])
     (out / 'packet_summary.json').write_text(json.dumps(summary, indent=2))
     return summary
 
@@ -88,5 +96,7 @@ def build(root, out):
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--bundle-root', required=True); p.add_argument('--out', required=True)
+    p.add_argument('--criteria', nargs='+', choices=[c[0] for c in CRITERIA],
+                   help='Optional focused review; omitted criteria remain unanswered, never inferred')
     args = p.parse_args()
-    print(json.dumps(build(args.bundle_root, args.out), indent=2))
+    print(json.dumps(build(args.bundle_root, args.out, args.criteria), indent=2))
