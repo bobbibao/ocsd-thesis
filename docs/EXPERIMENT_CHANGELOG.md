@@ -1,5 +1,12 @@
 # Experiment changes
 
+## Real-weight CPU PASS and bounded GPU canary — 2026-11-03
+
+- Audited `20261103T142406Z_013a5f0e`: matching code hashes, complete EMA/text weights, exact conditioner cache parity, nonzero scribble response and finite pretrained UNet output on an 8×8 latent. Preserved the result JSON; this is not image-quality evidence.
+- Locked those model revisions/checksums for a four-image development canary: one new attributed QuickDraw composition, seeds 0/1, box-only versus box+scribble. No ControlNet/OCSD comparison or superiority claim yet.
+- Added per-forward deadline/nonfinite checks, a 600-second child-process timeout, fixed FP32 VAE decode, hashed image completion records, resume, attempt-cost history and recoverable ZIP export. Added original-pixel PNG comparisons and a plain-text review template.
+- RUN_ALL defaults to `direct_canary` on L4/A100; legacy experiment stages remain guarded. See [protocol, scope and instructions](DIRECT_CANARY.md). No pretrained GPU quality run has occurred in the development environment.
+
 ## Fix CPU preflight logging during CLIP loading — 2026-11-03
 
 - Audited uploaded run `20261103T140807Z_e0a5503f`: source hashes match, downloads finish, but Transformers' loading report fails because the preflight Tee lacks `isatty()`. The numerical probe has not run; this is not a quality result.
