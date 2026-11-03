@@ -1,5 +1,7 @@
 # CPU preflight 03/11/2026: lỗi bộ ghi log khi nạp CLIP
 
+> Lịch sử lỗi. Lượt chạy lại `20261103T142406Z_013a5f0e` đã [PASS](DIRECT_PREFLIGHT_20261103_PASS.md); không cần chạy lại CPU theo hướng dẫn phục hồi bên dưới.
+
 Run `20261103T140807Z_e0a5503f`, code `2076784bd6dd4fdb8631e2def8f77365a83ffdf1`, trạng thái **failed**. Chưa chạy bước probe UniFusion/UNet và chưa sinh ảnh. Không dùng lượt này làm bằng chứng chất lượng mô hình hoặc kết luận tương thích hoàn tất.
 
 ## Đối chiếu gói đã nhận

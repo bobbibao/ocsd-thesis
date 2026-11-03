@@ -153,7 +153,7 @@ def sampling_work(n_objects, steps=50, mis=.36):
 
 @torch.no_grad()
 def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv,
-                   steps=50, alpha=.8, mis=.36, guidance=7.5, cache=True):
+                   steps=50, alpha=.8, mis=.36, guidance=7.5, cache=True, deadline=None):
     """Official PLMS/MIS with fixed input RNG and reversible per-image state.
 
     This preserves the official late SD input-convolution restoration and
@@ -186,7 +186,12 @@ def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv
         return [1.] * int(alpha*length) + [0.] * (length-int(alpha*length))
     calls = dict(unet_calls=0, unet_sample_calls=0)
     def count(_, args):
+        if deadline is not None and time.monotonic() >= deadline:
+            raise TimeoutError('Direct-generation time budget exhausted')
         calls['unet_calls'] += 1; calls['unet_sample_calls'] += args[0]['x'].shape[0]
+    def finite(_, args, output):
+        if not torch.isfinite(output).all():
+            raise RuntimeError('Nonfinite UNet output; stopping before further diffusion steps')
     global_input = dict(x=noise.clone(), context=contexts[0], grounding_input=batch, timesteps=None)
     inputs = [global_input]
     if mis:
@@ -197,6 +202,7 @@ def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv
     sampler = (PLMSSamplerInst(diffusion, model, alpha_generator_func=schedule, set_alpha_scale=scale, mis=mis)
                if mis else PLMSSampler(diffusion, model, alpha_generator_func=schedule, set_alpha_scale=scale))
     hook = model.register_forward_pre_hook(count)
+    finite_hook = model.register_forward_hook(finite)
     try:
         model.grounding_tokenizer_input = null
         model.restore_first_conv_from_SD = restore
@@ -207,8 +213,12 @@ def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv
             raise RuntimeError('Official sampler work differs from the planned budget')
         if not torch.isfinite(latent).all(): raise RuntimeError('Nonfinite direct-generation latent')
         return latent, dict(**calls, conditioning_cache=cache_stats, base_conv_restorations=restorations)
+    except Exception as exc:
+        exc.ocsd_compute = dict(**calls, base_conv_restorations=restorations,
+                                note='Forward attempts before failure; an OOM call may be incomplete')
+        raise
     finally:
-        hook.remove(); conv.load_state_dict(learned_conv, strict=True)
+        hook.remove(); finite_hook.remove(); conv.load_state_dict(learned_conv, strict=True)
         model.restore_first_conv_from_SD = original_restore
         model.grounding_tokenizer_input = original_null
         for m, value in zip(fusers, scales): m.scale = value
@@ -236,7 +246,7 @@ def load_global_text_weights(encoder, state):
     return ignored
 
 
-def load_components(cache, lock=None):
+def load_components(cache, lock=None, expected_checkpoint_sha256=None):
     """Load only fixed public model sources; strict weights, no upstream training stack.
 
     First resolve HF revisions, then download at those exact revisions. The
@@ -253,6 +263,9 @@ def load_components(cache, lock=None):
     if set(lock) != {MODEL_REPO, CLIP_REPO} or any(not isinstance(v, str) or not re.fullmatch(r'[a-f0-9]{40}', v) for v in lock.values()):
         raise ValueError('Expected exact public checkpoint and CLIP revisions')
     weights = hf_hub_download(MODEL_REPO, MODEL_FILE, revision=lock[MODEL_REPO], cache_dir=str(Path(cache)/'hf'), token=False)
+    checkpoint_hash = file_hash(weights)
+    if expected_checkpoint_sha256 is not None and checkpoint_hash != expected_checkpoint_sha256:
+        raise ValueError('Checkpoint differs from the accepted CPU preflight')
     print('Loading official InstanceDiffusion checkpoint on CPU...', flush=True)
     checkpoint = torch.load(weights, map_location='cpu', weights_only=False, mmap=True)
     config = yaml.safe_load((source/'configs/test_box.yaml').read_text())
@@ -291,7 +304,7 @@ def load_components(cache, lock=None):
     base_path = source/'pretrained/SD_v1_5_input_conv_weight_bias.pth'
     base_conv = torch.load(base_path, map_location='cpu', weights_only=True)
     provenance = dict(source_commit=SOURCE_COMMIT, model_revisions=lock,
-                      checkpoint_sha256=file_hash(weights), checkpoint_state=weight_key,
+                      checkpoint_sha256=checkpoint_hash, checkpoint_state=weight_key,
                       phrase_text_weights_complete=True,
                       base_conv_sha256=file_hash(base_path), ignored_nonlearned_text_buffers=ignored,
                       config_sha256=file_hash(source/'configs/test_box.yaml'))
@@ -316,7 +329,7 @@ class DirectModel:
         return features, [x[None] for x in embeddings[:-1]], embeddings[-1:]
 
     @torch.no_grad()
-    def generate(self, condition, seed, negative, scribble=True, device='cuda', steps=50, mis=.36, alpha=.8):
+    def generate(self, condition, seed, negative, scribble=True, device='cuda', steps=50, mis=.36, alpha=.8, deadline=None):
         start = time.perf_counter()
         features, contexts, uncond = self.encode(condition, negative)
         batch = conditioning_batch(condition, features, device=device)
@@ -328,12 +341,16 @@ class DirectModel:
         autocast = torch.autocast(device_type='cuda', dtype=torch.float16) if str(device).startswith('cuda') else nullcontext()
         with autocast:
             latent, log = sample_latents(self.model, self.diffusion, batch, contexts, uncond, noise, self.base_conv,
-                                        steps=steps, mis=mis, alpha=alpha)
-            image = self.vae.decode(latent)
+                                        steps=steps, mis=mis, alpha=alpha, deadline=deadline)
+        if deadline is not None and time.monotonic() >= deadline:
+            raise TimeoutError('Direct-generation time budget exhausted before VAE decode')
+        # Fixed for both arms: decode in FP32 to avoid VAE FP16 overflow.
+        image = self.vae.decode(latent.float())
         if not torch.isfinite(image).all(): raise RuntimeError('Nonfinite direct-generation image')
         pixels = ((image[0].clamp(-1,1)*.5+.5)*255).permute(1,2,0).cpu().numpy().astype(np.uint8)
         log.update(provenance=self.provenance, steps=steps, mis=mis, alpha=alpha, seed=seed,
                    conditioning='boxes+centers+20_ink_points' if scribble else 'boxes+centers',
+                   unet_precision='autocast_float16' if str(device).startswith('cuda') else 'float32', vae_precision='float32',
                    wall_s=time.perf_counter()-start, image_size=512, refiner=False,
                    external_method='InstanceDiffusion pinned official core with OCSD input adapter')
         return pixels, log
