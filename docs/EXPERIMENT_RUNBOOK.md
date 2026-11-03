@@ -1,4 +1,4 @@
-> Current RUN_ALL default: `count_screen`, one known bicycle failure × four methods, fresh RUN_ID. See [protocol](COUNT_SCREEN.md). This is a mechanism diagnostic, not a paper run.
+> Current RUN_ALL default: `clean_screen`, one known bicycle failure × four initialization/blending controls, fresh RUN_ID. See [protocol](CLEAN_SCREEN.md). This is a mechanism diagnostic, not a paper run.
 
 # Chạy và xác minh phiên bản tối ưu trên Colab
 
