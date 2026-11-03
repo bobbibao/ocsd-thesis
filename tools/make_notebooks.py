@@ -105,6 +105,10 @@ nb([
     "MD:# OCSD – Chạy toàn bộ thực nghiệm (Run all)\n\n"
     "Khóa luận: *Sinh ảnh cảnh nhất quán đối tượng từ phác thảo và văn bản bằng mô hình khuếch tán* – "
     "Lê Hoàng Bảo (21090331), Thái Bá Cường (21050681); GVHD: TS. Nguyễn Thanh Chuyên.\n\n"
+    "**Cập nhật 03/11/2026:** đã nhận đủ `foreground_screen` của run `20261103T035056Z_dc40e4b5`. "
+    "Tách nền làm bánh xe sạch hơn nhưng hình dáng/độ tự nhiên chưa đạt. **Không cần chạy lại GPU ở bước này.** "
+    "[Review 4 ảnh trên máy cá nhân](https://github.com/bobbibao/ocsd-thesis/raw/refs/heads/main/docs/reviews/ocsd-foreground-review-20261103.zip). "
+    "Notebook giữ phép thử để tái lập; chưa có cấu hình mới được khuyến nghị chạy.\n\n"
     "**Cách dùng:** Runtime → Change runtime type → GPU (L4 hoặc A100) → sửa ô 1 → Runtime → Run all.\n\n"
     "Notebook chạy 4 giai đoạn: (A) dựng bộ dữ liệu, (B) sinh ảnh cho E1–E4 và khảo sát α, (C) đánh giá, "
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
@@ -115,8 +119,9 @@ nb([
     "= 4 ảnh cuối. So sánh clean cũ, anchor có nền cảnh, mask học được dạng cứng và dạng mềm. "
     "BiRefNet-lite chạy CPU, tải khoảng 224 MB một lần và kiểm tra SHA-256. "
     "Không gửi ảnh ra dịch vụ ngoài. Cùng mẫu M2, vị trí, vùng sửa và số bước diffusion; "
-    "chi phí tách nền ghi riêng. Kết quả tách nền offline có triển vọng nhưng ảnh cuối chưa kiểm chứng. "
-    "Xem docs/FOREGROUND_SCREEN.md. Dùng RUN_ID mới; không chạy paper/full.",
+    "chi phí tách nền ghi riêng. Đã chạy: giảm nền gỗ trong bánh xe, nhưng vẫn méo và còn tàn dư. "
+    "Xem docs/FOREGROUND_20261103_RESULTS.md. Không chạy lại sweep này hoặc paper/full theo kết quả hiện tại. "
+    "Chỉ dùng RUN_ID mới nếu chủ động tái lập phép thử; đây chưa phải model đạt chất lượng.",
     "MD:## A. Bộ dữ liệu\nQuickDraw-Scenes (tổng hợp, 12 ô: số đối tượng 1/3/5/8+ × độ phức tạp đơn giản/trung bình/phức tạp) "
     "và COCO-Sketch (ảnh thật COCO val2017, phác thảo PiDiNet, mặt nạ thật). Lần đầu mất ~10–20 phút (tải COCO 1 GB).",
     r'''#@title A. Build benchmarks (skipped if already built for this tier)
