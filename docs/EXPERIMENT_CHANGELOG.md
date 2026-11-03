@@ -1,5 +1,11 @@
 # Experiment changes
 
+## Review fallback and qualitative feedback — 2026-11-03
+
+- Fixed JavaScript-dependent image display: the review generator now embeds original images in static HTML and enables the form only after successful initialization. Added a normal PNG comparison with the same anonymous A–D mapping. A restricted HTML viewer no longer needs to run scripts to display the evidence; PNG is available when the viewer cannot render HTML at all.
+- Recorded the user's verbatim count/shape acceptance for A–D, joint preference for A/B and remaining naturalness concern, bound to the original manifest labels/hashes. Perceived equality does not merge distinct image files; no numeric ratings are inferred.
+- Updated current docs/notebook status: feedback received; no repeated rating or GPU run requested. No inference code, parameters or model weights changed.
+
 ## Foreground result audit — 2026-11-03
 
 - Audited run `20261103T035056Z_dc40e4b5`: 81 artifact hashes, four exact CPU seed reconstructions, protected pixels, shared inputs and sampling counts. Learned extraction reduces visible wheel contamination, but geometry/naturalness remains inadequate. See [results](FOREGROUND_20261103_RESULTS.md).

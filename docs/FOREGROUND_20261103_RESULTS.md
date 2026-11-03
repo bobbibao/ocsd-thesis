@@ -1,4 +1,4 @@
-# Foreground screen: cleaner wheel interiors, persistent shape and realism failures
+# Foreground screen: learned extraction preferred by user, naturalness still limited
 
 Run `20261103T035056Z_dc40e4b5`, code `1ac6ec9`, NVIDIA L4 22 GB. All **81 exported artifacts** pass manifest SHA-256 checks; four intentionally unexported M2 cache files are listed in the [audit](foreground_run_20261103/audit.json). The four planned outputs are complete. This is one repeatedly inspected development scene and one seed, not held-out or paper evidence.
 
@@ -8,9 +8,17 @@ Run `20261103T035056Z_dc40e4b5`, code `1ac6ec9`, NVIDIA L4 22 GB. All **81 expor
 
 Learned extraction produces a visible, limited improvement: much less wooden-board texture is carried into the wheel interiors. This improvement survives scene denoising in both hard and soft variants. Changing the context anchor alone leaves the contaminated wheel discs largely intact. Hard and soft results look very similar; this run does not justify declaring either the quality winner.
 
-The bicycle still has malformed frame/rear-wheel connections, weakened thin structures and detached-looking pieces underneath. It does not look convincingly natural in the scene. This is engineering inspection with known method labels, **not new human scores**. Cleaner extraction does not establish correct bicycle anatomy, sketch shape, placement or broad scene-generation quality.
+Engineering inspection flagged frame/rear-wheel connections, weakened thin structures and detached-looking pieces underneath. This was an assessment with known method labels, **not human scores**. The subsequent user review below accepts count and shape on this scene while retaining the naturalness concern. Preserve both observations; do not attribute the engineering shape critique to the user.
 
 **Retain learned extraction as a useful experimental component; do not promote this complete repair pipeline as a successful model. Stop the repeated four-arm bicycle sweep.** No new GPU run, larger candidate pool or paper/full escalation is justified by these results. No inference parameters or weights are changed in this results update.
+
+## User feedback received
+
+> tất cả các ảnh A,B,C,D đều có đủ số lượng, hình dáng nhưng ảnh A,B là chính xác nhất (giống nhau) nhưng còn chưa tự nhiên lắm
+
+The user reports sufficient count and shape in **all four** outputs, with **A and B jointly most accurate**, but naturalness remains limited. Manifest-bound labels are A = learned soft, B = learned hard, C = context anchor, D = original clean repair. The user's perceived A/B tie is not byte identity: the original image hashes differ, so the two files are not merged as exact duplicates.
+
+[Verbatim feedback and image identities](reviews/foreground_20261103_user_feedback.json) are stored separately from numeric ratings. No 0/1/2 scores, per-image realism ranking or statistical result are inferred. This supports keeping learned extraction as a preferred development component, with no evidence selecting hard over soft. The next priority is **naturalness while preserving the count/shape accepted in this review**. The user does not need to repeat this review or return JSON.
 
 ## Measured endpoints
 
@@ -53,11 +61,15 @@ This reads saved artifacts and runs only CPU image operations. It does not load 
 
 Validation of this update: both review tests pass, including focused-form round-trip and rejection of mismatched image labels; the actual packet passes Chromium rendering, zoom, JSON download/import, blank/uncertain scores, preservation of previously imported hidden scores, analyzer round-trip and mobile-width checks. Chromium was tested through localhost because this managed browser blocks local-file navigation. All five notebooks validate and regenerate deterministically; their executable cells are unchanged. Synthetic browser-test ratings are kept outside the repository and are not study results.
 
-## Focused user review, without Colab
+## Review access, without Colab or required JavaScript
 
-Download [the review ZIP](reviews/ocsd-foreground-review-20261103.zip), extract it and open `REVIEW.html`. It contains the original sketch, caption and four original PNG outputs, with anonymous A–D labels, zoom and three criteria: count, shape and realism. The page has **12 score fields**; everything else stays unanswered. Detailed Vietnamese instructions are in the ZIP. Click **Tải kết quả JSON** and return `ocsd_review_20261103T035056Z_dc40e4b5.json`. Partial/uncertain answers are allowed.
+The user reported the HTML opening blank. The old page created all evidence images with JavaScript; disabling JavaScript reproduces missing images, although this does not establish the precise cause in the user's viewer. The builder now embeds ordinary HTML image elements before script execution; it enables the scoring controls only after successful initialization. Captions remain escaped and all embedded PNGs retain the original hashes. A plain PNG comparison is also generated for viewers that do not render HTML at all.
 
-The page contains no metric ranking, suggested winner or engineering-stage images. The user has already seen related results, so this remains development feedback, not an independent blinded study. No human response is inferred from these figures. The review can prioritize the remaining errors; it is not needed to establish that this is insufficient evidence for a best-model claim.
+The updated packet passes Chromium checks with JavaScript disabled and with inline scripts blocked by CSP, plus the normal scoring/zoom/export/import and mobile checks. Each A–D tile in the PNG equals its original 512×512 output pixel for pixel. Review regression tests pass, and the five regenerated notebooks retain unchanged executable cells.
+
+**[Open the A–D comparison directly](reviews/foreground_20261103_ABCD.png)**, or download the [updated ZIP](reviews/ocsd-foreground-review-20261103.zip). The ZIP contains `SCENE_01.png`, `REVIEW.html` and Vietnamese instructions. The PNG preserves the original anonymous label mapping and includes the sketch/caption; it contains no method identities or preferred scores. HTML remains optional. Qualitative replies in chat are accepted, as with the feedback already received above.
+
+The page contains no metric ranking, suggested winner or engineering-stage images. The user has already seen related results, so this remains development feedback, not an independent blinded study. No human response is inferred from the figures.
 
 ## Next research direction
 
