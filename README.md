@@ -9,25 +9,30 @@ Mục tiêu: từ **phác thảo cảnh + câu mô tả**, sinh ảnh có **đú
 
 **Cập nhật 03/11/2026:** đã phân tích đủ [foreground_screen](docs/FOREGROUND_20261103_RESULTS.md).
 Người dùng đã xác nhận A–D đủ số lượng/hình dáng; A và B chính xác nhất, tương đương theo cảm nhận, nhưng chưa tự nhiên.
-**Đã nhận review, không cần chấm lại hay chạy lại Colab.** Có thể [xem A–D trực tiếp bằng ảnh PNG](docs/reviews/foreground_20261103_ABCD.png).
+**Đã nhận review, không cần chấm lại hay chạy lại phép thử GPU này.** Có thể [xem A–D trực tiếp bằng ảnh PNG](docs/reviews/foreground_20261103_ABCD.png).
 [Bộ review](docs/reviews/ocsd-foreground-review-20261103.zip) cũng đã có PNG và HTML hiển thị ảnh khi tắt JavaScript.
 
+Hướng tiếp theo là [điều kiện hóa trực tiếp từng đối tượng bằng InstanceDiffusion](docs/DIRECT_INSTANCE_PREFLIGHT.md).
+Đã có adapter sketch và kiểm thử cache tương đương trên lõi thu nhỏ; **chưa có bằng chứng ảnh tốt hơn**.
+`RUN_ALL.ipynb` hiện mặc định `RUN_MODE="direct_preflight"`: kiểm tra trọng số thật trên **CPU**, xuất ZIP log để xác minh tương thích trước khi tiêu GPU. Môi trường phát triển bị chặn tải checkpoint Hugging Face nên chưa hoàn tất bước này tại đây.
+
 Xem [runbook](docs/EXPERIMENT_RUNBOOK.md), [audit](docs/OPTIMIZATION_AUDIT.md) và
-[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. `RUN_ALL.ipynb` mặc định `foreground_screen`,
-lưu kết quả trong `results/runs/<run_id>/` và kiểm tra phiên bản khi resume. Con trỏ mới nhất là
+[changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. Chế độ tái lập `RUN_MODE="experiment"` giữ tier `foreground_screen`,
+lưu kết quả ảnh trong `results/runs/<run_id>/` và kiểm tra phiên bản khi resume. Con trỏ mới nhất là
 `results/latest_run.json`; kết quả cũ được giữ nguyên. Bộ QuickDraw mới dùng seed theo scene và
 `data/benchmarks_v2/`. Các kết quả phát triển hiện tại chưa chứng minh cải thiện chất lượng tổng thể trên tập chưa xem.
 
-## Chạy trên Google Colab (khi cần tái lập)
+## Bước tiếp theo trên Google Colab — CPU
 
 1. [Mở RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
-2. Runtime → Change runtime type → **GPU L4** (hoặc A100).
-3. Mặc định `TIER="foreground_screen"` có 4 ảnh cuối: thử tách nền học được và anchor có nền cảnh, rồi Runtime → **Run all**.
-   Xem [kết quả đã có](docs/FOREGROUND_20261103_RESULTS.md). Đây là phép thử đã hoàn thành; không cần chạy lại để gửi review.
-4. Kết quả nằm trong Google Drive: `MyDrive/KLTN_OCSD/results/runs/<run_id>/`
-   (`run_manifest.json`, `summary.md`, `summary.json`, `progress.json`, `tables/`, `figures/`, `user_study/`).
+2. Runtime → Change runtime type → **Hardware accelerator: None (CPU)**; dùng runtime mới.
+3. Giữ `RUN_MODE="direct_preflight"`, `RUN_ID=""`, rồi Runtime → **Run all**. Lần đầu tải trọng số vài GB; chưa sinh ảnh.
+4. Gửi file **`ocsd_direct_preflight_….zip`** notebook tải về vào cuộc trò chuyện, kể cả khi kiểm tra lỗi. File cũng nằm ở `MyDrive/KLTN_OCSD/results/direct_preflight/attempt_…/`. Không cần export screen hoặc GH_TOKEN.
 
-Colab ngắt kết nối hoặc hết giờ: dùng lại RUN_ID với cùng code/cấu hình, rồi **Run all lại**;
+`PASS` chỉ xác nhận tương thích CPU, chưa chứng minh chất lượng ảnh/FP16. Các stage thí nghiệm cũ tự bỏ qua. [Hướng dẫn và phạm vi kiểm tra](docs/DIRECT_INSTANCE_PREFLIGHT.md).
+
+Nếu chủ động tái lập thí nghiệm cũ, chọn `RUN_MODE="experiment"` và GPU L4/A100. Kết quả ở `results/runs/<run_id>/` như trước.
+Trong chế độ thí nghiệm, Colab ngắt kết nối hoặc hết giờ: dùng lại RUN_ID với cùng code/cấu hình, rồi **Run all lại**;
 ảnh và độ đo hợp lệ trên Drive được bỏ qua.
 Không cần khóa Hugging Face: mọi mô hình dùng đều công khai.
 
@@ -178,4 +183,4 @@ Tiếp theo: [clean_screen](docs/CLEAN_SCREEN.md) kiểm tra nguồn gây méo b
 
 Đã phân tích `clean_screen`: [ảnh trung gian cho thấy mask kéo nền gỗ vào bánh xe; cleanup chưa sửa được hình dáng](docs/CLEAN_20261103_RESULTS.md). Không cần chạy lại; bước tiếp theo là kiểm tra tách nền/ghép đối tượng trên dữ liệu đã có.
 
-Đã kiểm tra ảnh cuối và nhận [review foreground_screen](docs/FOREGROUND_20261103_RESULTS.md): người dùng ưu tiên hai nhánh tách nền học được, chấp nhận số lượng/hình dáng, nhưng độ tự nhiên chưa đạt. Ưu tiên tiếp theo là độ tự nhiên trong khi giữ kết quả count/shape; chưa nâng lên paper/full.
+Đã kiểm tra ảnh cuối và nhận [review foreground_screen](docs/FOREGROUND_20261103_RESULTS.md): người dùng ưu tiên hai nhánh tách nền học được, chấp nhận số lượng/hình dáng, nhưng độ tự nhiên chưa đạt. Đang kiểm tra [ứng viên điều kiện hóa trực tiếp](docs/DIRECT_INSTANCE_PREFLIGHT.md) để khảo sát độ tự nhiên trong khi giữ count/shape; chưa nâng lên paper/full.

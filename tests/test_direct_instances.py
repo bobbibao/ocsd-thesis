@@ -1,0 +1,187 @@
+"""Input-contract and official-core parity; no generated quality claims."""
+import os
+from pathlib import Path
+import sys
+import tempfile
+from types import SimpleNamespace
+import unittest
+from unittest.mock import patch
+import numpy as np
+import torch
+from ocsd.direct_instances import (scene_condition, sketch_points, conditioning_batch,
+                                   cached_conditioning, sampling_work, sample_latents, SOURCE_COMMIT, load_global_text_weights)
+
+
+def scene():
+    objects=[]
+    for box in ((3,2,19,10),(23,9,36,18)):
+        ink=np.full((20,40),255,np.uint8);x0,y0,x1,y1=box
+        ink[y0:y1,x0]=0;ink[y1-1,x0:x1]=0
+        objects.append(SimpleNamespace(cls='bicycle',phrase='yellow bicycle',box=box,sketch=ink))
+    return SimpleNamespace(n=2,objects=objects,sketch=np.minimum(objects[0].sketch,objects[1].sketch),sid='test',caption='two yellow bicycles')
+
+
+class DirectInputs(unittest.TestCase):
+    def test_text_only_pooler_matches_official_clip_feature(self):
+        from transformers import CLIPConfig, CLIPModel, CLIPTextModel
+        config=CLIPConfig(text_config=dict(vocab_size=100,hidden_size=32,intermediate_size=48,num_hidden_layers=1,
+            num_attention_heads=4,max_position_embeddings=8,bos_token_id=1,eos_token_id=2,pad_token_id=0),
+            vision_config=dict(hidden_size=32,intermediate_size=48,num_hidden_layers=1,num_attention_heads=4,
+                               image_size=32,patch_size=16),projection_dim=16)
+        full=CLIPModel(config).eval();text=CLIPTextModel(config.text_config).eval()
+        state={'transformer.text_model.'+k:v for k,v in full.text_model.state_dict().items()}
+        state['transformer.text_model.embeddings.position_ids']=torch.arange(8)[None]
+        self.assertEqual(load_global_text_weights(text,state),['embeddings.position_ids'])
+        inputs=dict(input_ids=torch.tensor([[1,7,2,0],[1,8,9,2]]),attention_mask=torch.tensor([[1,1,1,0],[1,1,1,1]]))
+        # Transformers 5 mutates CLIPOutput's text pooler to its projected feature.
+        # Capture the text branch before that mutation: upstream training used v4's
+        # unchanged pre-projection pooler. Different projection width catches a mix-up.
+        before=[]
+        hook=full.text_model.register_forward_hook(lambda m,a,out: before.append(out.pooler_output.clone()))
+        try:
+            with torch.no_grad():
+                output=full(**inputs,pixel_values=torch.ones(2,3,32,32))
+                self.assertTrue(torch.equal(before[0],text(**inputs).pooler_output))
+                self.assertEqual(text(**inputs).pooler_output.shape,(2,32))
+                self.assertEqual(output.text_model_output.pooler_output.shape,(2,16))
+        finally:hook.remove()
+        # The public CLIP source contains a full text+vision checkpoint. Exercise
+        # the actual HF loader's prefix conversion when loading only its text tower.
+        with tempfile.TemporaryDirectory() as td:
+            full.save_pretrained(td)
+            loaded,info=CLIPTextModel.from_pretrained(td,output_loading_info=True)
+            self.assertFalse(info['missing_keys']);self.assertFalse(info['mismatched_keys'])
+            with torch.no_grad():self.assertTrue(torch.equal(loaded(**inputs).pooler_output,before[0]))
+        wrong=dict(state);wrong.pop('transformer.text_model.embeddings.token_embedding.weight')
+        with self.assertRaisesRegex(RuntimeError,'Missing key'):load_global_text_weights(text,wrong)
+        wrong=dict(state);wrong['transformer.text_model.embeddings.position_ids']=torch.zeros(1,8,dtype=torch.long)
+        with self.assertRaisesRegex(ValueError,'Noncanonical'):load_global_text_weights(text,wrong)
+
+    def test_distinct_instances_real_ink_and_axis_normalization(self):
+        s=scene();c=scene_condition(s)
+        self.assertEqual(len(c['objects']),2)
+        self.assertEqual(c['objects'][0]['box'],[3/40,2/20,19/40,10/20])
+        for obj,item in zip(s.objects,c['objects']):
+            points=np.array(item['scribble']).reshape(20,2)
+            pixels=np.rint(points*[40,20]).astype(int)
+            self.assertTrue((obj.sketch[pixels[:,1],pixels[:,0]]==0).all())
+            self.assertEqual(item['scribble'],sketch_points(obj.sketch))
+        b=conditioning_batch(c,torch.ones(2,32))
+        self.assertEqual(int(b['masks'].sum()),2)
+        self.assertFalse(torch.equal(b['scribbles'][0,0],b['scribbles'][0,1]))
+        self.assertFalse(b['segs'].any());self.assertFalse(b['polygons'].any())
+        self.assertFalse(b['masks'][0,2:].any())
+        self.assertEqual(sketch_points(np.array([[0]],np.uint8)),[0.]*40)
+
+    def test_invalid_inputs_fail_instead_of_silent_box_fallback(self):
+        s=scene();s.objects[0].sketch[:]=255
+        with self.assertRaisesRegex(ValueError,'Empty'):scene_condition(s)
+        s=scene();s.objects[0].box=(-1,2,9,10)
+        with self.assertRaisesRegex(ValueError,'outside'):scene_condition(s)
+        s=scene();s.n=31
+        with self.assertRaisesRegex(ValueError,'1..30'):scene_condition(s)
+        self.assertEqual(sampling_work(3),216)
+        self.assertEqual(sampling_work(5),292)
+        self.assertEqual(sampling_work(5,mis=0),102)
+        with self.assertRaises(ValueError):sampling_work(3,steps=30)
+
+    def test_cache_invalidates_mutation_and_restores_after_exception(self):
+        net=torch.nn.Linear(2,2).eval();x=torch.ones(1,2);original=net.forward
+        with torch.no_grad(),cached_conditioning(net) as stats:
+            a=net(x);self.assertIs(a,net(x));x.add_(1);b=net(x)
+            self.assertFalse(torch.equal(a,b));self.assertEqual(stats['evaluations'],2)
+        self.assertEqual(net.forward,original)
+        with self.assertRaisesRegex(RuntimeError,'inference-only'):
+            with cached_conditioning(net):net(x)
+        self.assertEqual(net.forward,original)
+
+
+@unittest.skipUnless(os.environ.get('OCSD_INSTDIFF_SOURCE'), 'Set OCSD_INSTDIFF_SOURCE to the pinned official checkout for parity tests')
+class OfficialCore(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import subprocess
+        source=os.environ['OCSD_INSTDIFF_SOURCE']
+        assert subprocess.check_output(['git','-C',source,'rev-parse','HEAD'],text=True).strip()==SOURCE_COMMIT
+        sys.path.insert(0,source)
+        from ldm.modules.diffusionmodules.openaimodel import UNetModel
+        from ldm.models.diffusion.ldm import LatentDiffusion
+        torch.set_num_threads(2);torch.manual_seed(34)
+        cls.model=UNetModel(image_size=8,in_channels=4,out_channels=4,model_channels=32,
+            attention_resolutions=[1,2],num_res_blocks=1,channel_mult=[1,2],num_heads=4,context_dim=32,
+            fuser_type='gatedSA',sd_v1_5=True,efficient_attention=True,
+            grounding_tokenizer=dict(target='ldm.modules.diffusionmodules.text_grounding_net.UniFusion',params=dict(
+                in_dim=32,out_dim=32,mid_dim=48,train_add_masks=False,test_drop_masks=True,test_drop_scribbles=False)))
+        cls.model.eval().requires_grad_(False)
+        with torch.no_grad():
+            cls.model.out[-1].weight.normal_(0,.02)
+            for name,param in cls.model.named_parameters():
+                if 'alpha_attn' in name or 'alpha_dense' in name:param.fill_(.4)
+                if name.endswith('.proj_out.weight'):param.normal_(0,.02)
+        cls.diffusion=LatentDiffusion(timesteps=1000,linear_start=.00085,linear_end=.012)
+
+    def test_full_unifusion_including_unused_mask_backbone(self):
+        from ldm.modules.diffusionmodules import text_grounding_net as grounding
+        factory=grounding.convnext_tiny
+        def no_download(**kwargs):return factory(**dict(kwargs,pretrained=False))
+        with patch.object(grounding,'convnext_tiny',side_effect=no_download):
+            net=grounding.UniFusion(in_dim=32,out_dim=32,mid_dim=48,train_add_masks=True,
+                                   test_drop_masks=True,test_drop_scribbles=False).eval()
+        batch=conditioning_batch(scene_condition(scene()),torch.randn(2,32))
+        args=tuple(batch[k] for k in ('boxes','masks','positive_embeddings','scribbles','polygons','segs','points'))
+        with torch.no_grad(),cached_conditioning(net) as stats:
+            first=net(*args)[0];second=net(*args)[0]
+        with torch.no_grad():uncached=net(*args)[0]
+        self.assertEqual(first.shape,(1,184,32))
+        self.assertTrue(torch.isfinite(first).all());self.assertTrue(torch.equal(first,second))
+        self.assertTrue(torch.equal(first,uncached))
+        self.assertEqual(stats,dict(calls=2,evaluations=1,hits=1))
+
+    def test_cached_and_uncached_official_trajectories_and_reuse(self):
+        torch.manual_seed(73);model=self.model
+        batch=conditioning_batch(scene_condition(scene()),torch.randn(2,32))
+        noise=torch.randn(1,4,8,8);contexts=[torch.randn(1,5,32) for _ in range(3)];negative=torch.randn(1,5,32)
+        original={k:v.clone() for k,v in model.input_blocks[0][0].state_dict().items()}
+        base={k:v*.9 for k,v in original.items()}
+        uncached,a=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2,cache=False)
+        cached,b=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2)
+        self.assertTrue(torch.equal(uncached,cached))
+        self.assertEqual(a['unet_sample_calls'],34);self.assertEqual(b['unet_sample_calls'],34)
+        self.assertEqual(a['conditioning_cache']['evaluations'],34)
+        self.assertEqual(b['conditioning_cache']['evaluations'],4)
+        self.assertEqual(b['base_conv_restorations'],1)
+        self.assertTrue(all(torch.equal(v,original[k]) for k,v in model.input_blocks[0][0].state_dict().items()))
+        again,_=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2)
+        self.assertTrue(torch.equal(cached,again))
+        # A real control-path check: changing scribbles must affect the latent.
+        changed={k:v.clone() for k,v in batch.items()};changed['scribbles'][:,:2]=.8
+        other,_=sample_latents(model,self.diffusion,changed,contexts,negative,noise,base,steps=10,mis=.2)
+        self.assertGreater(float((other-cached).abs().max()),1e-7)
+        plain,c=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=0)
+        self.assertTrue(torch.isfinite(plain).all());self.assertEqual(c['unet_sample_calls'],22)
+
+    def test_failed_sampling_restores_convolution_null_cache_and_scales(self):
+        from ldm.modules.attention import GatedSelfAttentionDense
+        model=self.model;null=model.grounding_tokenizer_input;forward=model.position_net.forward
+        restore=model.restore_first_conv_from_SD
+        fusers=[m for m in model.modules() if isinstance(m,GatedSelfAttentionDense)]
+        scales=[m.scale for m in fusers]
+        original={k:v.clone() for k,v in model.input_blocks[0][0].state_dict().items()}
+        batch=conditioning_batch(scene_condition(scene()),torch.randn(2,32))
+        def fail(**kwargs):
+            model.restore_first_conv_from_SD()
+            for m in fusers:m.scale=.123
+            raise RuntimeError('sampling interrupted')
+        with patch('ldm.models.diffusion.plms_instance.PLMSSamplerInst.sample',side_effect=fail):
+            with self.assertRaisesRegex(RuntimeError,'sampling interrupted'):
+                sample_latents(model,self.diffusion,batch,[torch.randn(1,5,32)]*3,torch.randn(1,5,32),
+                               torch.randn(1,4,8,8),{k:v*.9 for k,v in original.items()},steps=10,mis=.2)
+        self.assertIs(model.grounding_tokenizer_input,null)
+        self.assertEqual(model.restore_first_conv_from_SD,restore)
+        self.assertEqual(model.position_net.forward,forward)
+        self.assertEqual([m.scale for m in fusers],scales)
+        self.assertTrue(all(torch.equal(v,original[k]) for k,v in model.input_blocks[0][0].state_dict().items()))
+        self.assertFalse(model._forward_pre_hooks)
+
+
+if __name__=='__main__':unittest.main()
