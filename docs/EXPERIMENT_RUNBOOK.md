@@ -7,7 +7,7 @@
 Notebook chính: [RUN_ALL.ipynb trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 Không cần chép ZIP lên Drive. Giữ REPO_URL của bobbibao/ocsd-thesis và BRANCH="main".
 
-**Bước hiện tại:** mở runtime mới với **Hardware accelerator: None (CPU)**, giữ `RUN_MODE="direct_preflight"`, `RUN_ID=""`, rồi Run all. Ô 3 tải trọng số công khai, kiểm tra tương thích và tải về `ocsd_direct_preflight_….zip`; gửi ZIP đó vào cuộc trò chuyện. Không cần GH_TOKEN/export screen/chấm ảnh. Tải lần đầu có thể vài GB. Các ô thí nghiệm cũ tự bỏ qua, kể cả kiểm tra thất bại. `PASS` chưa phải ảnh tốt hơn. Log nằm riêng tại `results/direct_preflight/attempt_…/`; không dùng RUN_ID của thí nghiệm ảnh.
+**Bước hiện tại:** [log CPU đã nhận](DIRECT_PREFLIGHT_20261103_RESULTS.md) dừng do lỗi `Tee.isatty`, đã sửa. Giữ phiên CPU hiện tại nếu còn hoạt động để dùng lại cache, `RUN_MODE="direct_preflight"`, `RUN_ID=""`, rồi **Run all**. Ô 2 lấy bản sửa, ô 3 kiểm tra và tải về `ocsd_direct_preflight_….zip`; gửi ZIP đó vào cuộc trò chuyện. Nếu phiên đã mất, chọn **Hardware accelerator: None (CPU)** cho phiên mới. Không cần GH_TOKEN/export screen/chấm ảnh. Tải mới khoảng 13,6 GB checkpoint + 1,71 GB CLIP, chưa gồm cache/tệp tạm. Các ô thí nghiệm cũ tự bỏ qua, kể cả kiểm tra thất bại. `PASS` chưa phải ảnh tốt hơn. Log nằm riêng tại `results/direct_preflight/attempt_…/`; không dùng RUN_ID của thí nghiệm ảnh.
 
 ## Tái lập thí nghiệm ảnh cũ khi cần
 

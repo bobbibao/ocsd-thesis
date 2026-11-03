@@ -1,13 +1,15 @@
 # Điều kiện hóa trực tiếp từng đối tượng: kiểm tra CPU trước khi dùng GPU
 
-Ngày 03/11/2026. Trạng thái: đã có adapter và kiểm thử lõi trên CPU; **chưa xác minh trọng số thật, chưa đo cải thiện chất lượng ảnh**.
+Ngày 03/11/2026. Trạng thái: đã có adapter và kiểm thử lõi trên CPU; **chưa hoàn tất kiểm tra trọng số thật, chưa đo cải thiện chất lượng ảnh**.
+
+Đã nhận [log Colab `20261103T140807Z_e0a5503f`](DIRECT_PREFLIGHT_20261103_RESULTS.md): tải trọng số thành công, nhưng bộ ghi log thiếu `isatty()` làm dừng bước nạp CLIP trước khi chạy probe. Đã sửa lỗi và tái hiện đường nạp CLIP trong kiểm thử. Cần chạy lại **CPU preflight**, chưa dùng GPU.
 
 ## Việc cần làm trên Colab
 
-1. Mở lại [RUN_ALL.ipynb từ main](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb), dùng phiên runtime mới.
+1. Nếu phiên Colab CPU vừa chạy vẫn còn hoạt động, **giữ nguyên phiên đó** để dùng lại trọng số đã tải. Nếu phiên đã mất, mở [RUN_ALL.ipynb từ main](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
 2. Chọn **Runtime → Change runtime type → Hardware accelerator: None (CPU)**. Nếu đang giữ GPU, đổi về CPU trước khi chạy.
-3. Giữ `RUN_MODE="direct_preflight"`, `RUN_ID=""`, `BRANCH="main"` và đường dẫn Drive cũ. Chọn **Runtime → Run all**.
-4. Chờ tải thư viện/trọng số công khai, tổng dung lượng có thể vài GB. CPU vẫn cần RAM, dung lượng đĩa và thời gian tải; chưa có thời gian đo trên Colab cho bước này.
+3. Giữ `RUN_MODE="direct_preflight"`, `RUN_ID=""`, `BRANCH="main"` và đường dẫn Drive cũ. Chọn **Runtime → Run all**. Ô 2 lấy bản sửa từ main khi checkout sạch; ô 3 chạy lại kiểm tra trong tiến trình riêng. Không chỉ chạy ô 3 với code cũ.
+4. Cache còn nguyên và model revision không đổi thì dùng lại trọng số. Khi tải mới, checkpoint chiếm khoảng **13,6 GB**, CLIP khoảng **1,71 GB** theo log đã nhận; cần thêm chỗ cho cache/tệp tạm. CPU vẫn cần RAM và thời gian tải. Lượt lỗi dừng sau 89 giây, chưa phải thời gian của một preflight hoàn tất.
 5. Gửi **một file `ocsd_direct_preflight_….zip`** notebook tải về vào cuộc trò chuyện, dù kết quả là `pass`, `failed` hay `incomplete`. Không cần chấm ảnh, mở HTML, chạy export screen hoặc nhập GH_TOKEN.
 
 Nếu trình duyệt không tự tải ZIP, lấy file theo đường dẫn in ở cuối ô 3 trên Drive:

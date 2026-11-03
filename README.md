@@ -15,6 +15,7 @@ Người dùng đã xác nhận A–D đủ số lượng/hình dáng; A và B c
 Hướng tiếp theo là [điều kiện hóa trực tiếp từng đối tượng bằng InstanceDiffusion](docs/DIRECT_INSTANCE_PREFLIGHT.md).
 Đã có adapter sketch và kiểm thử cache tương đương trên lõi thu nhỏ; **chưa có bằng chứng ảnh tốt hơn**.
 `RUN_ALL.ipynb` hiện mặc định `RUN_MODE="direct_preflight"`: kiểm tra trọng số thật trên **CPU**, xuất ZIP log để xác minh tương thích trước khi tiêu GPU. Môi trường phát triển bị chặn tải checkpoint Hugging Face nên chưa hoàn tất bước này tại đây.
+Đã nhận [log CPU trên Colab](docs/DIRECT_PREFLIGHT_20261103_RESULTS.md): tải trọng số xong, dừng do bộ ghi log thiếu `isatty()`. Đã sửa; chạy lại CPU theo hướng dẫn dưới để hoàn tất kiểm tra.
 
 Xem [runbook](docs/EXPERIMENT_RUNBOOK.md), [audit](docs/OPTIMIZATION_AUDIT.md) và
 [changelog](docs/EXPERIMENT_CHANGELOG.md) trước lượt chạy mới. Chế độ tái lập `RUN_MODE="experiment"` giữ tier `foreground_screen`,
@@ -24,9 +25,9 @@ lưu kết quả ảnh trong `results/runs/<run_id>/` và kiểm tra phiên bả
 
 ## Bước tiếp theo trên Google Colab — CPU
 
-1. [Mở RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
-2. Runtime → Change runtime type → **Hardware accelerator: None (CPU)**; dùng runtime mới.
-3. Giữ `RUN_MODE="direct_preflight"`, `RUN_ID=""`, rồi Runtime → **Run all**. Lần đầu tải trọng số vài GB; chưa sinh ảnh.
+1. Tiếp tục RUN_ALL trong phiên CPU đang mở; nếu phiên đã mất, [mở RUN_ALL.ipynb từ GitHub trên Colab](https://colab.research.google.com/github/bobbibao/ocsd-thesis/blob/main/notebooks/RUN_ALL.ipynb).
+2. Runtime → Change runtime type → **Hardware accelerator: None (CPU)**. Nếu phiên CPU vừa chạy còn hoạt động, giữ phiên đó để dùng lại cache.
+3. Giữ `RUN_MODE="direct_preflight"`, `RUN_ID=""`, rồi Runtime → **Run all**. Ô 2 lấy code mới, ô 3 kiểm tra lại. Tải mới cần khoảng 13,6 GB checkpoint + 1,71 GB CLIP và chỗ cho cache/tệp tạm; chưa sinh ảnh.
 4. Gửi file **`ocsd_direct_preflight_….zip`** notebook tải về vào cuộc trò chuyện, kể cả khi kiểm tra lỗi. File cũng nằm ở `MyDrive/KLTN_OCSD/results/direct_preflight/attempt_…/`. Không cần export screen hoặc GH_TOKEN.
 
 `PASS` chỉ xác nhận tương thích CPU, chưa chứng minh chất lượng ảnh/FP16. Các stage thí nghiệm cũ tự bỏ qua. [Hướng dẫn và phạm vi kiểm tra](docs/DIRECT_INSTANCE_PREFLIGHT.md).
