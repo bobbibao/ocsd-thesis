@@ -59,7 +59,7 @@ class Heldout(unittest.TestCase):
     def test_direct_import_plan_baselines_and_report(self):
         result = self.direct('a'); self.assertEqual(result['status'], 'complete'); self.assertEqual(len(self.calls), 72)
         self.assertEqual(self.direct('b')['status'], 'complete'); self.assertEqual(len(self.calls), 72)
-        P = Paths(str(self.root/'exp'), run_id='r1'); E = ExperimentConfig(tier='heldout_screen')
+        P = Paths(str(self.root/'exp'), run_id='r1'); E = ExperimentConfig(tier=H.VERSIONS[H.VERSION]['tier'])
         H.install_scenes(P)
         from ocsd import stages
         job, = stages.experiment_plan(P, E)
@@ -67,6 +67,7 @@ class Heldout(unittest.TestCase):
         baselines = stages.tier_baselines(E, P=P)
         self.assertEqual(baselines['controlnet'][1].cn_scale, 1.0)
         self.assertEqual(baselines['instance_repair_count_matte_soft'][1].steps, 30)
+        self.assertEqual(len(list(self.root.rglob('*_base_s*.png'))), 36 if 'ocsd_v3' in H.METHODS else 0)
         with contextlib.redirect_stdout(io.StringIO()): H.import_direct(P)
         out = Path(P.outputs)/'quickdraw'
         self.assertEqual(len(list((out/'direct_box').glob('*.png'))), 36)
@@ -90,7 +91,7 @@ class Heldout(unittest.TestCase):
             self.assertEqual(sum(n.endswith('.png') for n in names), 36); self.assertFalse(any('key' in n for n in names))
         key = json.loads((Path(P.results)/'review_key.json').read_text()); sid = H.scene_ids()[0]
         sheet = np.array(Image.open(Path(P.results)/'review'/f'01_{sid}_seed0.png'))
-        for i, label in enumerate('ABCD', 1):
+        for i, label in enumerate('ABCDEF'[:len(H.METHODS)], 1):
             original = np.array(Image.open(out/key[f'{sid}_s0'][label]/f'{sid}_s0.png').convert('RGB'))
             self.assertTrue(np.array_equal(original, sheet[160:672, i*512:(i+1)*512]))
         paired = pd.read_csv(Path(P.results)/'tables'/'heldout_paired.csv')
