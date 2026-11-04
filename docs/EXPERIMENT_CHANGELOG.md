@@ -123,3 +123,11 @@ Run `dev_c80aed018746b51a0cee` (L4, 48/48, 10 368 UNet sample calls, 1042 s). Bl
 box 8, scribble 5, scribble + region 3; region produced all 4 naturalness-0 images and is rejected by
 the locked rule; stage 2 uses `direct_box` by rule, although scribble had fewer structure failures
 (1 vs 4). See [DIRECT_DEV_20261104_RESULTS.md](DIRECT_DEV_20261104_RESULTS.md).
+
+## Held-out comparison locked — 2026-11-04
+
+User chose stage 2 with `direct_box` (rule) plus `direct_scribble` (post-hoc). 18 new scenes
+(`assets/heldout_v1`, generator seed 20261104, 3/5/8+ objects) and the analysis plan are committed before output
+([HELDOUT_PROTOCOL.md](HELDOUT_PROTOCOL.md)). New tier `heldout_screen` and `ocsd/heldout.py`: direct arms in a
+child run, imported with checksums; ControlNet and OCSD soft-matte via the existing pipeline; joint OWLv2/CLIP
+evaluation, paired bootstrap report and 36 blind review sheets. `RUN_ALL` default is `RUN_MODE="heldout"`.

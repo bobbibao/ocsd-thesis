@@ -1,0 +1,465 @@
+{
+ "sid": "ho_qd_8p_simple_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 9,
+ "count_bin": "8+",
+ "complexity": "simple",
+ "bg": "on a snowy field",
+ "caption": "two white houses, an orange car, a big house, two gray rabbits, a white horse, a black rabbit and a big bear on a snowy field",
+ "objects": [
+  {
+   "cls": "house",
+   "phrase": "white house",
+   "box": [
+    275.0,
+    276.0,
+    395.0,
+    377.0
+   ],
+   "qd_key": "5066681560858624",
+   "recognized": true,
+   "n_strokes": 7
+  },
+  {
+   "cls": "car",
+   "phrase": "orange car",
+   "box": [
+    189.0,
+    163.0,
+    287.0,
+    232.0
+   ],
+   "qd_key": "5455576387551232",
+   "recognized": true,
+   "n_strokes": 18
+  },
+  {
+   "cls": "house",
+   "phrase": "white house",
+   "box": [
+    57.0,
+    190.0,
+    142.0,
+    288.0
+   ],
+   "qd_key": "6464266716577792",
+   "recognized": true,
+   "n_strokes": 9
+  },
+  {
+   "cls": "house",
+   "phrase": "big house",
+   "box": [
+    396.0,
+    199.0,
+    468.0,
+    308.0
+   ],
+   "qd_key": "5054419760578560",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "rabbit",
+   "phrase": "gray rabbit",
+   "box": [
+    54.0,
+    376.0,
+    167.0,
+    443.0
+   ],
+   "qd_key": "6169010817204224",
+   "recognized": true,
+   "n_strokes": 15
+  },
+  {
+   "cls": "rabbit",
+   "phrase": "gray rabbit",
+   "box": [
+    326.0,
+    124.0,
+    382.0,
+    201.0
+   ],
+   "qd_key": "6269200660168704",
+   "recognized": true,
+   "n_strokes": 13
+  },
+  {
+   "cls": "horse",
+   "phrase": "white horse",
+   "box": [
+    157.0,
+    290.0,
+    264.0,
+    372.0
+   ],
+   "qd_key": "6495419590770688",
+   "recognized": true,
+   "n_strokes": 10
+  },
+  {
+   "cls": "rabbit",
+   "phrase": "black rabbit",
+   "box": [
+    411.0,
+    314.0,
+    503.0,
+    436.0
+   ],
+   "qd_key": "5829947446788096",
+   "recognized": true,
+   "n_strokes": 12
+  },
+  {
+   "cls": "bear",
+   "phrase": "big bear",
+   "box": [
+    390.0,
+    134.0,
+    470.0,
+    195.0
+   ],
+   "qd_key": "5995243021271040",
+   "recognized": true,
+   "n_strokes": 16
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "below"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "below"
+  ],
+  [
+   0,
+   3,
+   "left_of"
+  ],
+  [
+   0,
+   3,
+   "below"
+  ],
+  [
+   0,
+   4,
+   "right_of"
+  ],
+  [
+   0,
+   4,
+   "above"
+  ],
+  [
+   0,
+   5,
+   "below"
+  ],
+  [
+   0,
+   6,
+   "right_of"
+  ],
+  [
+   0,
+   7,
+   "left_of"
+  ],
+  [
+   0,
+   7,
+   "above"
+  ],
+  [
+   0,
+   8,
+   "left_of"
+  ],
+  [
+   0,
+   8,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ],
+  [
+   1,
+   3,
+   "left_of"
+  ],
+  [
+   1,
+   3,
+   "above"
+  ],
+  [
+   1,
+   4,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "above"
+  ],
+  [
+   1,
+   5,
+   "left_of"
+  ],
+  [
+   1,
+   5,
+   "below"
+  ],
+  [
+   1,
+   6,
+   "right_of"
+  ],
+  [
+   1,
+   6,
+   "above"
+  ],
+  [
+   1,
+   7,
+   "left_of"
+  ],
+  [
+   1,
+   7,
+   "above"
+  ],
+  [
+   1,
+   8,
+   "left_of"
+  ],
+  [
+   1,
+   8,
+   "below"
+  ],
+  [
+   2,
+   3,
+   "left_of"
+  ],
+  [
+   2,
+   4,
+   "above"
+  ],
+  [
+   2,
+   5,
+   "left_of"
+  ],
+  [
+   2,
+   5,
+   "below"
+  ],
+  [
+   2,
+   6,
+   "left_of"
+  ],
+  [
+   2,
+   6,
+   "above"
+  ],
+  [
+   2,
+   7,
+   "left_of"
+  ],
+  [
+   2,
+   7,
+   "above"
+  ],
+  [
+   2,
+   8,
+   "left_of"
+  ],
+  [
+   2,
+   8,
+   "below"
+  ],
+  [
+   3,
+   4,
+   "right_of"
+  ],
+  [
+   3,
+   4,
+   "above"
+  ],
+  [
+   3,
+   5,
+   "right_of"
+  ],
+  [
+   3,
+   5,
+   "below"
+  ],
+  [
+   3,
+   6,
+   "right_of"
+  ],
+  [
+   3,
+   6,
+   "above"
+  ],
+  [
+   3,
+   7,
+   "above"
+  ],
+  [
+   3,
+   8,
+   "below"
+  ],
+  [
+   4,
+   5,
+   "left_of"
+  ],
+  [
+   4,
+   5,
+   "below"
+  ],
+  [
+   4,
+   6,
+   "left_of"
+  ],
+  [
+   4,
+   6,
+   "below"
+  ],
+  [
+   4,
+   7,
+   "left_of"
+  ],
+  [
+   4,
+   7,
+   "below"
+  ],
+  [
+   4,
+   8,
+   "left_of"
+  ],
+  [
+   4,
+   8,
+   "below"
+  ],
+  [
+   5,
+   6,
+   "right_of"
+  ],
+  [
+   5,
+   6,
+   "above"
+  ],
+  [
+   5,
+   7,
+   "left_of"
+  ],
+  [
+   5,
+   7,
+   "above"
+  ],
+  [
+   5,
+   8,
+   "left_of"
+  ],
+  [
+   6,
+   7,
+   "left_of"
+  ],
+  [
+   6,
+   7,
+   "above"
+  ],
+  [
+   6,
+   8,
+   "left_of"
+  ],
+  [
+   6,
+   8,
+   "below"
+  ],
+  [
+   7,
+   8,
+   "right_of"
+  ],
+  [
+   7,
+   8,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.0,
+ "heldout_set": "heldout_v1",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261104,
+  "per_cell": 2,
+  "original_sid": "qd_8p_simple_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)"
+ }
+}

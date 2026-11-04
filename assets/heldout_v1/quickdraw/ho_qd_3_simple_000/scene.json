@@ -1,0 +1,87 @@
+{
+ "sid": "ho_qd_3_simple_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "simple",
+ "bg": "in a living room",
+ "caption": "two umbrellas and a red chair in a living room",
+ "objects": [
+  {
+   "cls": "umbrella",
+   "phrase": "umbrella",
+   "box": [
+    338.0,
+    208.0,
+    455.0,
+    365.0
+   ],
+   "qd_key": "5889015389618176",
+   "recognized": true,
+   "n_strokes": 7
+  },
+  {
+   "cls": "umbrella",
+   "phrase": "umbrella",
+   "box": [
+    149.0,
+    193.0,
+    292.0,
+    356.0
+   ],
+   "qd_key": "6152811978948608",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "chair",
+   "phrase": "red chair",
+   "box": [
+    13.0,
+    230.0,
+    144.0,
+    401.0
+   ],
+   "qd_key": "6525032803074048",
+   "recognized": true,
+   "n_strokes": 8
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ]
+ ],
+ "overlap_max": 0.0,
+ "heldout_set": "heldout_v1",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261104,
+  "per_cell": 2,
+  "original_sid": "qd_3_simple_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)"
+ }
+}

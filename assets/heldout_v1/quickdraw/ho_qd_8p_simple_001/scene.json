@@ -1,0 +1,372 @@
+{
+ "sid": "ho_qd_8p_simple_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 8,
+ "count_bin": "8+",
+ "complexity": "simple",
+ "bg": "at an airport",
+ "caption": "three shiny trucks, four birds and a white truck at an airport",
+ "objects": [
+  {
+   "cls": "truck",
+   "phrase": "shiny truck",
+   "box": [
+    85.0,
+    291.0,
+    218.0,
+    394.0
+   ],
+   "qd_key": "5334902918610944",
+   "recognized": true,
+   "n_strokes": 6
+  },
+  {
+   "cls": "bird",
+   "phrase": "bird",
+   "box": [
+    222.0,
+    273.0,
+    343.0,
+    404.0
+   ],
+   "qd_key": "6601026561900544",
+   "recognized": true,
+   "n_strokes": 11
+  },
+  {
+   "cls": "bird",
+   "phrase": "bird",
+   "box": [
+    44.0,
+    156.0,
+    126.0,
+    216.0
+   ],
+   "qd_key": "5240095193956352",
+   "recognized": true,
+   "n_strokes": 10
+  },
+  {
+   "cls": "truck",
+   "phrase": "shiny truck",
+   "box": [
+    316.0,
+    148.0,
+    395.0,
+    198.0
+   ],
+   "qd_key": "6009074158141440",
+   "recognized": true,
+   "n_strokes": 9
+  },
+  {
+   "cls": "truck",
+   "phrase": "shiny truck",
+   "box": [
+    132.0,
+    195.0,
+    238.0,
+    228.0
+   ],
+   "qd_key": "5358732357664768",
+   "recognized": true,
+   "n_strokes": 9
+  },
+  {
+   "cls": "truck",
+   "phrase": "white truck",
+   "box": [
+    409.0,
+    163.0,
+    507.0,
+    212.0
+   ],
+   "qd_key": "5071439172468736",
+   "recognized": true,
+   "n_strokes": 7
+  },
+  {
+   "cls": "bird",
+   "phrase": "bird",
+   "box": [
+    380.0,
+    249.0,
+    482.0,
+    325.0
+   ],
+   "qd_key": "6168745871409152",
+   "recognized": true,
+   "n_strokes": 10
+  },
+  {
+   "cls": "bird",
+   "phrase": "bird",
+   "box": [
+    354.0,
+    328.0,
+    492.0,
+    462.0
+   ],
+   "qd_key": "6421738084630528",
+   "recognized": true,
+   "n_strokes": 9
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "left_of"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "below"
+  ],
+  [
+   0,
+   3,
+   "left_of"
+  ],
+  [
+   0,
+   3,
+   "below"
+  ],
+  [
+   0,
+   4,
+   "left_of"
+  ],
+  [
+   0,
+   4,
+   "below"
+  ],
+  [
+   0,
+   5,
+   "left_of"
+  ],
+  [
+   0,
+   5,
+   "below"
+  ],
+  [
+   0,
+   6,
+   "left_of"
+  ],
+  [
+   0,
+   6,
+   "below"
+  ],
+  [
+   0,
+   7,
+   "left_of"
+  ],
+  [
+   0,
+   7,
+   "above"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ],
+  [
+   1,
+   3,
+   "left_of"
+  ],
+  [
+   1,
+   3,
+   "below"
+  ],
+  [
+   1,
+   4,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "below"
+  ],
+  [
+   1,
+   5,
+   "left_of"
+  ],
+  [
+   1,
+   5,
+   "below"
+  ],
+  [
+   1,
+   6,
+   "left_of"
+  ],
+  [
+   1,
+   6,
+   "below"
+  ],
+  [
+   1,
+   7,
+   "left_of"
+  ],
+  [
+   1,
+   7,
+   "above"
+  ],
+  [
+   2,
+   3,
+   "left_of"
+  ],
+  [
+   2,
+   4,
+   "left_of"
+  ],
+  [
+   2,
+   5,
+   "left_of"
+  ],
+  [
+   2,
+   6,
+   "left_of"
+  ],
+  [
+   2,
+   6,
+   "above"
+  ],
+  [
+   2,
+   7,
+   "left_of"
+  ],
+  [
+   2,
+   7,
+   "above"
+  ],
+  [
+   3,
+   4,
+   "right_of"
+  ],
+  [
+   3,
+   4,
+   "above"
+  ],
+  [
+   3,
+   5,
+   "left_of"
+  ],
+  [
+   3,
+   6,
+   "left_of"
+  ],
+  [
+   3,
+   6,
+   "above"
+  ],
+  [
+   3,
+   7,
+   "left_of"
+  ],
+  [
+   3,
+   7,
+   "above"
+  ],
+  [
+   4,
+   5,
+   "left_of"
+  ],
+  [
+   4,
+   6,
+   "left_of"
+  ],
+  [
+   4,
+   6,
+   "above"
+  ],
+  [
+   4,
+   7,
+   "left_of"
+  ],
+  [
+   4,
+   7,
+   "above"
+  ],
+  [
+   5,
+   6,
+   "right_of"
+  ],
+  [
+   5,
+   6,
+   "above"
+  ],
+  [
+   5,
+   7,
+   "right_of"
+  ],
+  [
+   5,
+   7,
+   "above"
+  ],
+  [
+   6,
+   7,
+   "above"
+  ]
+ ],
+ "overlap_max": 0.0,
+ "heldout_set": "heldout_v1",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261104,
+  "per_cell": 2,
+  "original_sid": "qd_8p_simple_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)"
+ }
+}

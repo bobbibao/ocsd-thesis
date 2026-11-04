@@ -1,0 +1,87 @@
+{
+ "sid": "ho_qd_3_medium_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "medium",
+ "bg": "on a farm",
+ "caption": "a cat, a black sheep and a golden sheep on a farm",
+ "objects": [
+  {
+   "cls": "cat",
+   "phrase": "cat",
+   "box": [
+    328.0,
+    127.0,
+    470.0,
+    248.0
+   ],
+   "qd_key": "6413022891343872",
+   "recognized": true,
+   "n_strokes": 9
+  },
+  {
+   "cls": "sheep",
+   "phrase": "black sheep",
+   "box": [
+    204.0,
+    111.0,
+    360.0,
+    221.0
+   ],
+   "qd_key": "5558761009709056",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "sheep",
+   "phrase": "golden sheep",
+   "box": [
+    38.0,
+    147.0,
+    175.0,
+    271.0
+   ],
+   "qd_key": "6438651145748480",
+   "recognized": true,
+   "n_strokes": 5
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "in_front_of"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ]
+ ],
+ "overlap_max": 0.09599795749026617,
+ "heldout_set": "heldout_v1",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261104,
+  "per_cell": 2,
+  "original_sid": "qd_3_medium_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)"
+ }
+}

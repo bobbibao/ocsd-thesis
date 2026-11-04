@@ -31,6 +31,9 @@ def setup_data(P: Paths, tier: str = "paper", with_coco: bool = True, force: boo
     """Build benchmarks for `tier`. Skipped entirely when benchmarks/.done_<tier>.json exists (use force=True to redo)."""
     from .runlog import mark_skipped
     P.makedirs()
+    if tier == "heldout_screen":
+        from .heldout import install_scenes
+        return install_scenes(P)
     t = TIERS[tier]
     marker = os.path.join(P.benchmarks, f".done_{tier}.json")
     if os.path.exists(marker) and not force:
@@ -466,6 +469,9 @@ def experiment_plan(P: Paths, E: ExperimentConfig) -> List[Dict]:
     E4/alpha nằm trong tập cảnh đã học định danh để dùng lại M2/M3 (tiết kiệm GPU). priority: 0 = main tables, then
     the power job (1) and the sweeps (2), which run after everything else. E.skip_jobs drops jobs by name prefix."""
     t = TIERS[E.tier]
+    if E.tier == "heldout_screen":
+        from .heldout import plan
+        return plan(P, E)
     if E.tier in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen"):
         from .screening import METHODS, REPAIR_METHODS
         from .semantic import METHODS as SEMANTIC_METHODS
@@ -593,7 +599,7 @@ def tier_baselines(E: ExperimentConfig, P: Optional[Paths] = None, tuned_bl: Opt
         out[b] = (b, c)
     for name, (b, field, value) in PARETO_BASELINES.items():
         out[name] = (b, base.replace(**{field: value}))
-    if E.tier in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen"):
+    if E.tier in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen"):
         c = base.replace(use_identity=False, blend_mode="joint", m2_per_seed=True,
                          use_energy=False, use_region_attn=False, use_scene_cn=True, alpha=0.4)
         out.update({name: (name, c) for name in ("grounded_repair", "grounded_repair_no_m2", "grounded_repair_sparse",
@@ -638,7 +644,7 @@ def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None,
     from .vision import Vision
     if eng is None:
         eng = Engine.from_pretrained(E.backbone, "cuda", E.fp16, cache_dir=P.cache,
-                                     load_adapter=E.tier not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen"))
+                                     load_adapter=E.tier not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen"))
     if vis is None:
         vis = Vision("cuda", cache_dir=P.cache)
     if TIERS[E.tier].get("tune"):
@@ -649,11 +655,16 @@ def generate(P: Paths, E: ExperimentConfig, max_minutes: Optional[float] = None,
     runner = Runner(eng, vis, P.outputs, E.backbone, variants=variants, base_cfg=base, cache_dir=P.cache,
                     baselines=tier_baselines(E, P=P))
     items = work_items(P, E)
+    if E.tier == "heldout_screen":
+        from .heldout import import_direct, EXTERNAL
+        import_direct(P)   # InstanceDiffusion images come from the locked child run, checksum-verified
+        items = [(sp, d, [x for x in its if x[0] not in EXTERNAL]) for sp, d, its in items]
+        items = [x for x in items if x[2]]
     todo = runner.pending_items(items)
     print(f"Còn {sum(len(x[2]) for x in todo)} ảnh trên {len(todo)} cảnh")
     stats = runner.run_items(todo, max_minutes=max_minutes)
     progress = log_progress(P, E)
-    if E.tier not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen"):
+    if E.tier not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen"):
         estimate(P, E)
     if stats["failed"] or any(j["todo"] for j in progress.values()) or runner.pending_items(items):
         raise RuntimeError("Generation incomplete (errors or time budget); completed artifacts saved. Resume this RUN_ID before evaluation.")
@@ -784,6 +795,11 @@ def evaluate(P: Paths, E: ExperimentConfig, vis=None, fid: bool = True):
 
 # ============================================================================ 4. report
 def report(P: Paths, E: ExperimentConfig):
+    if E.tier == "heldout_screen":
+        if P.run_id and any(j['todo'] for j in log_progress(P, E).values()):
+            raise RuntimeError("Cannot publish a complete report for an unfinished run; resume generation first")
+        from .heldout import report as heldout_report
+        return heldout_report(P, E)
     import matplotlib
     matplotlib.use("Agg")
     import pandas as pd

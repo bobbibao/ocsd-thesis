@@ -1,0 +1,97 @@
+{
+  "schema": "ocsd-heldout-v1",
+  "stage": "held-out comparison (stage 2)",
+  "scenes": "assets/heldout_v1/manifest.json",
+  "seeds": [
+    0,
+    1
+  ],
+  "arms": [
+    {
+      "name": "direct_box",
+      "family": "InstanceDiffusion (external)",
+      "role": "primary, selected by stage-1 rule"
+    },
+    {
+      "name": "direct_scribble",
+      "family": "InstanceDiffusion (external)",
+      "role": "post-hoc exploratory (added by user decision 2026-11-04 after stage 1)"
+    },
+    {
+      "name": "controlnet",
+      "family": "SD 1.5 ControlNet scribble",
+      "role": "baseline; cn_scale 1.0 = paper_v2 tuned value"
+    },
+    {
+      "name": "instance_repair_count_matte_soft",
+      "family": "OCSD route",
+      "role": "strongest reviewed OCSD route; foreground_screen settings"
+    }
+  ],
+  "direct_arms": [
+    {
+      "name": "direct_box",
+      "scribble": false,
+      "fusion": "official_mean"
+    },
+    {
+      "name": "direct_scribble",
+      "scribble": true,
+      "fusion": "official_mean"
+    }
+  ],
+  "steps": 50,
+  "mis": 0.36,
+  "alpha": 0.8,
+  "guidance": 7.5,
+  "negative": "blurry, low quality, distorted, deformed, watermark, text",
+  "precision": "UNet autocast float16, VAE float32",
+  "direct_max_seconds": 3600,
+  "direct_max_unet_sample_calls": 22696,
+  "experiment": {
+    "tier": "heldout_screen",
+    "cfg": {
+      "steps": 30,
+      "obj_steps": 20,
+      "K": 2,
+      "R": 1,
+      "bo_n": 5
+    },
+    "max_minutes": 180
+  },
+  "model_provenance": {
+    "source_commit": "722900ef03e3579fb693e65a1550333a4a162581",
+    "model_revisions": {
+      "xudongw/InstanceDiffusion": "fc74d76cde4a3dd0c3894e1764c8cf7299c77595",
+      "openai/clip-vit-large-patch14": "32bd64288804d66eefd0ccbe215aa642df71cc41"
+    },
+    "checkpoint_sha256": "b4de3f7877a1860b52837afe3a767ca92a2ef5084056048b503af80027cde1d1",
+    "checkpoint_state": "ema",
+    "phrase_text_weights_complete": true,
+    "base_conv_sha256": "0b6406769828fa6c5360c0187790e93964c167f646de271ce6510105b3a59ae6",
+    "ignored_nonlearned_text_buffers": [],
+    "config_sha256": "0d35e81804aa2fec6176dfa5a1f636159a6f51b94ed8748f63b1c00c191e9399"
+  },
+  "accepted_cpu_run": "20261103T142406Z_013a5f0e",
+  "accepted_cpu_report": "docs/direct_preflight_20261103_pass.json",
+  "primary_endpoint": "Per image, from the blind review: structure success = count, colour and shape all pass.",
+  "primary_tests": [
+    "direct_box vs controlnet",
+    "direct_box vs instance_repair_count_matte_soft"
+  ],
+  "analysis": [
+    "Unit = scene (18); each arm's structure success rate per scene = mean over its two seeds.",
+    "Primary: exact two-sided sign test on scenes where the two arms differ, Holm-corrected over the two primary tests; report rates with 95% bootstrap CIs over scenes.",
+    "Secondary: naturalness 0/1/2 means, most-natural picks, OWLv2 count accuracy/OPR/count error/mIoU/relations/joint layout success and CLIP, all with paired bootstrap CIs over scenes; no p-values beyond the two primary tests.",
+    "direct_scribble comparisons are exploratory and labelled post-hoc everywhere.",
+    "Results by object-count bin (3, 5, 8+) are descriptive only.",
+    "Cost per arm: wall time, UNet/ControlNet/GLIGEN sampling calls and peak memory, reported per architecture, not as equal FLOPs.",
+    "No reruns, extra seeds, tuning or image selection on these scenes; failed or missing images are reported."
+  ],
+  "limits": [
+    "InstanceDiffusion is an external method (Wang et al., CVPR 2024).",
+    "Inputs are instance-separated sketches with phrases and boxes.",
+    "QuickDraw drawings come from the same first-3000-record pool as the paper benchmark (new generator seed, new scenes).",
+    "One reviewer."
+  ]
+}

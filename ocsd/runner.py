@@ -345,7 +345,7 @@ class Runner:
         # ---- baseline hai nhánh (collage): dùng bộ đối tượng M2 của chính cấu hình đó
         for m, s in two_branch:
             kind, cfg = self.baselines[m]
-            k2, objs, m2_time = self._objects(split, scene, cfg, s, indices)
+            k2, objs, m2_time = self._objects(split, scene, cfg, s)
             log = dict(prep_times=dict(m2=m2_time), m2_key=k2)
             if torch.cuda.is_available():
                 torch.cuda.reset_peak_memory_stats()
