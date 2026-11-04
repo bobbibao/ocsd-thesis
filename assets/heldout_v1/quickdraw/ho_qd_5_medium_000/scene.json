@@ -1,0 +1,193 @@
+{
+ "sid": "ho_qd_5_medium_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 5,
+ "count_bin": "5",
+ "complexity": "medium",
+ "bg": "near a train station",
+ "caption": "three benches, a traffic light and a white bench near a train station",
+ "objects": [
+  {
+   "cls": "bench",
+   "phrase": "bench",
+   "box": [
+    226.0,
+    320.0,
+    381.0,
+    404.0
+   ],
+   "qd_key": "5282838674931712",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "traffic light",
+   "phrase": "traffic light",
+   "box": [
+    420.0,
+    214.0,
+    489.0,
+    336.0
+   ],
+   "qd_key": "4813178946977792",
+   "recognized": true,
+   "n_strokes": 4
+  },
+  {
+   "cls": "bench",
+   "phrase": "white bench",
+   "box": [
+    16.0,
+    349.0,
+    171.0,
+    441.0
+   ],
+   "qd_key": "5958355359105024",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "bench",
+   "phrase": "bench",
+   "box": [
+    151.0,
+    289.0,
+    305.0,
+    358.0
+   ],
+   "qd_key": "6589258502504448",
+   "recognized": true,
+   "n_strokes": 4
+  },
+  {
+   "cls": "bench",
+   "phrase": "bench",
+   "box": [
+    48.0,
+    167.0,
+    168.0,
+    238.0
+   ],
+   "qd_key": "5861961742942208",
+   "recognized": true,
+   "n_strokes": 3
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "left_of"
+  ],
+  [
+   0,
+   1,
+   "below"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   0,
+   3,
+   "right_of"
+  ],
+  [
+   0,
+   3,
+   "below"
+  ],
+  [
+   0,
+   3,
+   "in_front_of"
+  ],
+  [
+   0,
+   4,
+   "right_of"
+  ],
+  [
+   0,
+   4,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ],
+  [
+   1,
+   3,
+   "right_of"
+  ],
+  [
+   1,
+   3,
+   "above"
+  ],
+  [
+   1,
+   4,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "below"
+  ],
+  [
+   2,
+   3,
+   "left_of"
+  ],
+  [
+   2,
+   3,
+   "below"
+  ],
+  [
+   2,
+   3,
+   "in_front_of"
+  ],
+  [
+   2,
+   4,
+   "below"
+  ],
+  [
+   3,
+   4,
+   "right_of"
+  ],
+  [
+   3,
+   4,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.145417554737454,
+ "heldout_set": "heldout_v1",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261104,
+  "per_cell": 2,
+  "original_sid": "qd_5_medium_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)"
+ }
+}

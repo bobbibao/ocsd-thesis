@@ -1,0 +1,102 @@
+{
+ "sid": "ho_qd_3_complex_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "complex",
+ "bg": "by a lake",
+ "caption": "a tall tree, a small cow and a white bench by a lake",
+ "objects": [
+  {
+   "cls": "tree",
+   "phrase": "tall tree",
+   "box": [
+    264.0,
+    202.0,
+    367.0,
+    371.0
+   ],
+   "qd_key": "4890972783640576",
+   "recognized": true,
+   "n_strokes": 2
+  },
+  {
+   "cls": "cow",
+   "phrase": "small cow",
+   "box": [
+    115.0,
+    256.0,
+    308.0,
+    424.0
+   ],
+   "qd_key": "4666007656333312",
+   "recognized": true,
+   "n_strokes": 2
+  },
+  {
+   "cls": "bench",
+   "phrase": "white bench",
+   "box": [
+    310.0,
+    368.0,
+    493.0,
+    441.0
+   ],
+   "qd_key": "6592072880488448",
+   "recognized": true,
+   "n_strokes": 1
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   1,
+   "behind"
+  ],
+  [
+   0,
+   2,
+   "left_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "behind"
+  ],
+  [
+   1,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ]
+ ],
+ "overlap_max": 0.11301958857296017,
+ "heldout_set": "heldout_v1",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261104,
+  "per_cell": 2,
+  "original_sid": "qd_3_complex_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)"
+ }
+}

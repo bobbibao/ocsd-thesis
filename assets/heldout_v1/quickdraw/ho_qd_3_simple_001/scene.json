@@ -1,0 +1,87 @@
+{
+ "sid": "ho_qd_3_simple_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "simple",
+ "bg": "on a city street",
+ "caption": "an umbrella, a blue motorcycle and a traffic light on a city street",
+ "objects": [
+  {
+   "cls": "umbrella",
+   "phrase": "umbrella",
+   "box": [
+    215.0,
+    247.0,
+    390.0,
+    420.0
+   ],
+   "qd_key": "5167937222606848",
+   "recognized": true,
+   "n_strokes": 6
+  },
+  {
+   "cls": "motorcycle",
+   "phrase": "blue motorcycle",
+   "box": [
+    194.0,
+    122.0,
+    357.0,
+    239.0
+   ],
+   "qd_key": "5469438205755392",
+   "recognized": true,
+   "n_strokes": 9
+  },
+  {
+   "cls": "traffic light",
+   "phrase": "traffic light",
+   "box": [
+    48.0,
+    232.0,
+    186.0,
+    413.0
+   ],
+   "qd_key": "6749341983178752",
+   "recognized": true,
+   "n_strokes": 6
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "below"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ]
+ ],
+ "overlap_max": 0.0,
+ "heldout_set": "heldout_v1",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261104,
+  "per_cell": 2,
+  "original_sid": "qd_3_simple_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)"
+ }
+}

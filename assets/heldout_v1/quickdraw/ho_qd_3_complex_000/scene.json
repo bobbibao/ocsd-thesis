@@ -1,0 +1,97 @@
+{
+ "sid": "ho_qd_3_complex_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "complex",
+ "bg": "on a sandy beach",
+ "caption": "a white dog, a white chair and a chair on a sandy beach",
+ "objects": [
+  {
+   "cls": "dog",
+   "phrase": "white dog",
+   "box": [
+    115.0,
+    133.0,
+    275.0,
+    263.0
+   ],
+   "qd_key": "5000806761758720",
+   "recognized": true,
+   "n_strokes": 4
+  },
+  {
+   "cls": "chair",
+   "phrase": "white chair",
+   "box": [
+    69.0,
+    243.0,
+    160.0,
+    450.0
+   ],
+   "qd_key": "4712341167931392",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "chair",
+   "phrase": "chair",
+   "box": [
+    161.0,
+    185.0,
+    264.0,
+    346.0
+   ],
+   "qd_key": "5461820833792000",
+   "recognized": true,
+   "n_strokes": 2
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   1,
+   "behind"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "behind"
+  ],
+  [
+   1,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.2737401615046509,
+ "heldout_set": "heldout_v1",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261104,
+  "per_cell": 2,
+  "original_sid": "qd_3_complex_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)"
+ }
+}

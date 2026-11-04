@@ -1,0 +1,92 @@
+{
+ "sid": "ho_qd_3_medium_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "medium",
+ "bg": "in a living room",
+ "caption": "two red chairs and a small dog in a living room",
+ "objects": [
+  {
+   "cls": "chair",
+   "phrase": "red chair",
+   "box": [
+    77.0,
+    181.0,
+    195.0,
+    366.0
+   ],
+   "qd_key": "6322682532462592",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "dog",
+   "phrase": "small dog",
+   "box": [
+    200.0,
+    326.0,
+    425.0,
+    455.0
+   ],
+   "qd_key": "5666305698955264",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "chair",
+   "phrase": "red chair",
+   "box": [
+    34.0,
+    304.0,
+    161.0,
+    493.0
+   ],
+   "qd_key": "6538999449518080",
+   "recognized": true,
+   "n_strokes": 3
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "left_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "behind"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ]
+ ],
+ "overlap_max": 0.12819692307692307,
+ "heldout_set": "heldout_v1",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261104,
+  "per_cell": 2,
+  "original_sid": "qd_3_medium_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)"
+ }
+}
