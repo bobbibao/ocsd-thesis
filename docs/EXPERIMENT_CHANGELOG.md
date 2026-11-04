@@ -131,3 +131,7 @@ User chose stage 2 with `direct_box` (rule) plus `direct_scribble` (post-hoc). 1
 ([HELDOUT_PROTOCOL.md](HELDOUT_PROTOCOL.md)). New tier `heldout_screen` and `ocsd/heldout.py`: direct arms in a
 child run, imported with checksums; ControlNet and OCSD soft-matte via the existing pipeline; joint OWLv2/CLIP
 evaluation, paired bootstrap report and 36 blind review sheets. `RUN_ALL` default is `RUN_MODE="heldout"`.
+
+## Held-out results — 2026-11-04
+
+Run 20261104T135658Z_41d72d97, 144/144 images. Blind review: structure success direct_box 8/36, direct_scribble 7/36, ControlNet 1/36, OCSD soft-matte 3/36; primary sign tests Holm p = 0.14 and 0.14 (not significant). Automatic metrics favour the direct arms with CIs excluding 0. Shape/pose is the bottleneck for all arms. See docs/HELDOUT_20261104_RESULTS.md.

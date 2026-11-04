@@ -1,0 +1,47 @@
+{
+ "A_data": {
+  "state": "ok",
+  "started": "2026-11-04 13:57:04",
+  "minutes": 0.0,
+  "error": null,
+  "traceback_file": null,
+  "reason": null,
+  "updated": "2026-11-04 13:57:05"
+ },
+ "T_tune": {
+  "state": "ok",
+  "started": "2026-11-04 13:57:05",
+  "minutes": 0.0,
+  "error": null,
+  "traceback_file": null,
+  "reason": "tier 'heldout_screen' does not tune",
+  "updated": "2026-11-04 13:57:05"
+ },
+ "B_generate": {
+  "state": "ok",
+  "started": "2026-11-04 13:57:05",
+  "minutes": 8.6,
+  "error": null,
+  "traceback_file": null,
+  "reason": null,
+  "updated": "2026-11-04 14:05:42"
+ },
+ "C_evaluate": {
+  "state": "ok",
+  "started": "2026-11-04 14:05:42",
+  "minutes": 1.3,
+  "error": null,
+  "traceback_file": null,
+  "reason": null,
+  "updated": "2026-11-04 14:06:58"
+ },
+ "D_report": {
+  "state": "running",
+  "started": "2026-11-04 14:06:58",
+  "minutes": null,
+  "error": null,
+  "traceback_file": null,
+  "reason": null,
+  "updated": "2026-11-04 14:06:58"
+ }
+}

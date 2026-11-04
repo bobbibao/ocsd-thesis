@@ -1,0 +1,253 @@
+Read HOW_TO_REVIEW.txt first. Write pass / fail / unclear; naturalness 0 / 1 / 2 / unclear.
+
+=== 01_ho_qd_3_complex_000_seed0 ===
+A: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=1   note=dog pose matches sketch (arched facing right), chairs face front instead of side profile, house instead of beach
+B: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=two white chairs, dog head merged into chair back, wrong pose
+C: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=1   note=left chair in side profile like sketch, but front chair is a bin and dog faces away
+D: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=dog pose faces right matching sketch, chairs face front, natural beach scene
+Most natural image that still has the right structure (A/B/C/D/tie/none): D
+
+=== 01_ho_qd_3_complex_000_seed1 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=front chair matches side-profile sketch, but dog faces left (opposite to sketch pose)
+B: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=dog standing on back chair facing right (matches sketch pose), chairs angled front-left
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=chairs and dog follow side-profile sketch pose, but chairs are warped plastic blocks merged with dog
+D: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=dog faces right matching sketch, chairs face front, extra small chair far in background
+Most natural image that still has the right structure (A/B/C/D/tie/none): B
+
+=== 02_ho_qd_3_complex_001_seed0 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=cow faces right (opposite to sketch pose facing left), bush/tower instead of tall tree
+B: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=2   note=cow faces right (opposite to sketch pose), bench is dark brown instead of white
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=cow faces right (opposite to sketch pose), no lake
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=cow faces left (matches sketch pose), but bench is a solid white block and tree is tiny
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 02_ho_qd_3_complex_001_seed1 ===
+A: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=cow faces left matching sketch pose, tall tree and white bench by lake
+B: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=2   note=cow faces left matching sketch but has extra body behind, bench is dark brown instead of white
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=cow faces right (opposite to sketch pose facing left)
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=cow faces right (opposite to sketch pose) and stands on a white pedestal
+Most natural image that still has the right structure (A/B/C/D/tie/none): A
+
+=== 03_ho_qd_3_medium_000_seed0 ===
+A: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=bottom-left red chair in side profile facing right like sketch, dog lying with front-facing head
+B: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=2   note=chairs are yellow and face front, dog is in side profile facing left (does not match sketch)
+C: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=two red chairs and dog, but outdoors on grass and dog head faces down-right
+D: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=follows sketch outline closely (front-facing dog head with big ears), but disembodied head and merged chairs
+Most natural image that still has the right structure (A/B/C/D/tie/none): A
+
+=== 03_ho_qd_3_medium_000_seed1 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=front chair matches side-profile sketch, but dog head turns away to the left
+B: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=dog face matches front-facing sketch with floppy ears, but broken wooden chair and giant red wall panels
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=front chair matches side-profile sketch, but dog is standing in side profile facing right
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=front chair matches side-profile sketch, but dog is bowing in side profile facing right
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 04_ho_qd_3_medium_001_seed0 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=left sheep faces left (sketch faces right), right animal is cat-sheep hybrid
+B: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=all three animals face left, cat-sheep hybrid, no golden sheep
+C: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=1   note=poses match sketch (left black sheep faces right, middle brown sheep faces left, right cat faces front)
+D: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=2   note=three sheep all facing left, no cat
+Most natural image that still has the right structure (A/B/C/D/tie/none): C
+
+=== 04_ho_qd_3_medium_001_seed1 ===
+A: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=0   note=split into window panels, cat-sheep hybrid
+B: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=1   note=middle black sheep faces right (sketch faces left), cat-llama hybrid, extra sheep
+C: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=1   note=left sheep faces left (sketch faces right), three black sheep and two cats, no golden sheep
+D: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=poses match sketch (left sheep faces right, middle faces left, cat faces front), but missing black sheep
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 05_ho_qd_3_simple_000_seed0 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=umbrellas are tilted canopies on ground instead of upright with poles/J-handle as in sketch
+B: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=umbrellas show tilted round canopies instead of upright side profile with J-handle
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=umbrellas follow upright sketch pose with shafts/J-handle, but chair and middle umbrella are deformed
+D: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=middle umbrella replaced by a houseplant, right umbrella tilted
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 05_ho_qd_3_simple_000_seed1 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=umbrellas are tilted on floor showing canopies instead of upright with J-handle as in sketch
+B: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=umbrellas are tilted canopies on floor instead of upright with poles/J-handle
+C: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=middle umbrella stands upright on pole like sketch, but chair is blue/black and right umbrella is on a boot stand
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=umbrellas are tilted canopies on ground instead of upright with poles/J-handle
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 06_ho_qd_3_simple_001_seed0 ===
+A: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=motorcycle is green, umbrella is tilted canopy instead of upright with J-handle
+B: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=motorcycle pose matches sketch, but umbrella is tilted canopy on ground without J-handle
+C: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=0   note=umbrella has J-handle from sketch, but motorcycle is replaced by a second umbrella
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=motorcycle floating in air, umbrella tilted without J-handle
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 06_ho_qd_3_simple_001_seed1 ===
+A: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=motorcycle in side profile, traffic light on left, umbrella on pole/stand matching sketch stem
+B: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=motorcycle in side profile, traffic light on left, blue umbrella on pole/stand matching sketch stem
+C: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=0   note=umbrella has J-handle, but motorcycle replaced by second umbrella and traffic light is blue box
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=motorcycle pose matches sketch, but umbrella is floating tilted canopy without handle/stem
+Most natural image that still has the right structure (A/B/C/D/tie/none): B
+
+=== 07_ho_qd_5_complex_000_seed0 ===
+A: count=fail   colour=pass   shape=fail   position/relation=fail   natural(0/1/2)=2   note=five ducks (second duck faces right instead of left), missing dog and bird
+B: count=fail   colour=pass   shape=fail   position/relation=fail   natural(0/1/2)=2   note=four ducks all facing right, missing dog and bird
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=top duck faces right and black bird faces left like sketch, but second duck is headless and dog faces left (sketch dog faces right)
+D: count=unclear   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=animals severely deformed/melted
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 07_ho_qd_5_complex_000_seed1 ===
+A: count=fail   colour=pass   shape=fail   position/relation=fail   natural(0/1/2)=2   note=five ducks on water, missing dog
+B: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=dog faces right matching sketch, but top-left duck faces left and second faces right (opposite to sketch)
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=top duck and dog face right matching sketch, but second and third ducks face right instead of left
+D: count=fail   colour=pass   shape=fail   position/relation=fail   natural(0/1/2)=0   note=deformed birds/ducks, missing dog
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 08_ho_qd_5_complex_001_seed0 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=cows are lying facing front (sketch has standing cows facing each other), full-body cutout cat instead of cat head
+B: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=left cow faces right like sketch, but right cow is a severed head and cat is broken wood
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=left white cow faces left (sketch faces right), right cow faces left (matches sketch), full-body cat statue
+D: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=cows all face left, no golden cat
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 08_ho_qd_5_complex_001_seed1 ===
+A: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=deformed foxes/cows, broken benches, no cat
+B: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=1   note=two cows stand facing each other (left faces right, right faces left) matching sketch pose, bench, tree, golden cat on left
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=cows face each other and cat is front-facing head matching sketch outline, but cat is a flat cartoon sign
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=left cow faces left (opposite to sketch), giant floating pasted cat head
+Most natural image that still has the right structure (A/B/C/D/tie/none): B
+
+=== 09_ho_qd_5_medium_000_seed0 ===
+A: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=four benches and traffic light match sketch positions and orientations
+B: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=four benches and traffic light match sketch positions and orientations
+C: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=four benches and traffic light match sketch positions and orientations well
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=benches follow sketch layout/pose but look warped/thin
+Most natural image that still has the right structure (A/B/C/D/tie/none): C
+
+=== 09_ho_qd_5_medium_000_seed1 ===
+A: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=missing bottom-left bench, middle benches merged/warped
+B: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=all four benches are green blocks, traffic light is a plain black box
+C: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=four white benches and traffic light match sketch positions and orientations
+D: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=four benches and traffic light match sketch positions and orientations
+Most natural image that still has the right structure (A/B/C/D/tie/none): C
+
+=== 10_ho_qd_5_medium_001_seed0 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=top-left bird faces right (sketch faces left), car is rear-view, giant pasted birds
+B: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=top birds look like airplanes, vehicles face front instead of side profile, truck is black
+C: count=unclear   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=green truck in side profile matches sketch, but birds/cars are melted top-down shapes
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=natural scene, but birds have spread wings and car/truck are rear-three-quarter view instead of side profile
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 10_ho_qd_5_medium_001_seed1 ===
+A: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=birds turned into green airplanes/contraptions, truck faces front
+B: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=natural look, but birds are flying with spread wings instead of perched/side poses in sketch
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=green truck in side profile and bird orientations closer to sketch, but giant pasted bird cutouts
+D: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=disembodied bird wings floating in air
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 11_ho_qd_5_simple_000_seed0 ===
+A: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=wrong animal orientations (bottom-left faces right, middle cow faces left), sheep-bird hybrid, red bicycle
+B: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=bottom-left cow and top-right sheep face left like sketch, but middle cow faces left and bird is a sheep facing right
+C: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=middle cow faces left (sketch faces right), top-right sheep faces right (sketch faces left), bird is a calf facing right
+D: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=two-headed cow/llama on left, no bird, extra sheep
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 11_ho_qd_5_simple_000_seed1 ===
+A: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=1   note=too many cows and sheep, wrong orientations, no bird
+B: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=black bicycle, ostrich-sheep hybrid, extra sheep, no cows
+C: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=cows face front instead of left/right side profile, no bird, black bicycle
+D: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=middle cow faces left (sketch faces right), bottom object is a sheep facing front instead of a bird facing left
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 12_ho_qd_5_simple_001_seed0 ===
+A: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=2   note=right chair is white and faces front (sketch chair is angled left), dog is lying on back
+B: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=cat head and dog pose match sketch outline, but flat top-down collage with white chairs
+C: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=white chairs, black cat, dog is a black blob
+D: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=2   note=black teddy bear facing front, two black chairs (right one slightly angled), white cat facing front, black dog facing right matching sketch pose
+Most natural image that still has the right structure (A/B/C/D/tie/none): D
+
+=== 12_ho_qd_5_simple_001_seed1 ===
+A: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=pasted white cat head, white dog instead of black teddy bear
+B: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=1   note=missing black chairs, giant black cat head
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=standing teddy bear and angled right chair match sketch poses, but dog faces left (sketch dog faces right)
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=2   note=right chair has an extra black plush on it and faces front, dog is curled up instead of standing facing right
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 13_ho_qd_8p_complex_000_seed0 ===
+A: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=1   note=top-down view, completely loses side-view sketch poses and missing sailboat/dog/chairs
+B: count=unclear   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=follows sketch outlines on flat sand board, but blue boat and missing dog
+C: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=sailboat and bottom houses match sketch pose, but cutout wall and missing dog/left chair
+D: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=missing dog and left chair/house structure
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 13_ho_qd_8p_complex_000_seed1 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=follows sketch poses/outlines closely (dog facing right above umbrella, chairs, houses), but flat cutouts and orange umbrella instead of sailboat
+B: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=1   note=top-down beach view, loses side-profile sketch poses and missing houses/boat/dog
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=follows sketch poses/outlines closely, but pasted cutouts and yellow cutout dog
+D: count=unclear   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=flat top-down sand collage of abstract orange/white shapes
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 14_ho_qd_8p_complex_001_seed0 ===
+A: count=unclear   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=flat green felt board with white animal cutouts, no bicycles
+B: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=follows sketch poses/positions, but framed cat photo and cutout houses/animals on hedge
+C: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=0   note=embroidered textile artwork, missing most objects
+D: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=animals and bicycles follow sketch poses on tiered hedge, but missing gray cat and brown dog
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 14_ho_qd_8p_complex_001_seed1 ===
+A: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=0   note=patterned maze lawn with tiny deformed white figurines, no bicycles
+B: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=1   note=objects and poses follow sketch (houses, sitting gray cat, side-profile white cats and brown/gray dogs, 2 bicycles)
+C: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=0   note=flat craft/felt collage with window cutouts and white blobs
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=follows sketch poses, but flat 2D illustration/collage
+Most natural image that still has the right structure (A/B/C/D/tie/none): B
+
+=== 15_ho_qd_8p_medium_000_seed0 ===
+A: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=0   note=right dog matches front-facing head sketch, but rest is an abstract painting
+B: count=pass   colour=pass   shape=pass   position/relation=pass   natural(0/1/2)=1   note=top-left dog in side profile and right dog facing front match sketch poses, with benches, houses, sailboat
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=top-left dog faces right (sketch faces left), right dog has deformed legs
+D: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=right dog is in side profile facing right instead of front-facing, missing two big houses
+Most natural image that still has the right structure (A/B/C/D/tie/none): B
+
+=== 15_ho_qd_8p_medium_000_seed1 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=top-left dog is a flat white cutout facing left, right dog is headless/bent over
+B: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=top-left dog matches side-profile pose facing left, but right dog is in side profile instead of front-facing head
+C: count=unclear   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=black-and-white split panel collage
+D: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=right dog faces front in water matching sketch, but missing top-left dog and big houses
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 16_ho_qd_8p_medium_001_seed0 ===
+A: count=unclear   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=follows sketch outlines, but flat felt/cookie cutout board
+B: count=unclear   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=painted/melted animals on hillside
+C: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=0   note=black-and-white silhouette cutouts
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=top dog faces right (sketch faces left), top-left bird looks like a white dog, right cow looks like a golden dog
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 16_ho_qd_8p_medium_001_seed1 ===
+A: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=golden dog statue, toy houses, two white birds, missing second house and cow
+B: count=unclear   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=1   note=deformed dogs/animals around tiny white dollhouse
+C: count=fail   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=0   note=cutout dogs on wooden posts, missing houses, birds, bench, cow
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=follows sketch poses closely, but rendered as 2D sticker cutouts with white borders
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 17_ho_qd_8p_simple_000_seed0 ===
+A: count=unclear   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=flat gray board with abstract white/black/orange clay cutouts
+B: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=follows sketch poses (horse facing left, rabbit head), but toy diorama with flat cutouts and houses on sticks
+C: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=flat felt/paper cutouts arranged on gray background
+D: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=2D children's drawing/painting
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 17_ho_qd_8p_simple_000_seed1 ===
+A: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=2D illustration, missing upper animals
+B: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=flat 2D folk-art illustration, horse faces right (sketch faces left) and is yellow
+C: count=pass   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=flat 2D cutout illustration, houses are black instead of white
+D: count=fail   colour=fail   shape=fail   position/relation=pass   natural(0/1/2)=0   note=miniature orange houses and black bear silhouettes on white surface
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 18_ho_qd_8p_simple_001_seed0 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=bottom-left truck is rear box (not side profile), upper-right yellow bird faces left (sketch faces right), birds pasted on pink circles
+B: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=bottom-middle bird faces left like sketch, but bottom-right birds both face right, bottom-left truck is front view, missing top-left bird
+C: count=fail   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=bottom-left 6-wheel truck and bottom birds match side-profile sketch poses facing left, but top-left bird is an airplane
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=bottom-middle bird faces left like sketch, but bottom-left truck is a rear box without cab and bottom-right bird faces right instead of left
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
+
+=== 18_ho_qd_8p_simple_001_seed1 ===
+A: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=all four birds are front-facing with spread wings (do not follow side-profile standing poses in sketch), bottom-left truck is rear-three-quarter view
+B: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=1   note=bottom-left 6-wheel truck and standing side-profile birds match sketch poses closely, but truck looks like a small cart and top-left bird merges with plane
+C: count=unclear   colour=fail   shape=fail   position/relation=fail   natural(0/1/2)=1   note=many extra trucks lined up, missing standing birds
+D: count=pass   colour=pass   shape=fail   position/relation=pass   natural(0/1/2)=0   note=birds match sketch poses, but objects are inside separate framed photo panels on a wall
+Most natural image that still has the right structure (A/B/C/D/tie/none): none
