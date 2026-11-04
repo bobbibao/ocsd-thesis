@@ -143,3 +143,7 @@ New OCSD sketch parser (`sketch_silhouette`: stroke-end bridging, closing, hole 
 ## Silhouette dev results and held-out v2 locked — 2026-11-04
 
 Dev v2 (analyst review): structure failures box 5 / silhouette 1 / silhouette+scribble 2 of 16; silhouette picked 9 times. Rule sends direct_silhouette to held-out v2 (18 new disjoint scenes, vs box, ControlNet, OCSD soft-matte); primary = automatic sketch fidelity (SAM facing accuracy and chamfer), Holm over two sign tests. RUN_ALL default RUN_MODE=heldout2. See docs/DIRECT_DEV2_20261104_RESULTS.md and docs/HELDOUT2_PROTOCOL.md.
+
+## Held-out v2 results — 2026-11-04 (final for the advisor report)
+
+Silhouette vs box, sketch fidelity: facing accuracy 1.00 vs 0.43 (14/0/2 scenes, Holm p = 0.0001), chamfer 0.041 vs 0.060 (18/0/0, Holm p < 0.0001). Count accuracy not worse, OPR/mIoU/relations better. Analyst structure success 16/13/3/1 of 36 (silhouette/box/ControlNet/OCSD soft-matte); naturalness lower with silhouettes (1.28 vs 1.53). See docs/HELDOUT2_20261104_RESULTS.md.
