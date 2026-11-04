@@ -1,0 +1,218 @@
+{
+  "ho_qd_3_complex_000_s0": {
+    "A": "direct_box",
+    "B": "instance_repair_count_matte_soft",
+    "C": "controlnet",
+    "D": "direct_scribble"
+  },
+  "ho_qd_3_complex_000_s1": {
+    "A": "direct_box",
+    "B": "instance_repair_count_matte_soft",
+    "C": "controlnet",
+    "D": "direct_scribble"
+  },
+  "ho_qd_3_complex_001_s0": {
+    "A": "direct_scribble",
+    "B": "instance_repair_count_matte_soft",
+    "C": "direct_box",
+    "D": "controlnet"
+  },
+  "ho_qd_3_complex_001_s1": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "controlnet",
+    "C": "direct_box",
+    "D": "direct_scribble"
+  },
+  "ho_qd_3_medium_000_s0": {
+    "A": "direct_scribble",
+    "B": "instance_repair_count_matte_soft",
+    "C": "direct_box",
+    "D": "controlnet"
+  },
+  "ho_qd_3_medium_000_s1": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "controlnet",
+    "C": "direct_box",
+    "D": "direct_scribble"
+  },
+  "ho_qd_3_medium_001_s0": {
+    "A": "direct_scribble",
+    "B": "instance_repair_count_matte_soft",
+    "C": "controlnet",
+    "D": "direct_box"
+  },
+  "ho_qd_3_medium_001_s1": {
+    "A": "direct_scribble",
+    "B": "direct_box",
+    "C": "controlnet",
+    "D": "instance_repair_count_matte_soft"
+  },
+  "ho_qd_3_simple_000_s0": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "direct_scribble",
+    "C": "controlnet",
+    "D": "direct_box"
+  },
+  "ho_qd_3_simple_000_s1": {
+    "A": "direct_box",
+    "B": "direct_scribble",
+    "C": "controlnet",
+    "D": "instance_repair_count_matte_soft"
+  },
+  "ho_qd_3_simple_001_s0": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "direct_box",
+    "C": "controlnet",
+    "D": "direct_scribble"
+  },
+  "ho_qd_3_simple_001_s1": {
+    "A": "direct_scribble",
+    "B": "direct_box",
+    "C": "controlnet",
+    "D": "instance_repair_count_matte_soft"
+  },
+  "ho_qd_5_complex_000_s0": {
+    "A": "direct_box",
+    "B": "instance_repair_count_matte_soft",
+    "C": "direct_scribble",
+    "D": "controlnet"
+  },
+  "ho_qd_5_complex_000_s1": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "direct_box",
+    "C": "direct_scribble",
+    "D": "controlnet"
+  },
+  "ho_qd_5_complex_001_s0": {
+    "A": "direct_scribble",
+    "B": "controlnet",
+    "C": "direct_box",
+    "D": "instance_repair_count_matte_soft"
+  },
+  "ho_qd_5_complex_001_s1": {
+    "A": "controlnet",
+    "B": "direct_box",
+    "C": "direct_scribble",
+    "D": "instance_repair_count_matte_soft"
+  },
+  "ho_qd_5_medium_000_s0": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "direct_scribble",
+    "C": "direct_box",
+    "D": "controlnet"
+  },
+  "ho_qd_5_medium_000_s1": {
+    "A": "controlnet",
+    "B": "instance_repair_count_matte_soft",
+    "C": "direct_scribble",
+    "D": "direct_box"
+  },
+  "ho_qd_5_medium_001_s0": {
+    "A": "direct_scribble",
+    "B": "instance_repair_count_matte_soft",
+    "C": "controlnet",
+    "D": "direct_box"
+  },
+  "ho_qd_5_medium_001_s1": {
+    "A": "controlnet",
+    "B": "direct_box",
+    "C": "direct_scribble",
+    "D": "instance_repair_count_matte_soft"
+  },
+  "ho_qd_5_simple_000_s0": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "direct_scribble",
+    "C": "direct_box",
+    "D": "controlnet"
+  },
+  "ho_qd_5_simple_000_s1": {
+    "A": "direct_box",
+    "B": "controlnet",
+    "C": "direct_scribble",
+    "D": "instance_repair_count_matte_soft"
+  },
+  "ho_qd_5_simple_001_s0": {
+    "A": "direct_scribble",
+    "B": "controlnet",
+    "C": "instance_repair_count_matte_soft",
+    "D": "direct_box"
+  },
+  "ho_qd_5_simple_001_s1": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "controlnet",
+    "C": "direct_box",
+    "D": "direct_scribble"
+  },
+  "ho_qd_8p_complex_000_s0": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "controlnet",
+    "C": "direct_scribble",
+    "D": "direct_box"
+  },
+  "ho_qd_8p_complex_000_s1": {
+    "A": "direct_scribble",
+    "B": "instance_repair_count_matte_soft",
+    "C": "direct_box",
+    "D": "controlnet"
+  },
+  "ho_qd_8p_complex_001_s0": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "direct_scribble",
+    "C": "controlnet",
+    "D": "direct_box"
+  },
+  "ho_qd_8p_complex_001_s1": {
+    "A": "controlnet",
+    "B": "direct_box",
+    "C": "instance_repair_count_matte_soft",
+    "D": "direct_scribble"
+  },
+  "ho_qd_8p_medium_000_s0": {
+    "A": "controlnet",
+    "B": "direct_scribble",
+    "C": "direct_box",
+    "D": "instance_repair_count_matte_soft"
+  },
+  "ho_qd_8p_medium_000_s1": {
+    "A": "direct_scribble",
+    "B": "direct_box",
+    "C": "instance_repair_count_matte_soft",
+    "D": "controlnet"
+  },
+  "ho_qd_8p_medium_001_s0": {
+    "A": "direct_scribble",
+    "B": "controlnet",
+    "C": "instance_repair_count_matte_soft",
+    "D": "direct_box"
+  },
+  "ho_qd_8p_medium_001_s1": {
+    "A": "direct_box",
+    "B": "controlnet",
+    "C": "instance_repair_count_matte_soft",
+    "D": "direct_scribble"
+  },
+  "ho_qd_8p_simple_000_s0": {
+    "A": "instance_repair_count_matte_soft",
+    "B": "direct_box",
+    "C": "direct_scribble",
+    "D": "controlnet"
+  },
+  "ho_qd_8p_simple_000_s1": {
+    "A": "controlnet",
+    "B": "direct_box",
+    "C": "direct_scribble",
+    "D": "instance_repair_count_matte_soft"
+  },
+  "ho_qd_8p_simple_001_s0": {
+    "A": "direct_scribble",
+    "B": "instance_repair_count_matte_soft",
+    "C": "controlnet",
+    "D": "direct_box"
+  },
+  "ho_qd_8p_simple_001_s1": {
+    "A": "direct_box",
+    "B": "controlnet",
+    "C": "instance_repair_count_matte_soft",
+    "D": "direct_scribble"
+  }
+}

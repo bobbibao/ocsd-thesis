@@ -1,0 +1,230 @@
+{
+ "per_arm": {
+  "direct_box": {
+   "success": 8,
+   "rate": 0.2222222222222222,
+   "ci": [
+    0.08333333333333333,
+    0.3611111111111111
+   ],
+   "fails": {
+    "count": 9,
+    "colour": 6,
+    "shape": 28,
+    "pos": 3
+   },
+   "nat_mean": 1.3055555555555556,
+   "nat_dist": [
+    3,
+    19,
+    14
+   ],
+   "picks": 5
+  },
+  "direct_scribble": {
+   "success": 7,
+   "rate": 0.19444444444444445,
+   "ci": [
+    0.05555555555555555,
+    0.3611111111111111
+   ],
+   "fails": {
+    "count": 4,
+    "colour": 5,
+    "shape": 29,
+    "pos": 1
+   },
+   "nat_mean": 0.8888888888888888,
+   "nat_dist": [
+    15,
+    10,
+    11
+   ],
+   "picks": 4
+  },
+  "controlnet": {
+   "success": 1,
+   "rate": 0.027777777777777776,
+   "ci": [
+    0.0,
+    0.08333333333333333
+   ],
+   "fails": {
+    "count": 21,
+    "colour": 21,
+    "shape": 35,
+    "pos": 9
+   },
+   "nat_mean": 0.4444444444444444,
+   "nat_dist": [
+    21,
+    14,
+    1
+   ],
+   "picks": 1
+  },
+  "instance_repair_count_matte_soft": {
+   "success": 3,
+   "rate": 0.08333333333333333,
+   "ci": [
+    0.0,
+    0.16666666666666666
+   ],
+   "fails": {
+    "count": 14,
+    "colour": 24,
+    "shape": 33,
+    "pos": 8
+   },
+   "nat_mean": 1.0,
+   "nat_dist": [
+    11,
+    14,
+    11
+   ],
+   "picks": 2
+  }
+ },
+ "primary": [
+  {
+   "a": "direct_box",
+   "b": "controlnet",
+   "wins": 7,
+   "losses": 1,
+   "ties": 10,
+   "p": 0.0703125,
+   "diff": 0.19444444444444445,
+   "ci": [
+    0.05555555555555555,
+    0.3611111111111111
+   ],
+   "p_holm": 0.140625
+  },
+  {
+   "a": "direct_box",
+   "b": "instance_repair_count_matte_soft",
+   "wins": 6,
+   "losses": 1,
+   "ties": 11,
+   "p": 0.125,
+   "diff": 0.1388888888888889,
+   "ci": [
+    0.0,
+    0.2777777777777778
+   ],
+   "p_holm": 0.140625
+  }
+ ],
+ "exploratory": [
+  {
+   "a": "direct_scribble",
+   "b": "direct_box",
+   "wins": 2,
+   "losses": 3,
+   "ties": 13,
+   "p": 1,
+   "diff": -0.027777777777777776,
+   "ci": [
+    -0.1388888888888889,
+    0.08333333333333333
+   ]
+  },
+  {
+   "a": "direct_scribble",
+   "b": "controlnet",
+   "wins": 5,
+   "losses": 1,
+   "ties": 12,
+   "p": 0.21875,
+   "diff": 0.16666666666666666,
+   "ci": [
+    0.0,
+    0.3611111111111111
+   ]
+  },
+  {
+   "a": "direct_scribble",
+   "b": "instance_repair_count_matte_soft",
+   "wins": 5,
+   "losses": 1,
+   "ties": 12,
+   "p": 0.21875,
+   "diff": 0.1111111111111111,
+   "ci": [
+    0.0,
+    0.2222222222222222
+   ]
+  },
+  {
+   "a": "instance_repair_count_matte_soft",
+   "b": "controlnet",
+   "wins": 3,
+   "losses": 1,
+   "ties": 14,
+   "p": 0.625,
+   "diff": 0.05555555555555555,
+   "ci": [
+    -0.05555555555555555,
+    0.16666666666666666
+   ]
+  }
+ ],
+ "picks": {
+  "ho_qd_3_complex_000_s0": "direct_scribble",
+  "ho_qd_3_complex_000_s1": "instance_repair_count_matte_soft",
+  "ho_qd_3_complex_001_s0": "none",
+  "ho_qd_3_complex_001_s1": "instance_repair_count_matte_soft",
+  "ho_qd_3_medium_000_s0": "direct_scribble",
+  "ho_qd_3_medium_000_s1": "none",
+  "ho_qd_3_medium_001_s0": "controlnet",
+  "ho_qd_3_medium_001_s1": "none",
+  "ho_qd_3_simple_000_s0": "none",
+  "ho_qd_3_simple_000_s1": "none",
+  "ho_qd_3_simple_001_s0": "none",
+  "ho_qd_3_simple_001_s1": "direct_box",
+  "ho_qd_5_complex_000_s0": "none",
+  "ho_qd_5_complex_000_s1": "none",
+  "ho_qd_5_complex_001_s0": "none",
+  "ho_qd_5_complex_001_s1": "direct_box",
+  "ho_qd_5_medium_000_s0": "direct_box",
+  "ho_qd_5_medium_000_s1": "direct_scribble",
+  "ho_qd_5_medium_001_s0": "none",
+  "ho_qd_5_medium_001_s1": "none",
+  "ho_qd_5_simple_000_s0": "none",
+  "ho_qd_5_simple_000_s1": "none",
+  "ho_qd_5_simple_001_s0": "direct_box",
+  "ho_qd_5_simple_001_s1": "none",
+  "ho_qd_8p_complex_000_s0": "none",
+  "ho_qd_8p_complex_000_s1": "none",
+  "ho_qd_8p_complex_001_s0": "none",
+  "ho_qd_8p_complex_001_s1": "direct_box",
+  "ho_qd_8p_medium_000_s0": "direct_scribble",
+  "ho_qd_8p_medium_000_s1": "none",
+  "ho_qd_8p_medium_001_s0": "none",
+  "ho_qd_8p_medium_001_s1": "none",
+  "ho_qd_8p_simple_000_s0": "none",
+  "ho_qd_8p_simple_000_s1": "none",
+  "ho_qd_8p_simple_001_s0": "none",
+  "ho_qd_8p_simple_001_s1": "none"
+ },
+ "by_bin": {
+  "3": {
+   "direct_box": 3.0,
+   "direct_scribble": 4.0,
+   "controlnet": 1.0,
+   "instance_repair_count_matte_soft": 2.0
+  },
+  "5": {
+   "direct_box": 4.0,
+   "direct_scribble": 2.0,
+   "controlnet": 0.0,
+   "instance_repair_count_matte_soft": 1.0
+  },
+  "8p": {
+   "direct_box": 1.0,
+   "direct_scribble": 1.0,
+   "controlnet": 0.0,
+   "instance_repair_count_matte_soft": 0.0
+  }
+ }
+}
