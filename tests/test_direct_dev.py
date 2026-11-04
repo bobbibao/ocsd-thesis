@@ -100,4 +100,23 @@ class Dev(unittest.TestCase):
         self.assertEqual(packed['status'], 'incomplete'); self.assertEqual(self.load.call_count, count)
 
 
+    def test_v2_silhouette_study_is_separate_and_passes_masks(self):
+        seen = []
+        original = self.model.generate
+        def record(condition, seed, negative, **kw):
+            seen.append((kw.get('silhouette', False), kw['scribble'], 'silhouette_rle' in condition['objects'][0]))
+            return original(condition, seed, negative, **kw)
+        self.model.generate = record
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            result = dev.run(self.root/'cache', self.root, self.root/'v2', version='v2')
+        self.assertEqual(result['status'], 'complete'); self.assertEqual(len(seen), 48)
+        self.assertEqual(seen[:3], [(False, False, True), (True, False, True), (True, True, True)])
+        directory = Path(result['directory']); self.assertTrue(directory.name.startswith('dev2_'))
+        key = json.loads((directory/'review_key.json').read_text())
+        self.assertEqual(set(key[self.scenes[0]['sid']+'_s0'].values()), set(dev.ARMS_V2))
+        condition = json.loads((directory/self.scenes[0]['sid']/'condition.json').read_text())
+        self.assertIn('no oracle masks', condition['input_track']); self.assertEqual(len(condition['objects'][0]['polygon']), 512)
+        v1, _ = dev.read_protocol(); self.assertNotIn('_version', v1)
+
+
 if __name__ == '__main__': unittest.main()

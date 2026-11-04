@@ -64,7 +64,103 @@ def sketch_points(sketch, count=20):
     return points[order].reshape(-1).tolist()
 
 
-def scene_condition(scene):
+SILHOUETTE_CLOSE = 0.03     # closing radius as a fraction of the ink-box diagonal; fixed before output
+SILHOUETTE_BRIDGE = 1.0     # join mutual-nearest stroke ends up to one ink-box diagonal apart
+POLYGON_POINTS = 256
+
+
+def _disk(radius):
+    yy, xx = np.mgrid[-radius:radius+1, -radius:radius+1]
+    return xx*xx + yy*yy <= radius*radius
+
+
+def _stroke_ends(ink):
+    """End pixels of the 1-px skeleton (exactly one 8-neighbour)."""
+    from scipy import ndimage
+    from skimage.morphology import skeletonize
+    skel = skeletonize(ink)
+    neighbours = ndimage.convolve(skel.astype(np.uint8), np.ones((3, 3), np.uint8), mode='constant') - 1
+    return np.argwhere(skel & (neighbours == 1))
+
+
+def sketch_silhouette(sketch):
+    """OCSD sketch parser: instance strokes (raster) -> filled silhouette mask. No oracle masks.
+
+    QuickDraw strokes are open line drawings (a car body drawn as an arc, a tree as a U).
+    1. Bridge open outlines: join each pair of mutually nearest stroke ends (skeleton end
+       pixels) with a straight line if they are at most 1.0 x the ink-box diagonal apart.
+    2. Close small gaps with a disk of radius 0.03 x diagonal and fill enclosed holes.
+    The ink itself is always kept. Deterministic; returns (bool mask, info).
+    """
+    from scipy import ndimage
+    from PIL import Image, ImageDraw
+    a = np.asarray(sketch)
+    if a.ndim != 2: raise ValueError('Expected a 2-D instance sketch')
+    ink = a < 128
+    yy, xx = np.where(ink)
+    if not len(xx): raise ValueError('Empty instance sketch')
+    diag = float(np.hypot(xx.max()-xx.min()+1, yy.max()-yy.min()+1))
+    ends = _stroke_ends(ink)
+    bridges = []
+    if len(ends) >= 2:
+        d = np.sqrt(((ends[:, None, :]-ends[None, :, :])**2).sum(-1)); np.fill_diagonal(d, np.inf)
+        nearest = d.argmin(1)
+        for i, j in enumerate(nearest):
+            if i < j and nearest[j] == i and d[i, j] <= SILHOUETTE_BRIDGE*diag:
+                bridges.append((ends[i].tolist(), ends[j].tolist()))
+    canvas = Image.fromarray(ink.astype(np.uint8)*255); draw = ImageDraw.Draw(canvas)
+    for (y0, x0), (y1, x1) in bridges: draw.line([(x0, y0), (x1, y1)], fill=255, width=3)
+    joined = np.asarray(canvas) > 127
+    r = max(2, int(round(SILHOUETTE_CLOSE*diag)))
+    closed = ndimage.binary_closing(np.pad(joined, r+1), structure=_disk(r))[r+1:-r-1, r+1:-r-1]
+    mask = ndimage.binary_fill_holes(closed) | ink
+    return mask, dict(close_radius_px=r, stroke_ends=int(len(ends)), bridges=len(bridges),
+                      ink_px=int(ink.sum()), mask_px=int(mask.sum()))
+
+
+def mask_polygon(mask, k=POLYGON_POINTS):
+    """Upstream `sample_sparse_points_from_mask` (half boundary, half interior, sorted by
+    distance to the origin), made deterministic, normalised to [0, 1] like `convert_points`."""
+    import random
+    from skimage import measure
+    m = np.asarray(mask).astype(np.int32)
+    height, width = m.shape
+    contours = measure.find_contours(np.pad(m, 1), 0)
+    boundary = []
+    for c in contours:
+        if not np.array_equal(c[0], c[-1]): c = np.vstack((c, c[0]))
+        c = measure.approximate_polygon(c, 0)
+        if len(c) < 3: continue
+        boundary += [max(0, v) for v in np.flip(c, axis=1).ravel().tolist()]
+    if not boundary: raise ValueError('Silhouette has no contour')
+    boundary = np.array(boundary).reshape(-1, 2)
+    half = k // 2
+    boundary = [tuple(boundary[int(i)]) for i in np.linspace(0, len(boundary)-1, half)]
+    fg = np.argwhere(m == 1); need = k - len(boundary)
+    if len(fg) < need:
+        rng = random.Random(0); inside = [tuple(rng.choice(list(fg))[::-1]) for _ in range(need)]
+    else:
+        center = fg.mean(0); fg = sorted(fg, key=lambda x: np.linalg.norm(x-center)); per = len(fg)//need
+        inside = [tuple(fg[i*per:(i+1)*per][len(fg[i*per:(i+1)*per])//2][::-1]) for i in range(need)]
+    points = sorted(inside + boundary, key=lambda x: np.linalg.norm(np.array(x, dtype=float)))
+    flat = []
+    for x, y in points: flat += [min(float(x)/width, 1.), min(float(y)/height, 1.)]
+    return flat
+
+
+def rle_encode(mask):
+    flat = np.asarray(mask, dtype=bool).ravel()
+    change = np.flatnonzero(np.diff(np.concatenate(([0], flat.view(np.uint8), [0]))))
+    return change.reshape(-1, 2).tolist()
+
+
+def rle_decode(runs, shape):
+    flat = np.zeros(int(np.prod(shape)), dtype=bool)
+    for start, stop in runs: flat[start:stop] = True
+    return flat.reshape(shape)
+
+
+def scene_condition(scene, silhouettes=False):
     height, width = scene.sketch.shape[:2]
     if not 1 <= scene.n <= MAX_OBJECTS or scene.n != len(scene.objects):
         raise ValueError('InstanceDiffusion supports 1..30 separate instances; no truncation')
@@ -78,12 +174,18 @@ def scene_condition(scene):
             raise ValueError('Instance box outside the canvas or empty')
         if np.asarray(obj.sketch).shape != (height, width) or not obj.phrase.strip():
             raise ValueError('Misaligned sketch or missing instance phrase')
-        objects.append(dict(index=index, cls=obj.cls, phrase=obj.phrase,
-                            box=(box / [width, height, width, height]).tolist(),
-                            scribble=sketch_points(obj.sketch)))
-    return dict(schema='ocsd-direct-instances-v1', sid=scene.sid, caption=scene.caption,
-                width=width, height=height, objects=objects,
-                input_track='supplied instance phrases/boxes and 20 raster-ink points; no instance masks')
+        item = dict(index=index, cls=obj.cls, phrase=obj.phrase,
+                    box=(box / [width, height, width, height]).tolist(),
+                    scribble=sketch_points(obj.sketch))
+        if silhouettes:
+            mask, info = sketch_silhouette(obj.sketch)
+            item.update(silhouette_rle=rle_encode(mask), silhouette=info, polygon=mask_polygon(mask))
+        objects.append(item)
+    track = ('supplied instance phrases/boxes, 20 raster-ink points and silhouettes parsed from the instance '
+             'sketch (OCSD sketch parser); no oracle masks') if silhouettes else \
+            'supplied instance phrases/boxes and 20 raster-ink points; no instance masks'
+    return dict(schema='ocsd-direct-instances-v2' if silhouettes else 'ocsd-direct-instances-v1',
+                sid=scene.sid, caption=scene.caption, width=width, height=height, objects=objects, input_track=track)
 
 
 def conditioning_batch(condition, features, device='cpu', dtype=torch.float32):
@@ -101,6 +203,14 @@ def conditioning_batch(condition, features, device='cpu', dtype=torch.float32):
     batch['positive_embeddings'][0, :n] = features.to(device=device, dtype=dtype)
     batch['masks'][0, :n] = 1
     batch['points'][0, :n] = (batch['boxes'][0, :n, :2] + batch['boxes'][0, :n, 2:]) / 2
+    if all('silhouette_rle' in o for o in objects):
+        from PIL import Image
+        shape = (condition['height'], condition['width'])
+        for i, o in enumerate(objects):
+            seg = Image.fromarray(rle_decode(o['silhouette_rle'], shape).astype(np.uint8)*255)
+            if seg.size != (512, 512): seg = seg.resize((512, 512), Image.Resampling.NEAREST)
+            batch['segs'][0, i] = torch.as_tensor(np.asarray(seg) > 127, device=device, dtype=dtype)
+            batch['polygons'][0, i] = torch.as_tensor(o['polygon'], device=device, dtype=dtype)
     return batch
 
 
@@ -446,13 +556,18 @@ class DirectModel:
 
     @torch.no_grad()
     def generate(self, condition, seed, negative, scribble=True, device='cuda', steps=50, mis=.36, alpha=.8, deadline=None,
-                 fusion='official_mean'):
+                 fusion='official_mean', silhouette=False):
         start = time.perf_counter()
         features, contexts, uncond = self.encode(condition, negative)
         batch = conditioning_batch(condition, features, device=device)
+        if silhouette and not all('silhouette_rle' in o for o in condition['objects']):
+            raise ValueError('Silhouette arm needs parsed sketch silhouettes for every instance')
+        if not silhouette: batch['segs'].zero_(); batch['polygons'].zero_()
         self.model.to(device); self.vae.to(device); self.diffusion.to(device)
         self.model.position_net.test_drop_scribbles = not scribble
-        self.model.position_net.test_drop_masks = True  # never consume benchmark masks
+        # Masks are only ever silhouettes parsed from the input sketch, never benchmark/oracle masks
+        # (upstream configs/test_mask.yaml sets the same flag).
+        self.model.position_net.test_drop_masks = not silhouette
         contexts = [c.to(device) for c in contexts]; uncond = uncond.to(device)
         noise = torch.randn((1,4,64,64), generator=torch.Generator('cpu').manual_seed(seed)).to(device)
         autocast = torch.autocast(device_type='cuda', dtype=torch.float16) if str(device).startswith('cuda') else nullcontext()
@@ -466,7 +581,8 @@ class DirectModel:
         if not torch.isfinite(image).all(): raise RuntimeError('Nonfinite direct-generation image')
         pixels = ((image[0].clamp(-1,1)*.5+.5)*255).permute(1,2,0).cpu().numpy().astype(np.uint8)
         log.update(provenance=self.provenance, steps=steps, mis=mis, alpha=alpha, seed=seed,
-                   conditioning='boxes+centers+20_ink_points' if scribble else 'boxes+centers',
+                   conditioning=('boxes+centers' + ('+20_ink_points' if scribble else '')
+                                 + ('+sketch_silhouette_mask+256pt_polygon' if silhouette else '')),
                    unet_precision='autocast_float16' if str(device).startswith('cuda') else 'float32', vae_precision='float32',
                    wall_s=time.perf_counter()-start, image_size=512, refiner=False,
                    external_method='InstanceDiffusion pinned official core with OCSD input adapter')

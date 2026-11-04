@@ -90,7 +90,7 @@ DIRECT_MOUNT = MOUNT.replace(
     'gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True)\n'
     'if gpu.returncode:\n    raise RuntimeError("Select a GPU runtime before Run all")\nprint(gpu.stdout)',
     '''import shutil
-if RUN_MODE not in ("direct_preflight", "direct_canary", "direct_dev", "heldout", "experiment"):
+if RUN_MODE not in ("direct_preflight", "direct_canary", "direct_dev", "silhouette_dev", "heldout", "experiment"):
     raise ValueError("Unknown RUN_MODE")
 gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True) if shutil.which("nvidia-smi") else None
 if RUN_MODE == "direct_preflight":
@@ -100,7 +100,7 @@ if RUN_MODE == "direct_preflight":
         raise RuntimeError("Bước này dùng CPU: Runtime > Change runtime type > Hardware accelerator: None, rồi Run all")
     print("CPU preflight: kiểm tra trọng số thật; không sinh ảnh, không cần GH_TOKEN.")
 else:
-    if RUN_MODE in ("direct_canary", "direct_dev") and RUN_ID:
+    if RUN_MODE in ("direct_canary", "direct_dev", "silhouette_dev") and RUN_ID:
         raise ValueError("Direct runs resume compatible images automatically: leave RUN_ID empty")
     if gpu is None or gpu.returncode:
         raise RuntimeError("Select an L4/A100 GPU runtime for direct_canary, direct_dev, heldout or experiment mode")
@@ -193,11 +193,12 @@ else:
 
 
 DIRECT_DEV = r'''#@title 3c. Development study: 8 scenes x 2 seeds x 3 settings = 48 images, then download ZIPs
-if RUN_MODE == "direct_dev":
+if RUN_MODE in ("direct_dev", "silhouette_dev"):
     import json, uuid
     from pathlib import Path
     from google.colab import files
-    DEV_OUT = Path(DRIVE_ROOT) / "results" / "direct_dev"
+    DEV_VERSION = "v2" if RUN_MODE == "silhouette_dev" else "v1"
+    DEV_OUT = Path(DRIVE_ROOT) / "results" / ("direct_dev2" if DEV_VERSION == "v2" else "direct_dev")
     attempt = DEV_OUT / ("attempt_" + uuid.uuid4().hex[:12]); attempt.mkdir(parents=True)
     print("Locked development study: 48 images, at most 2400 s after library install. Completed images are reused.", flush=True)
     print("May download ~13.6 GB checkpoint + 1.71 GB CLIP if the runtime cache is empty. No automatic retries.", flush=True)
@@ -208,7 +209,7 @@ if RUN_MODE == "direct_dev":
     interrupted = False
     try:
         subprocess.run([sys.executable, script, "--cache", "/content/ocsd-direct-cache",
-            "--out", str(DEV_OUT), "--attempt", str(attempt), "--setup-returncode", str(installed.returncode)],
+            "--out", str(DEV_OUT), "--attempt", str(attempt), "--setup-returncode", str(installed.returncode), "--version", DEV_VERSION],
             env=dict(os.environ, PYTHONUNBUFFERED="1"), timeout=2400)
         interrupted = not (attempt / "result.json").exists()
     except subprocess.TimeoutExpired:
@@ -327,7 +328,7 @@ nb([
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
     "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
-    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "heldout"  #@param ["heldout", "direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'),
+    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "silhouette_dev"  #@param ["silhouette_dev", "heldout", "direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'),
     DIRECT_MOUNT, DIRECT_PREFLIGHT, DIRECT_CANARY, DIRECT_DEV, DIRECT_HELDOUT, INSTALL,
     "MD:## Các ô dưới chỉ chạy khi RUN_MODE=experiment\nPhép thử cũ `foreground_screen`: 1 cảnh xe đạp × 4 đối chứng "
     "= 4 ảnh cuối. So sánh clean cũ, anchor có nền cảnh, mask học được dạng cứng và dạng mềm. "

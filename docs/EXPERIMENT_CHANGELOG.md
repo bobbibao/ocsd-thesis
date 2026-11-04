@@ -135,3 +135,7 @@ evaluation, paired bootstrap report and 36 blind review sheets. `RUN_ALL` defaul
 ## Held-out results — 2026-11-04
 
 Run 20261104T135658Z_41d72d97, 144/144 images. Blind review: structure success direct_box 8/36, direct_scribble 7/36, ControlNet 1/36, OCSD soft-matte 3/36; primary sign tests Holm p = 0.14 and 0.14 (not significant). Automatic metrics favour the direct arms with CIs excluding 0. Shape/pose is the bottleneck for all arms. See docs/HELDOUT_20261104_RESULTS.md.
+
+## Sketch-silhouette conditioning dev study locked — 2026-11-04
+
+New OCSD sketch parser (`sketch_silhouette`: stroke-end bridging, closing, hole fill) feeds instance masks parsed from the sketch into InstanceDiffusion's mask inputs, targeting the pose/shape failures of the held-out study. Dev study v2 (8 dev scenes x 2 seeds x box / silhouette / silhouette+scribble) locked in docs/DIRECT_DEV2_PROTOCOL.md; RUN_ALL default RUN_MODE=silhouette_dev.

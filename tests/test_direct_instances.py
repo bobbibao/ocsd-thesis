@@ -10,7 +10,8 @@ import numpy as np
 import torch
 from ocsd.direct_instances import (scene_condition, sketch_points, conditioning_batch,
                                    cached_conditioning, sampling_work, sample_latents, SOURCE_COMMIT, load_global_text_weights,
-                                   fusion_weights, mis_sampler_class)
+                                   fusion_weights, mis_sampler_class, sketch_silhouette, mask_polygon,
+                                   rle_encode, rle_decode)
 
 
 def scene():
@@ -97,6 +98,52 @@ class DirectInputs(unittest.TestCase):
         self.assertEqual(net.forward,original)
 
 
+class Silhouettes(unittest.TestCase):
+    def outline(self, closed):
+        ink=np.full((200,200),255,np.uint8)
+        ink[40:160,50]=0;ink[40:160,150]=0;ink[159,50:151]=0  # U: left, right, bottom
+        if closed: ink[40,50:151]=0
+        return ink
+
+    def test_open_and_closed_outlines_fill_inside_but_not_outside(self):
+        for closed in (False,True):
+            mask,info=sketch_silhouette(self.outline(closed))
+            self.assertTrue(mask[100,100]);self.assertFalse(mask[20,100]);self.assertFalse(mask[100,10])
+            self.assertTrue(mask[self.outline(closed)<128].all())
+            self.assertGreater(info['mask_px'],5*info['ink_px'])
+        self.assertEqual(sketch_silhouette(self.outline(False))[1]['bridges'],1)
+
+    def test_lines_stay_thin_and_parser_is_deterministic(self):
+        ink=np.full((200,200),255,np.uint8);ink[100,20:180]=0
+        mask,info=sketch_silhouette(ink)
+        self.assertLess(info['mask_px'],4*info['ink_px'])
+        again,_=sketch_silhouette(ink);self.assertTrue(np.array_equal(mask,again))
+        with self.assertRaises(ValueError):sketch_silhouette(np.full((20,20),255,np.uint8))
+
+    def test_polygon_matches_upstream_layout_and_rle_roundtrip(self):
+        mask,_=sketch_silhouette(self.outline(True))
+        poly=mask_polygon(mask);self.assertEqual(len(poly),512)
+        self.assertTrue(all(0<=v<=1 for v in poly));self.assertEqual(poly,mask_polygon(mask))
+        pts=np.array(poly).reshape(-1,2);d=np.hypot(pts[:,0]*200,pts[:,1]*200)
+        self.assertTrue(np.all(np.diff(d)>=-1e-9))  # sorted by distance to the origin, as upstream
+        self.assertTrue(np.array_equal(rle_decode(rle_encode(mask),mask.shape),mask))
+
+    def test_condition_and_batch_carry_silhouettes_only_when_requested(self):
+        plain=scene_condition(scene());self.assertNotIn('silhouette_rle',plain['objects'][0])
+        batch=conditioning_batch(plain,torch.randn(2,32))
+        self.assertEqual(float(batch['segs'].abs().sum()),0);self.assertEqual(float(batch['polygons'].abs().sum()),0)
+        cond=scene_condition(scene(),silhouettes=True);self.assertEqual(cond['schema'],'ocsd-direct-instances-v2')
+        self.assertIn('no oracle masks',cond['input_track'])
+        batch=conditioning_batch(cond,torch.randn(2,32))
+        self.assertEqual(tuple(batch['segs'].shape),(1,30,512,512))
+        self.assertGreater(float(batch['segs'][0,0].sum()),0);self.assertGreater(float(batch['segs'][0,1].sum()),0)
+        self.assertEqual(float(batch['segs'][0,2:].sum()),0);self.assertGreater(float(batch['polygons'][0,:2].abs().sum()),0)
+        # Instance 0 lives in the left part of the 40-px-wide canvas, instance 1 in the right part.
+        cols0=torch.nonzero(batch['segs'][0,0].sum(0))[:,0];cols1=torch.nonzero(batch['segs'][0,1].sum(0))[:,0]
+        self.assertLess(int(cols0.max()),int(cols1.min())+64)
+        self.assertLess(float(cols0.float().mean()),float(cols1.float().mean()))
+
+
 @unittest.skipUnless(os.environ.get('OCSD_INSTDIFF_SOURCE'), 'Set OCSD_INSTDIFF_SOURCE to the pinned official checkout for parity tests')
 class OfficialCore(unittest.TestCase):
     @classmethod
@@ -137,6 +184,13 @@ class OfficialCore(unittest.TestCase):
         self.assertTrue(torch.isfinite(first).all());self.assertTrue(torch.equal(first,second))
         self.assertTrue(torch.equal(first,uncached))
         self.assertEqual(stats,dict(calls=2,evaluations=1,hits=1))
+        # Silhouette masks reach the output only when the mask branch is enabled (upstream test_mask flag).
+        sil=conditioning_batch(scene_condition(scene(),silhouettes=True),batch['positive_embeddings'][0,:2].clone())
+        sargs=tuple(sil[k] for k in ('boxes','masks','positive_embeddings','scribbles','polygons','segs','points'))
+        with torch.no_grad():
+            dropped=net(*sargs)[0];net.test_drop_masks=False;used=net(*sargs)[0];net.test_drop_masks=True
+        self.assertTrue(torch.isfinite(used).all());self.assertEqual(used.shape,dropped.shape)
+        self.assertGreater(float((used-dropped).abs().max()),1e-6)
 
     def test_cached_and_uncached_official_trajectories_and_reuse(self):
         torch.manual_seed(73);model=self.model
