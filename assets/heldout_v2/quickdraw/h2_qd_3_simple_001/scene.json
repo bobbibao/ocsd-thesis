@@ -1,0 +1,96 @@
+{
+ "sid": "h2_qd_3_simple_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "simple",
+ "bg": "in a park",
+ "caption": "three old umbrellas in a park",
+ "objects": [
+  {
+   "cls": "umbrella",
+   "phrase": "old umbrella",
+   "box": [
+    269.0,
+    218.0,
+    453.0,
+    364.0
+   ],
+   "qd_key": "5939991416930304",
+   "recognized": true,
+   "n_strokes": 6
+  },
+  {
+   "cls": "umbrella",
+   "phrase": "old umbrella",
+   "box": [
+    33.0,
+    298.0,
+    252.0,
+    506.0
+   ],
+   "qd_key": "4569628082700288",
+   "recognized": true,
+   "n_strokes": 4
+  },
+  {
+   "cls": "umbrella",
+   "phrase": "old umbrella",
+   "box": [
+    36.0,
+    97.0,
+    165.0,
+    232.0
+   ],
+   "qd_key": "6274618308427776",
+   "recognized": true,
+   "n_strokes": 6
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.0,
+ "heldout_set": "heldout_v2",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261105,
+  "per_cell": 2,
+  "original_sid": "qd_3_simple_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "direct_dev_v1"
+  ]
+ }
+}

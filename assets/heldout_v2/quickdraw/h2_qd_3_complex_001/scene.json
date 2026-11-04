@@ -1,0 +1,101 @@
+{
+ "sid": "h2_qd_3_complex_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "complex",
+ "bg": "on a city street",
+ "caption": "a blue car, a dog and a leafy tree on a city street",
+ "objects": [
+  {
+   "cls": "car",
+   "phrase": "blue car",
+   "box": [
+    240.0,
+    151.0,
+    366.0,
+    216.0
+   ],
+   "qd_key": "5616127596036096",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "dog",
+   "phrase": "dog",
+   "box": [
+    311.0,
+    159.0,
+    494.0,
+    324.0
+   ],
+   "qd_key": "4943515047952384",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "tree",
+   "phrase": "leafy tree",
+   "box": [
+    25.0,
+    286.0,
+    170.0,
+    479.0
+   ],
+   "qd_key": "4814547116359680",
+   "recognized": true,
+   "n_strokes": 1
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "left_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   1,
+   "behind"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ]
+ ],
+ "overlap_max": 0.08893617021276595,
+ "heldout_set": "heldout_v2",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261105,
+  "per_cell": 2,
+  "original_sid": "qd_3_complex_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "direct_dev_v1"
+  ]
+ }
+}

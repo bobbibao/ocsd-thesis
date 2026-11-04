@@ -1,0 +1,454 @@
+{
+ "sid": "h2_qd_8p_simple_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 9,
+ "count_bin": "8+",
+ "complexity": "simple",
+ "bg": "in a park",
+ "caption": "five white bicycles, a green bench, a shiny bicycle, a gray cat and a bird in a park",
+ "objects": [
+  {
+   "cls": "bicycle",
+   "phrase": "white bicycle",
+   "box": [
+    348.0,
+    198.0,
+    455.0,
+    252.0
+   ],
+   "qd_key": "6335876554555392",
+   "recognized": true,
+   "n_strokes": 13
+  },
+  {
+   "cls": "bicycle",
+   "phrase": "white bicycle",
+   "box": [
+    212.0,
+    227.0,
+    327.0,
+    311.0
+   ],
+   "qd_key": "4703436580847616",
+   "recognized": true,
+   "n_strokes": 13
+  },
+  {
+   "cls": "bicycle",
+   "phrase": "white bicycle",
+   "box": [
+    115.0,
+    336.0,
+    227.0,
+    396.0
+   ],
+   "qd_key": "4867023966306304",
+   "recognized": true,
+   "n_strokes": 11
+  },
+  {
+   "cls": "bench",
+   "phrase": "green bench",
+   "box": [
+    360.0,
+    290.0,
+    486.0,
+    377.0
+   ],
+   "qd_key": "5423367735738368",
+   "recognized": true,
+   "n_strokes": 17
+  },
+  {
+   "cls": "bicycle",
+   "phrase": "white bicycle",
+   "box": [
+    16.0,
+    156.0,
+    115.0,
+    244.0
+   ],
+   "qd_key": "6070320387588096",
+   "recognized": true,
+   "n_strokes": 13
+  },
+  {
+   "cls": "bicycle",
+   "phrase": "shiny bicycle",
+   "box": [
+    87.0,
+    248.0,
+    204.0,
+    297.0
+   ],
+   "qd_key": "5510057875734528",
+   "recognized": true,
+   "n_strokes": 11
+  },
+  {
+   "cls": "cat",
+   "phrase": "gray cat",
+   "box": [
+    294.0,
+    136.0,
+    385.0,
+    196.0
+   ],
+   "qd_key": "6601948759326720",
+   "recognized": true,
+   "n_strokes": 13
+  },
+  {
+   "cls": "bicycle",
+   "phrase": "white bicycle",
+   "box": [
+    122.0,
+    159.0,
+    216.0,
+    197.0
+   ],
+   "qd_key": "4650096610246656",
+   "recognized": true,
+   "n_strokes": 11
+  },
+  {
+   "cls": "bird",
+   "phrase": "bird",
+   "box": [
+    6.0,
+    318.0,
+    103.0,
+    439.0
+   ],
+   "qd_key": "6699628810469376",
+   "recognized": true,
+   "n_strokes": 14
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   0,
+   3,
+   "above"
+  ],
+  [
+   0,
+   4,
+   "right_of"
+  ],
+  [
+   0,
+   5,
+   "right_of"
+  ],
+  [
+   0,
+   5,
+   "above"
+  ],
+  [
+   0,
+   6,
+   "right_of"
+  ],
+  [
+   0,
+   6,
+   "below"
+  ],
+  [
+   0,
+   7,
+   "right_of"
+  ],
+  [
+   0,
+   7,
+   "below"
+  ],
+  [
+   0,
+   8,
+   "right_of"
+  ],
+  [
+   0,
+   8,
+   "above"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ],
+  [
+   1,
+   3,
+   "left_of"
+  ],
+  [
+   1,
+   3,
+   "above"
+  ],
+  [
+   1,
+   4,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "below"
+  ],
+  [
+   1,
+   5,
+   "right_of"
+  ],
+  [
+   1,
+   6,
+   "left_of"
+  ],
+  [
+   1,
+   6,
+   "below"
+  ],
+  [
+   1,
+   7,
+   "right_of"
+  ],
+  [
+   1,
+   7,
+   "below"
+  ],
+  [
+   1,
+   8,
+   "right_of"
+  ],
+  [
+   1,
+   8,
+   "above"
+  ],
+  [
+   2,
+   3,
+   "left_of"
+  ],
+  [
+   2,
+   3,
+   "below"
+  ],
+  [
+   2,
+   4,
+   "right_of"
+  ],
+  [
+   2,
+   4,
+   "below"
+  ],
+  [
+   2,
+   5,
+   "below"
+  ],
+  [
+   2,
+   6,
+   "left_of"
+  ],
+  [
+   2,
+   6,
+   "below"
+  ],
+  [
+   2,
+   7,
+   "below"
+  ],
+  [
+   2,
+   8,
+   "right_of"
+  ],
+  [
+   3,
+   4,
+   "right_of"
+  ],
+  [
+   3,
+   4,
+   "below"
+  ],
+  [
+   3,
+   5,
+   "right_of"
+  ],
+  [
+   3,
+   5,
+   "below"
+  ],
+  [
+   3,
+   6,
+   "right_of"
+  ],
+  [
+   3,
+   6,
+   "below"
+  ],
+  [
+   3,
+   7,
+   "right_of"
+  ],
+  [
+   3,
+   7,
+   "below"
+  ],
+  [
+   3,
+   8,
+   "right_of"
+  ],
+  [
+   3,
+   8,
+   "above"
+  ],
+  [
+   4,
+   5,
+   "left_of"
+  ],
+  [
+   4,
+   5,
+   "above"
+  ],
+  [
+   4,
+   6,
+   "left_of"
+  ],
+  [
+   4,
+   6,
+   "below"
+  ],
+  [
+   4,
+   7,
+   "left_of"
+  ],
+  [
+   4,
+   8,
+   "above"
+  ],
+  [
+   5,
+   6,
+   "left_of"
+  ],
+  [
+   5,
+   6,
+   "below"
+  ],
+  [
+   5,
+   7,
+   "below"
+  ],
+  [
+   5,
+   8,
+   "right_of"
+  ],
+  [
+   5,
+   8,
+   "above"
+  ],
+  [
+   6,
+   7,
+   "right_of"
+  ],
+  [
+   6,
+   8,
+   "right_of"
+  ],
+  [
+   6,
+   8,
+   "above"
+  ],
+  [
+   7,
+   8,
+   "right_of"
+  ],
+  [
+   7,
+   8,
+   "above"
+  ]
+ ],
+ "overlap_max": 0.0,
+ "heldout_set": "heldout_v2",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261105,
+  "per_cell": 2,
+  "original_sid": "qd_8p_simple_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "direct_dev_v1"
+  ]
+ }
+}

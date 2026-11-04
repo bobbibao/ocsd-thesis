@@ -1,0 +1,91 @@
+{
+ "sid": "h2_qd_3_medium_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "medium",
+ "bg": "in a forest",
+ "caption": "a big bear and two golden rabbits in a forest",
+ "objects": [
+  {
+   "cls": "bear",
+   "phrase": "big bear",
+   "box": [
+    295.0,
+    90.0,
+    388.0,
+    249.0
+   ],
+   "qd_key": "5856784143089664",
+   "recognized": true,
+   "n_strokes": 7
+  },
+  {
+   "cls": "rabbit",
+   "phrase": "golden rabbit",
+   "box": [
+    283.0,
+    220.0,
+    417.0,
+    428.0
+   ],
+   "qd_key": "5297440284475392",
+   "recognized": true,
+   "n_strokes": 6
+  },
+  {
+   "cls": "rabbit",
+   "phrase": "golden rabbit",
+   "box": [
+    134.0,
+    115.0,
+    259.0,
+    249.0
+   ],
+   "qd_key": "6103528944697344",
+   "recognized": true,
+   "n_strokes": 9
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   1,
+   "behind"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.06748911465892599,
+ "heldout_set": "heldout_v2",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261105,
+  "per_cell": 2,
+  "original_sid": "qd_3_medium_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "direct_dev_v1"
+  ]
+ }
+}

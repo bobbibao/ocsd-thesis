@@ -1,0 +1,82 @@
+{
+  "dev1_cars_house_s0": {
+    "A": "direct_silhouette",
+    "B": "direct_box",
+    "C": "direct_silhouette_scribble"
+  },
+  "dev1_cars_house_s1": {
+    "A": "direct_silhouette_scribble",
+    "B": "direct_box",
+    "C": "direct_silhouette"
+  },
+  "dev2_cats_tree_s0": {
+    "A": "direct_silhouette",
+    "B": "direct_silhouette_scribble",
+    "C": "direct_box"
+  },
+  "dev2_cats_tree_s1": {
+    "A": "direct_silhouette",
+    "B": "direct_box",
+    "C": "direct_silhouette_scribble"
+  },
+  "dev3_umbrellas_palm_s0": {
+    "A": "direct_silhouette",
+    "B": "direct_silhouette_scribble",
+    "C": "direct_box"
+  },
+  "dev3_umbrellas_palm_s1": {
+    "A": "direct_silhouette_scribble",
+    "B": "direct_box",
+    "C": "direct_silhouette"
+  },
+  "dev4_apples_cup_s0": {
+    "A": "direct_silhouette_scribble",
+    "B": "direct_box",
+    "C": "direct_silhouette"
+  },
+  "dev4_apples_cup_s1": {
+    "A": "direct_silhouette",
+    "B": "direct_box",
+    "C": "direct_silhouette_scribble"
+  },
+  "dev5_dog_couch_s0": {
+    "A": "direct_silhouette",
+    "B": "direct_silhouette_scribble",
+    "C": "direct_box"
+  },
+  "dev5_dog_couch_s1": {
+    "A": "direct_silhouette_scribble",
+    "B": "direct_box",
+    "C": "direct_silhouette"
+  },
+  "dev6_bird_fence_s0": {
+    "A": "direct_silhouette",
+    "B": "direct_silhouette_scribble",
+    "C": "direct_box"
+  },
+  "dev6_bird_fence_s1": {
+    "A": "direct_silhouette",
+    "B": "direct_silhouette_scribble",
+    "C": "direct_box"
+  },
+  "dev7_train_tree_sun_s0": {
+    "A": "direct_box",
+    "B": "direct_silhouette",
+    "C": "direct_silhouette_scribble"
+  },
+  "dev7_train_tree_sun_s1": {
+    "A": "direct_silhouette_scribble",
+    "B": "direct_silhouette",
+    "C": "direct_box"
+  },
+  "dev8_canoe_mountain_s0": {
+    "A": "direct_box",
+    "B": "direct_silhouette_scribble",
+    "C": "direct_silhouette"
+  },
+  "dev8_canoe_mountain_s1": {
+    "A": "direct_silhouette_scribble",
+    "B": "direct_silhouette",
+    "C": "direct_box"
+  }
+}

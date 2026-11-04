@@ -1,0 +1,96 @@
+{
+ "sid": "h2_qd_3_simple_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "simple",
+ "bg": "on a farm",
+ "caption": "a small bird, a small sheep and a small horse on a farm",
+ "objects": [
+  {
+   "cls": "bird",
+   "phrase": "small bird",
+   "box": [
+    130.0,
+    213.0,
+    329.0,
+    405.0
+   ],
+   "qd_key": "4504022696329216",
+   "recognized": true,
+   "n_strokes": 8
+  },
+  {
+   "cls": "sheep",
+   "phrase": "small sheep",
+   "box": [
+    47.0,
+    120.0,
+    170.0,
+    207.0
+   ],
+   "qd_key": "5543458297085952",
+   "recognized": true,
+   "n_strokes": 10
+  },
+  {
+   "cls": "horse",
+   "phrase": "small horse",
+   "box": [
+    357.0,
+    153.0,
+    485.0,
+    236.0
+   ],
+   "qd_key": "4968165245190144",
+   "recognized": true,
+   "n_strokes": 9
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "below"
+  ],
+  [
+   0,
+   2,
+   "left_of"
+  ],
+  [
+   0,
+   2,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ]
+ ],
+ "overlap_max": 0.0,
+ "heldout_set": "heldout_v2",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261105,
+  "per_cell": 2,
+  "original_sid": "qd_3_simple_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "direct_dev_v1"
+  ]
+ }
+}
