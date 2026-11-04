@@ -8,7 +8,8 @@ from .sketch import (Scene, SceneObject, auto_decompose, bbox_of, decompose_by_c
 
 _STATE = {}
 METHODS = {
-    "OCSD-v2 (training-free, recommended)": "ocsd_v2",
+    "OCSD v3 (sketch silhouettes + InstanceDiffusion core, recommended)": "ocsd_v3",
+    "OCSD-v2 (training-free)": "ocsd_v2",
     "OCSD-lite (thesis sampler, no identity learning)": "ocsd_lite",
     "OCSD (thesis, identity learning, ~1 min slower)": "ocsd",
 }
@@ -19,8 +20,26 @@ def _models(backbone):
         from .engine import Engine
         from .vision import Vision
         _STATE["eng"] = Engine.from_pretrained(backbone, "cuda", True)
-        _STATE["vis"] = Vision("cuda")
+        _STATE.setdefault("vis", Vision("cuda"))
     return _STATE["eng"], _STATE["vis"]
+
+
+def _v3():
+    if "v3" not in _STATE:
+        from .ocsd_v3 import OCSDv3
+        _STATE["v3"] = OCSDv3.load()
+    return _STATE["v3"]
+
+
+def silhouette_overlay(scene) -> np.ndarray:
+    """What the OCSD v3 parser hands to the generator: one coloured silhouette per object, sketch ink on top."""
+    from .direct_instances import sketch_silhouette
+    colours = [(255, 120, 120), (120, 180, 255), (130, 220, 130), (240, 200, 90), (200, 140, 240), (120, 220, 220)]
+    out = np.full(scene.sketch.shape[:2] + (3,), 255, np.uint8)
+    for i, obj in enumerate(scene.objects):
+        out[sketch_silhouette(obj.sketch)[0]] = colours[i % len(colours)]
+    out[np.asarray(scene.sketch) < 128] = (30, 30, 30)
+    return out
 
 
 def build_scene_from_input(sketch_rgb: np.ndarray, phrases_text: str, bg: str) -> Scene:
@@ -52,6 +71,14 @@ def run(sketch, phrases_text, bg, method, alpha, seed, backbone="sd15"):
     if isinstance(sketch, dict):   # gradio ImageEditor
         sketch = sketch.get("composite")
     scene = build_scene_from_input(np.asarray(sketch), phrases_text, bg)
+    if METHODS.get(method) == "ocsd_v3":
+        from .vision import Vision
+        img, _ = _v3().generate_scene(scene, int(seed))
+        vis = _STATE.setdefault("vis", Vision("cuda"))
+        c = consistency(scene, vis.gdino(img, [o.cls for o in scene.objects]))
+        report = (f"Requested objects: {c['n_in']} | detected: {c['n_preserved']} | OPR = {100 * c['opr']:.0f}% | "
+                  f"count error = {c['oce_c']}" + (f" | missing: {', '.join(c['missing'])}" if c["missing"] else ""))
+        return img, silhouette_overlay(scene), report
     eng, vis = _models(backbone)
     cfg = OCSD_VARIANTS[METHODS.get(method, "ocsd_v2")].replace(alpha=float(alpha))
     prep = prepare(eng, vis, scene, cfg, seed=int(seed) if cfg.m2_per_seed else 0)
@@ -82,7 +109,7 @@ def launch(backbone="sd15", share=True):
                 btn = gr.Button("Generate", variant="primary")
             with gr.Column():
                 out = gr.Image(label="Result")
-                fg = gr.Image(label="Object composite (M2 + M4)")
+                fg = gr.Image(label="Parsed objects (OCSD v3 silhouettes) or object composite (M2 + M4)")
                 rep = gr.Textbox(label="Consistency check")
         btn.click(lambda a, b, c, d, e, f: run(a, b, c, d, e, f, backbone), [sk, ph, bg, method, al, seed],
                   [out, fg, rep])
