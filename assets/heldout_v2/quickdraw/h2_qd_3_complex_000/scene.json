@@ -1,0 +1,96 @@
+{
+ "sid": "h2_qd_3_complex_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "complex",
+ "bg": "on a snowy field",
+ "caption": "a red house, a golden dog and a white bear on a snowy field",
+ "objects": [
+  {
+   "cls": "house",
+   "phrase": "red house",
+   "box": [
+    316.0,
+    151.0,
+    493.0,
+    306.0
+   ],
+   "qd_key": "5945159940308992",
+   "recognized": true,
+   "n_strokes": 1
+  },
+  {
+   "cls": "dog",
+   "phrase": "golden dog",
+   "box": [
+    325.0,
+    347.0,
+    504.0,
+    457.0
+   ],
+   "qd_key": "4897409060569088",
+   "recognized": true,
+   "n_strokes": 1
+  },
+  {
+   "cls": "bear",
+   "phrase": "white bear",
+   "box": [
+    256.0,
+    88.0,
+    366.0,
+    233.0
+   ],
+   "qd_key": "6385636418256896",
+   "recognized": true,
+   "n_strokes": 3
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "below"
+  ],
+  [
+   0,
+   2,
+   "in_front_of"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.10436553391879852,
+ "heldout_set": "heldout_v2",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261105,
+  "per_cell": 2,
+  "original_sid": "qd_3_complex_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "direct_dev_v1"
+  ]
+ }
+}

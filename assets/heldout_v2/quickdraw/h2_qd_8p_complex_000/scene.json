@@ -1,0 +1,484 @@
+{
+ "sid": "h2_qd_8p_complex_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 9,
+ "count_bin": "8+",
+ "complexity": "complex",
+ "bg": "in a savanna at sunset",
+ "caption": "two leafy trees, two white birds, two red trucks, two green trees and a giraffe in a savanna at sunset",
+ "objects": [
+  {
+   "cls": "tree",
+   "phrase": "leafy tree",
+   "box": [
+    220.0,
+    127.0,
+    272.0,
+    215.0
+   ],
+   "qd_key": "5928200490188800",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "tree",
+   "phrase": "leafy tree",
+   "box": [
+    146.0,
+    175.0,
+    207.0,
+    260.0
+   ],
+   "qd_key": "6311592457142272",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "bird",
+   "phrase": "white bird",
+   "box": [
+    383.0,
+    163.0,
+    471.0,
+    206.0
+   ],
+   "qd_key": "5957591760896000",
+   "recognized": true,
+   "n_strokes": 2
+  },
+  {
+   "cls": "truck",
+   "phrase": "red truck",
+   "box": [
+    56.0,
+    278.0,
+    177.0,
+    373.0
+   ],
+   "qd_key": "4618316368838656",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "tree",
+   "phrase": "green tree",
+   "box": [
+    326.0,
+    296.0,
+    412.0,
+    404.0
+   ],
+   "qd_key": "5445626860929024",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "truck",
+   "phrase": "red truck",
+   "box": [
+    100.0,
+    222.0,
+    201.0,
+    259.0
+   ],
+   "qd_key": "5920242691735552",
+   "recognized": true,
+   "n_strokes": 2
+  },
+  {
+   "cls": "giraffe",
+   "phrase": "giraffe",
+   "box": [
+    183.0,
+    218.0,
+    270.0,
+    306.0
+   ],
+   "qd_key": "5310690329886720",
+   "recognized": true,
+   "n_strokes": 1
+  },
+  {
+   "cls": "tree",
+   "phrase": "green tree",
+   "box": [
+    422.0,
+    345.0,
+    503.0,
+    462.0
+   ],
+   "qd_key": "5622521846038528",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "bird",
+   "phrase": "white bird",
+   "box": [
+    404.0,
+    327.0,
+    505.0,
+    364.0
+   ],
+   "qd_key": "6410875978121216",
+   "recognized": true,
+   "n_strokes": 1
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "left_of"
+  ],
+  [
+   0,
+   3,
+   "right_of"
+  ],
+  [
+   0,
+   3,
+   "above"
+  ],
+  [
+   0,
+   4,
+   "left_of"
+  ],
+  [
+   0,
+   4,
+   "above"
+  ],
+  [
+   0,
+   5,
+   "right_of"
+  ],
+  [
+   0,
+   5,
+   "above"
+  ],
+  [
+   0,
+   6,
+   "above"
+  ],
+  [
+   0,
+   7,
+   "left_of"
+  ],
+  [
+   0,
+   7,
+   "above"
+  ],
+  [
+   0,
+   8,
+   "left_of"
+  ],
+  [
+   0,
+   8,
+   "above"
+  ],
+  [
+   1,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ],
+  [
+   1,
+   3,
+   "right_of"
+  ],
+  [
+   1,
+   3,
+   "above"
+  ],
+  [
+   1,
+   4,
+   "left_of"
+  ],
+  [
+   1,
+   4,
+   "above"
+  ],
+  [
+   1,
+   5,
+   "right_of"
+  ],
+  [
+   1,
+   6,
+   "left_of"
+  ],
+  [
+   1,
+   6,
+   "above"
+  ],
+  [
+   1,
+   6,
+   "behind"
+  ],
+  [
+   1,
+   7,
+   "left_of"
+  ],
+  [
+   1,
+   7,
+   "above"
+  ],
+  [
+   1,
+   8,
+   "left_of"
+  ],
+  [
+   1,
+   8,
+   "above"
+  ],
+  [
+   2,
+   3,
+   "right_of"
+  ],
+  [
+   2,
+   3,
+   "above"
+  ],
+  [
+   2,
+   4,
+   "right_of"
+  ],
+  [
+   2,
+   4,
+   "above"
+  ],
+  [
+   2,
+   5,
+   "right_of"
+  ],
+  [
+   2,
+   5,
+   "above"
+  ],
+  [
+   2,
+   6,
+   "right_of"
+  ],
+  [
+   2,
+   6,
+   "above"
+  ],
+  [
+   2,
+   7,
+   "left_of"
+  ],
+  [
+   2,
+   7,
+   "above"
+  ],
+  [
+   2,
+   8,
+   "left_of"
+  ],
+  [
+   2,
+   8,
+   "above"
+  ],
+  [
+   3,
+   4,
+   "left_of"
+  ],
+  [
+   3,
+   5,
+   "left_of"
+  ],
+  [
+   3,
+   5,
+   "below"
+  ],
+  [
+   3,
+   6,
+   "left_of"
+  ],
+  [
+   3,
+   6,
+   "below"
+  ],
+  [
+   3,
+   7,
+   "left_of"
+  ],
+  [
+   3,
+   7,
+   "above"
+  ],
+  [
+   3,
+   8,
+   "left_of"
+  ],
+  [
+   4,
+   5,
+   "right_of"
+  ],
+  [
+   4,
+   5,
+   "below"
+  ],
+  [
+   4,
+   6,
+   "right_of"
+  ],
+  [
+   4,
+   6,
+   "below"
+  ],
+  [
+   4,
+   7,
+   "left_of"
+  ],
+  [
+   4,
+   7,
+   "above"
+  ],
+  [
+   4,
+   8,
+   "left_of"
+  ],
+  [
+   4,
+   8,
+   "in_front_of"
+  ],
+  [
+   5,
+   6,
+   "left_of"
+  ],
+  [
+   5,
+   6,
+   "behind"
+  ],
+  [
+   5,
+   7,
+   "left_of"
+  ],
+  [
+   5,
+   7,
+   "above"
+  ],
+  [
+   5,
+   8,
+   "left_of"
+  ],
+  [
+   5,
+   8,
+   "above"
+  ],
+  [
+   6,
+   7,
+   "left_of"
+  ],
+  [
+   6,
+   7,
+   "above"
+  ],
+  [
+   6,
+   8,
+   "left_of"
+  ],
+  [
+   6,
+   8,
+   "above"
+  ],
+  [
+   7,
+   8,
+   "below"
+  ],
+  [
+   7,
+   8,
+   "in_front_of"
+  ]
+ ],
+ "overlap_max": 0.29548424568026715,
+ "heldout_set": "heldout_v2",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261105,
+  "per_cell": 2,
+  "original_sid": "qd_8p_complex_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "direct_dev_v1"
+  ]
+ }
+}

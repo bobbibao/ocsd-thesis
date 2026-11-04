@@ -107,4 +107,67 @@ class Heldout(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'No complete direct'): H.import_direct(P)
 
 
+
+class HeldoutV2(Heldout):
+    """Same orchestration on the v2 set: silhouette arm, sketch-fidelity primary tests."""
+    def setUp(self):
+        H.use('v2'); self.addCleanup(H.use, 'v1')
+        super().setUp()
+        original = self.model.generate
+        def generate(condition, seed, negative, **kw):
+            self.calls_sil = getattr(self, 'calls_sil', []) + [(kw.get('silhouette', False), 'silhouette_rle' in condition['objects'][0])]
+            return original(condition, seed, negative, **kw)
+        self.model.generate = generate
+
+    def test_locked_scenes_bins_and_budget(self):
+        self.assertEqual(len(self.scenes), 18)
+        self.assertTrue(all(s.sid.startswith('h2_qd_') for s in self.scenes))
+        bins = sorted(s.meta['count_bin'] for s in self.scenes)
+        self.assertEqual({b: bins.count(b) for b in set(bins)}, {'3': 6, '5': 6, '8+': 6})
+        self.assertEqual(sum(4*sampling_work(s.n) for s in self.scenes), self.protocol['direct_max_unet_sample_calls'])
+        v1 = {str(o['qd_key']) for p in (H.ROOT/'assets/heldout_v1/quickdraw').glob('*/scene.json')
+              for o in json.loads(p.read_text())['objects']}
+        self.assertFalse({str(o['qd_key']) for s in self.scenes for o in s.meta['objects']} & v1)
+        for s in self.scenes:
+            c = scene_condition(s, silhouettes=True); self.assertEqual(len(c['objects']), s.n)
+
+    def test_direct_import_plan_baselines_and_report(self):
+        def segment(img, box):
+            m = np.zeros(img.shape[:2], bool); x0, y0, x1, y1 = box; m[max(0, y0):y1, max(0, x0):x1] = True; return m
+        with patch('ocsd.vision.Vision', return_value=SimpleNamespace(sam=segment)):
+            super().test_direct_import_plan_baselines_and_report()
+        self.assertEqual(sorted(set(self.calls_sil)), [(False, True), (True, True)])
+        P = Paths(str(self.root/'exp'), run_id='r1')
+        summary = json.loads((Path(P.results)/'summary.json').read_text())
+        self.assertEqual(summary['heldout_set'], 'v2'); self.assertEqual([r['metric'] for r in summary['primary']], ['facing_acc', 'sketch_chamfer'])
+        self.assertTrue(all(0 <= r['p_holm'] <= 1 and r['p_holm'] >= r['p'] for r in summary['primary']))
+        fid = pd.read_csv(Path(P.results)/'quickdraw'/'sketch_fidelity.csv'); self.assertEqual(len(fid), 144)
+        self.assertTrue((Path(P.results)/'ocsd_heldout2_results.zip').exists())
+        with ZipFile(Path(P.results)/'ocsd_heldout2_results.zip') as z:
+            self.assertTrue(any(n.startswith('direct/') and n.endswith('run.json') for n in z.namelist()))
+
+
+class Fidelity(unittest.TestCase):
+    def test_mirror_and_missing_object(self):
+        from ocsd.sketch_fidelity import instance_fidelity
+        ink = np.zeros((100, 100), bool); ink[20:80, 20] = True; ink[20, 20:80] = True; ink[20:40, 79] = True  # asymmetric
+        mask = np.zeros((100, 100), bool); mask[20:81, 20:80] = True
+        r = instance_fidelity(mask, ink, (10, 10, 90, 90))
+        self.assertTrue(r['found']); self.assertTrue(r['facing_eligible'])
+        mirrored = instance_fidelity(mask[:, ::-1].copy(), ink, (10, 10, 90, 90))
+        self.assertLessEqual(r['chamfer'], mirrored['chamfer_mirror']+1e-9)
+        empty = instance_fidelity(np.zeros((100, 100), bool), ink, (10, 10, 90, 90))
+        self.assertFalse(empty['found']); self.assertFalse(empty['facing_correct']); self.assertEqual(empty['chamfer'], 1.0)
+
+    def test_facing_detects_mirrored_shape(self):
+        from ocsd.sketch_fidelity import instance_fidelity
+        from ocsd.direct_instances import sketch_silhouette
+        ink = np.full((120, 120), 255, np.uint8)
+        ink[60, 20:100] = 0; ink[30:60, 90:100] = 0; ink[30, 70:100] = 0; ink[30:60, 70] = 0  # body + head on the right
+        mask, _ = sketch_silhouette(ink); ink = ink < 128
+        good = instance_fidelity(mask, ink, (10, 20, 110, 70)); bad = instance_fidelity(mask[:, ::-1].copy(), ink, (10, 20, 110, 70))
+        if good['facing_eligible']:
+            self.assertTrue(good['facing_correct']); self.assertFalse(bad['facing_correct'])
+
+
 if __name__ == '__main__': unittest.main()

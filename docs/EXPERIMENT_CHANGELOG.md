@@ -139,3 +139,7 @@ Run 20261104T135658Z_41d72d97, 144/144 images. Blind review: structure success d
 ## Sketch-silhouette conditioning dev study locked — 2026-11-04
 
 New OCSD sketch parser (`sketch_silhouette`: stroke-end bridging, closing, hole fill) feeds instance masks parsed from the sketch into InstanceDiffusion's mask inputs, targeting the pose/shape failures of the held-out study. Dev study v2 (8 dev scenes x 2 seeds x box / silhouette / silhouette+scribble) locked in docs/DIRECT_DEV2_PROTOCOL.md; RUN_ALL default RUN_MODE=silhouette_dev.
+
+## Silhouette dev results and held-out v2 locked — 2026-11-04
+
+Dev v2 (analyst review): structure failures box 5 / silhouette 1 / silhouette+scribble 2 of 16; silhouette picked 9 times. Rule sends direct_silhouette to held-out v2 (18 new disjoint scenes, vs box, ControlNet, OCSD soft-matte); primary = automatic sketch fidelity (SAM facing accuracy and chamfer), Holm over two sign tests. RUN_ALL default RUN_MODE=heldout2. See docs/DIRECT_DEV2_20261104_RESULTS.md and docs/HELDOUT2_PROTOCOL.md.

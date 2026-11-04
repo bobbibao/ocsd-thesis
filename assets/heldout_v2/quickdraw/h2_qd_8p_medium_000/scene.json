@@ -1,0 +1,401 @@
+{
+ "sid": "h2_qd_8p_medium_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 8,
+ "count_bin": "8+",
+ "complexity": "medium",
+ "bg": "on a sandy beach",
+ "caption": "two red umbrellas, a black dog, a black sailboat, a brown cat, a wooden house, a black cat and a dog on a sandy beach",
+ "objects": [
+  {
+   "cls": "umbrella",
+   "phrase": "red umbrella",
+   "box": [
+    207.0,
+    294.0,
+    307.0,
+    410.0
+   ],
+   "qd_key": "6499316891910144",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "umbrella",
+   "phrase": "red umbrella",
+   "box": [
+    331.0,
+    250.0,
+    438.0,
+    352.0
+   ],
+   "qd_key": "6353094340247552",
+   "recognized": true,
+   "n_strokes": 2
+  },
+  {
+   "cls": "dog",
+   "phrase": "black dog",
+   "box": [
+    364.0,
+    213.0,
+    462.0,
+    283.0
+   ],
+   "qd_key": "5682695763918848",
+   "recognized": true,
+   "n_strokes": 6
+  },
+  {
+   "cls": "sailboat",
+   "phrase": "black sailboat",
+   "box": [
+    23.0,
+    160.0,
+    102.0,
+    256.0
+   ],
+   "qd_key": "6485313755021312",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "cat",
+   "phrase": "brown cat",
+   "box": [
+    86.0,
+    296.0,
+    196.0,
+    378.0
+   ],
+   "qd_key": "4731880941289472",
+   "recognized": true,
+   "n_strokes": 10
+  },
+  {
+   "cls": "house",
+   "phrase": "wooden house",
+   "box": [
+    183.0,
+    120.0,
+    248.0,
+    213.0
+   ],
+   "qd_key": "5416938824007680",
+   "recognized": true,
+   "n_strokes": 4
+  },
+  {
+   "cls": "cat",
+   "phrase": "black cat",
+   "box": [
+    228.0,
+    179.0,
+    338.0,
+    278.0
+   ],
+   "qd_key": "6375132446588928",
+   "recognized": true,
+   "n_strokes": 8
+  },
+  {
+   "cls": "dog",
+   "phrase": "dog",
+   "box": [
+    148.0,
+    203.0,
+    248.0,
+    286.0
+   ],
+   "qd_key": "4877100106383360",
+   "recognized": true,
+   "n_strokes": 8
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "left_of"
+  ],
+  [
+   0,
+   1,
+   "below"
+  ],
+  [
+   0,
+   2,
+   "left_of"
+  ],
+  [
+   0,
+   2,
+   "below"
+  ],
+  [
+   0,
+   3,
+   "right_of"
+  ],
+  [
+   0,
+   3,
+   "below"
+  ],
+  [
+   0,
+   4,
+   "right_of"
+  ],
+  [
+   0,
+   5,
+   "right_of"
+  ],
+  [
+   0,
+   5,
+   "below"
+  ],
+  [
+   0,
+   6,
+   "left_of"
+  ],
+  [
+   0,
+   6,
+   "below"
+  ],
+  [
+   0,
+   7,
+   "right_of"
+  ],
+  [
+   0,
+   7,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "in_front_of"
+  ],
+  [
+   1,
+   3,
+   "right_of"
+  ],
+  [
+   1,
+   3,
+   "below"
+  ],
+  [
+   1,
+   4,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "above"
+  ],
+  [
+   1,
+   5,
+   "right_of"
+  ],
+  [
+   1,
+   5,
+   "below"
+  ],
+  [
+   1,
+   6,
+   "right_of"
+  ],
+  [
+   1,
+   6,
+   "below"
+  ],
+  [
+   1,
+   6,
+   "in_front_of"
+  ],
+  [
+   1,
+   7,
+   "right_of"
+  ],
+  [
+   1,
+   7,
+   "below"
+  ],
+  [
+   2,
+   3,
+   "right_of"
+  ],
+  [
+   2,
+   3,
+   "below"
+  ],
+  [
+   2,
+   4,
+   "right_of"
+  ],
+  [
+   2,
+   4,
+   "above"
+  ],
+  [
+   2,
+   5,
+   "right_of"
+  ],
+  [
+   2,
+   5,
+   "below"
+  ],
+  [
+   2,
+   6,
+   "right_of"
+  ],
+  [
+   2,
+   7,
+   "right_of"
+  ],
+  [
+   3,
+   4,
+   "left_of"
+  ],
+  [
+   3,
+   4,
+   "above"
+  ],
+  [
+   3,
+   5,
+   "left_of"
+  ],
+  [
+   3,
+   5,
+   "below"
+  ],
+  [
+   3,
+   6,
+   "left_of"
+  ],
+  [
+   3,
+   7,
+   "left_of"
+  ],
+  [
+   3,
+   7,
+   "above"
+  ],
+  [
+   4,
+   5,
+   "left_of"
+  ],
+  [
+   4,
+   5,
+   "below"
+  ],
+  [
+   4,
+   6,
+   "left_of"
+  ],
+  [
+   4,
+   6,
+   "below"
+  ],
+  [
+   4,
+   7,
+   "left_of"
+  ],
+  [
+   4,
+   7,
+   "below"
+  ],
+  [
+   5,
+   6,
+   "left_of"
+  ],
+  [
+   5,
+   6,
+   "above"
+  ],
+  [
+   5,
+   6,
+   "behind"
+  ],
+  [
+   5,
+   7,
+   "above"
+  ],
+  [
+   5,
+   7,
+   "behind"
+  ],
+  [
+   6,
+   7,
+   "right_of"
+  ]
+ ],
+ "overlap_max": 0.15927471954082964,
+ "heldout_set": "heldout_v2",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261105,
+  "per_cell": 2,
+  "original_sid": "qd_8p_medium_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "direct_dev_v1"
+  ]
+ }
+}

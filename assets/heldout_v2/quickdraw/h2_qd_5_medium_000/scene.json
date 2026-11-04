@@ -1,0 +1,197 @@
+{
+ "sid": "h2_qd_5_medium_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 5,
+ "count_bin": "5",
+ "complexity": "medium",
+ "bg": "on a farm",
+ "caption": "a tree, two cows, a black horse and a cat on a farm",
+ "objects": [
+  {
+   "cls": "tree",
+   "phrase": "tree",
+   "box": [
+    141.0,
+    117.0,
+    209.0,
+    219.0
+   ],
+   "qd_key": "5589774431682560",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "cow",
+   "phrase": "cow",
+   "box": [
+    199.0,
+    245.0,
+    343.0,
+    329.0
+   ],
+   "qd_key": "6685497856360448",
+   "recognized": true,
+   "n_strokes": 11
+  },
+  {
+   "cls": "cow",
+   "phrase": "cow",
+   "box": [
+    2.0,
+    222.0,
+    127.0,
+    357.0
+   ],
+   "qd_key": "6660063664013312",
+   "recognized": true,
+   "n_strokes": 11
+  },
+  {
+   "cls": "horse",
+   "phrase": "black horse",
+   "box": [
+    310.0,
+    280.0,
+    476.0,
+    359.0
+   ],
+   "qd_key": "5925845182971904",
+   "recognized": true,
+   "n_strokes": 6
+  },
+  {
+   "cls": "cat",
+   "phrase": "cat",
+   "box": [
+    18.0,
+    160.0,
+    155.0,
+    246.0
+   ],
+   "qd_key": "4829316900716544",
+   "recognized": true,
+   "n_strokes": 10
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "left_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   0,
+   3,
+   "left_of"
+  ],
+  [
+   0,
+   3,
+   "above"
+  ],
+  [
+   0,
+   4,
+   "right_of"
+  ],
+  [
+   0,
+   4,
+   "above"
+  ],
+  [
+   0,
+   4,
+   "behind"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   3,
+   "left_of"
+  ],
+  [
+   1,
+   3,
+   "above"
+  ],
+  [
+   1,
+   3,
+   "behind"
+  ],
+  [
+   1,
+   4,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "below"
+  ],
+  [
+   2,
+   3,
+   "left_of"
+  ],
+  [
+   2,
+   3,
+   "above"
+  ],
+  [
+   2,
+   4,
+   "below"
+  ],
+  [
+   2,
+   4,
+   "in_front_of"
+  ],
+  [
+   3,
+   4,
+   "right_of"
+  ],
+  [
+   3,
+   4,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.10045697169847548,
+ "heldout_set": "heldout_v2",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261105,
+  "per_cell": 2,
+  "original_sid": "qd_5_medium_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "direct_dev_v1"
+  ]
+ }
+}

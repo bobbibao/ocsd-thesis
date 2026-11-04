@@ -1,0 +1,109 @@
+{
+ "schema": "ocsd-heldout-v2",
+ "stage": "held-out confirmation of sketch-silhouette conditioning (stage 4)",
+ "scenes": "assets/heldout_v2/manifest.json",
+ "seeds": [
+  0,
+  1
+ ],
+ "arms": [
+  {
+   "name": "direct_silhouette",
+   "family": "OCSD sketch-silhouette parser + InstanceDiffusion (external generator)",
+   "role": "primary, selected by the stage-3 rule"
+  },
+  {
+   "name": "direct_box",
+   "family": "InstanceDiffusion (external)",
+   "role": "primary comparator (best arm of held-out v1)"
+  },
+  {
+   "name": "controlnet",
+   "family": "SD 1.5 ControlNet scribble",
+   "role": "baseline; cn_scale 1.0 = paper_v2 tuned value"
+  },
+  {
+   "name": "instance_repair_count_matte_soft",
+   "family": "OCSD route",
+   "role": "earlier OCSD route; foreground_screen settings"
+  }
+ ],
+ "direct_arms": [
+  {
+   "name": "direct_box",
+   "scribble": false,
+   "fusion": "official_mean"
+  },
+  {
+   "name": "direct_silhouette",
+   "scribble": false,
+   "fusion": "official_mean",
+   "silhouette": true
+  }
+ ],
+ "steps": 50,
+ "mis": 0.36,
+ "alpha": 0.8,
+ "guidance": 7.5,
+ "negative": "blurry, low quality, distorted, deformed, watermark, text",
+ "precision": "UNet autocast float16, VAE float32",
+ "direct_max_seconds": 3600,
+ "direct_max_unet_sample_calls": 22544,
+ "experiment": {
+  "tier": "heldout_screen",
+  "cfg": {
+   "steps": 30,
+   "obj_steps": 20,
+   "K": 2,
+   "R": 1,
+   "bo_n": 5
+  },
+  "max_minutes": 180
+ },
+ "model_provenance": {
+  "source_commit": "722900ef03e3579fb693e65a1550333a4a162581",
+  "model_revisions": {
+   "xudongw/InstanceDiffusion": "fc74d76cde4a3dd0c3894e1764c8cf7299c77595",
+   "openai/clip-vit-large-patch14": "32bd64288804d66eefd0ccbe215aa642df71cc41"
+  },
+  "checkpoint_sha256": "b4de3f7877a1860b52837afe3a767ca92a2ef5084056048b503af80027cde1d1",
+  "checkpoint_state": "ema",
+  "phrase_text_weights_complete": true,
+  "base_conv_sha256": "0b6406769828fa6c5360c0187790e93964c167f646de271ce6510105b3a59ae6",
+  "ignored_nonlearned_text_buffers": [],
+  "config_sha256": "0d35e81804aa2fec6176dfa5a1f636159a6f51b94ed8748f63b1c00c191e9399"
+ },
+ "accepted_cpu_run": "20261103T142406Z_013a5f0e",
+ "accepted_cpu_report": "docs/direct_preflight_20261103_pass.json",
+ "primary_endpoint": "Sketch fidelity per image (ocsd/sketch_fidelity.py, SAM ViT-H box prompt on each instance target box vs the raw sketch ink): facing_acc (ink fits the outline better than its mirror; asymmetric drawings only) and sketch_chamfer (lower is better).",
+ "primary_tests": [
+  "direct_silhouette vs direct_box: facing_acc",
+  "direct_silhouette vs direct_box: sketch_chamfer"
+ ],
+ "analysis": [
+  "Unit = scene (18); per-scene value = mean over seeds (facing_acc over eligible instances; scenes without an eligible instance drop out of that test).",
+  "Primary: exact two-sided sign test over scenes, Holm over the two primary tests; paired bootstrap CIs over scenes.",
+  "Secondary (CIs only): the same two metrics for direct_silhouette vs ControlNet and vs OCSD soft-matte; OWLv2 count accuracy/OPR/count error/mIoU/relations/joint layout success and CLIP for all pairs; analyst review of the 36 sheets (count/colour/shape/naturalness), done blind to the key before unblinding; the user checks hard cases only.",
+  "Claim rule: silhouette conditioning is called better at following sketch shape/pose only if both primary tests are significant after Holm, or one is and the other points the same way; it is called better overall only if OWLv2 count accuracy and the analyst structure success are not worse (CI of the difference includes or exceeds 0).",
+  "Results by object-count bin (3, 5, 8+) are descriptive only.",
+  "Cost: wall time, sampling calls and peak memory per arm, not called equal FLOPs."
+ ],
+ "limits": [
+  "InstanceDiffusion is an external generator (Wang et al., CVPR 2024); OCSD contributes the sketch parser.",
+  "The fidelity metric uses SAM and raw sketch ink; SAM errors and interior sketch lines add noise equally to all arms. The silhouette arm sees a mask parsed from the same sketch, so chamfer partly measures that it obeys its input; facing (mirror test) is the less circular measure.",
+  "Analyst review is by the method author and not fully blind (styles are recognisable); it is secondary.",
+  "QuickDraw only; 18 scenes."
+ ],
+ "fidelity": {
+  "asymmetry_min": 0.04,
+  "empty_mask_min": 0.02,
+  "segmenter": "facebook/sam-vit-huge (box prompt, best of 3 masks by predicted IoU)"
+ },
+ "silhouette_parser": {
+  "function": "ocsd.direct_instances.sketch_silhouette",
+  "bridge_fraction_of_diagonal": 1.0,
+  "close_radius_fraction_of_diagonal": 0.03,
+  "polygon_points": 256
+ },
+ "locked_note": "Locked before any held-out v2 output. Scenes built by tools/build_heldout_v2.py (seed 20261105, disjoint QuickDraw drawings from held-out v1 and dev). Metric thresholds fixed after a GrabCut-based sanity check on the 48 dev-v2 images (dev data only)."
+}

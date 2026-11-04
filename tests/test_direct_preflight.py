@@ -91,7 +91,7 @@ class Preflight(unittest.TestCase):
         self.assertEqual(nb['metadata']['accelerator'],'GPU')
         code=[''.join(c['source']) for c in nb['cells'] if c['cell_type']=='code']
         config={};exec(code[0],config)
-        self.assertEqual(config['RUN_MODE'],'silhouette_dev')
+        self.assertEqual(config['RUN_MODE'],'heldout2')
         self.assertEqual(config['RUN_ID'],'')
         # No imports, GPU access, downloads, model generation or uploads are reachable
         # in later cells when the earlier preflight succeeds OR fails.
@@ -102,7 +102,7 @@ class Preflight(unittest.TestCase):
             tree=ast.parse(source)
             self.assertEqual(len(tree.body),1)
             self.assertIsInstance(tree.body[0],ast.If)
-            self.assertEqual(ast.unparse(tree.body[0].test),"RUN_MODE in ('experiment', 'heldout')")
+            self.assertEqual(ast.unparse(tree.body[0].test),"RUN_MODE in ('experiment', 'heldout', 'heldout2')")
             for mode in ('direct_preflight','direct_canary','direct_dev','silhouette_dev'):
                 scope={'RUN_MODE':mode};exec(source,scope)
                 self.assertEqual(set(scope),{'RUN_MODE','__builtins__'})
