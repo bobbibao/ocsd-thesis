@@ -1,0 +1,2715 @@
+{
+ "schema": "ocsd-direct-dev-scenes-v1",
+ "scenes": [
+  {
+   "sid": "dev1_cars_house",
+   "group": "same_class_colours",
+   "size": 512,
+   "caption": "a red car on the left and a white car on the right, parked in front of a house",
+   "caption_vi": "M\u1ed9t \u00f4 t\u00f4 \u0111\u1ecf b\u00ean tr\u00e1i, m\u1ed9t \u00f4 t\u00f4 tr\u1eafng b\u00ean ph\u1ea3i, \u0111\u1ed7 tr\u01b0\u1edbc m\u1ed9t ng\u00f4i nh\u00e0.",
+   "objects": [
+    {
+     "cls": "car",
+     "phrase": "a red car",
+     "placement_box": [
+      20,
+      280,
+      240,
+      450
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/car.ndjson",
+      "line_index": 4000,
+      "key_id": "5021579471749120",
+      "recognized": true,
+      "countrycode": "US",
+      "drawing": [
+       [
+        [
+         60,
+         41,
+         34,
+         25,
+         25,
+         34,
+         64,
+         98,
+         117,
+         120,
+         118,
+         106,
+         86,
+         75
+        ],
+        [
+         183,
+         187,
+         193,
+         209,
+         230,
+         239,
+         254,
+         254,
+         238,
+         208,
+         200,
+         188,
+         178,
+         175
+        ]
+       ],
+       [
+        [
+         203,
+         186,
+         180,
+         182,
+         199,
+         221,
+         246,
+         252,
+         255,
+         252,
+         246,
+         229,
+         171
+        ],
+        [
+         160,
+         184,
+         204,
+         245,
+         255,
+         255,
+         240,
+         232,
+         219,
+         185,
+         173,
+         161,
+         160
+        ]
+       ],
+       [
+        [
+         247,
+         204,
+         171,
+         121,
+         101,
+         45,
+         7,
+         0,
+         0,
+         25,
+         41,
+         60,
+         81,
+         145,
+         174,
+         212,
+         228,
+         245
+        ],
+        [
+         154,
+         149,
+         150,
+         181,
+         190,
+         191,
+         177,
+         170,
+         146,
+         59,
+         32,
+         13,
+         1,
+         0,
+         10,
+         54,
+         77,
+         131
+        ]
+       ],
+       [
+        [
+         92,
+         72,
+         71,
+         77,
+         116,
+         122,
+         127,
+         136
+        ],
+        [
+         184,
+         133,
+         119,
+         115,
+         106,
+         114,
+         156,
+         170
+        ]
+       ],
+       [
+        [
+         103,
+         94
+        ],
+        [
+         143,
+         137
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "car",
+     "phrase": "a white car",
+     "placement_box": [
+      272,
+      280,
+      492,
+      450
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/car.ndjson",
+      "line_index": 4001,
+      "key_id": "5469283603709952",
+      "recognized": true,
+      "countrycode": "CA",
+      "drawing": [
+       [
+        [
+         169,
+         164,
+         152,
+         133,
+         115,
+         106,
+         96,
+         94,
+         84,
+         55,
+         31,
+         13,
+         1,
+         0,
+         4,
+         26,
+         45,
+         65,
+         80,
+         90,
+         91,
+         82,
+         63,
+         50,
+         31,
+         23,
+         19,
+         19,
+         28,
+         39
+        ],
+        [
+         19,
+         7,
+         2,
+         0,
+         2,
+         6,
+         19,
+         67,
+         59,
+         60,
+         71,
+         86,
+         111,
+         132,
+         122,
+         106,
+         98,
+         97,
+         104,
+         117,
+         133,
+         145,
+         154,
+         156,
+         153,
+         146,
+         135,
+         114,
+         102,
+         101
+        ]
+       ],
+       [
+        [
+         79,
+         85,
+         113,
+         179,
+         169,
+         164,
+         166,
+         172,
+         191,
+         198,
+         210,
+         215,
+         214,
+         208,
+         194,
+         179,
+         174
+        ],
+        [
+         123,
+         118,
+         111,
+         103,
+         120,
+         147,
+         153,
+         158,
+         159,
+         157,
+         145,
+         129,
+         114,
+         108,
+         103,
+         105,
+         110
+        ]
+       ],
+       [
+        [
+         177,
+         185,
+         185,
+         179,
+         178,
+         182,
+         196,
+         205,
+         227,
+         238,
+         246,
+         254,
+         255,
+         250,
+         236,
+         204,
+         176
+        ],
+        [
+         10,
+         39,
+         57,
+         72,
+         66,
+         61,
+         51,
+         48,
+         47,
+         55,
+         66,
+         86,
+         98,
+         105,
+         110,
+         115,
+         115
+        ]
+       ],
+       [
+        [
+         108,
+         104,
+         104,
+         107,
+         123,
+         139,
+         148,
+         154,
+         154,
+         149
+        ],
+        [
+         102,
+         98,
+         80,
+         73,
+         58,
+         56,
+         64,
+         78,
+         101,
+         116
+        ]
+       ],
+       [
+        [
+         109,
+         114,
+         141
+        ],
+        [
+         79,
+         74,
+         67
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "house",
+     "phrase": "a house",
+     "placement_box": [
+      156,
+      30,
+      356,
+      240
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/house.ndjson",
+      "line_index": 4000,
+      "key_id": "5974141842751488",
+      "recognized": true,
+      "countrycode": "US",
+      "drawing": [
+       [
+        [
+         62,
+         55,
+         106,
+         218,
+         209,
+         210,
+         223,
+         238,
+         254,
+         251,
+         242,
+         208,
+         177,
+         168,
+         67,
+         0,
+         9,
+         17,
+         54,
+         67
+        ],
+        [
+         63,
+         171,
+         173,
+         184,
+         100,
+         63,
+         78,
+         67,
+         63,
+         55,
+         46,
+         28,
+         2,
+         0,
+         37,
+         73,
+         95,
+         102,
+         67,
+         61
+        ]
+       ],
+       [
+        [
+         100,
+         116,
+         167
+        ],
+        [
+         175,
+         123,
+         120
+        ]
+       ]
+      ]
+     }
+    }
+   ],
+   "selection": "First recognized QuickDraw records at zero-based line index >= 4000 (wide objects: first with width/height >= 2.2); fixed before outputs; development scenes, not a held-out benchmark."
+  },
+  {
+   "sid": "dev2_cats_tree",
+   "group": "same_class_colours",
+   "size": 512,
+   "caption": "a black cat on the left and a white cat in the middle, sitting on a lawn next to a tree",
+   "caption_vi": "M\u1ed9t con m\u00e8o \u0111en b\u00ean tr\u00e1i, m\u1ed9t con m\u00e8o tr\u1eafng \u1edf gi\u1eefa, ng\u1ed3i tr\u00ean b\u00e3i c\u1ecf c\u1ea1nh m\u1ed9t c\u00e1i c\u00e2y.",
+   "objects": [
+    {
+     "cls": "cat",
+     "phrase": "a black cat",
+     "placement_box": [
+      30,
+      260,
+      210,
+      470
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/cat.ndjson",
+      "line_index": 4000,
+      "key_id": "6161518968176640",
+      "recognized": true,
+      "countrycode": "US",
+      "drawing": [
+       [
+        [
+         94,
+         86,
+         44,
+         21,
+         10,
+         1,
+         1,
+         19,
+         62
+        ],
+        [
+         83,
+         78,
+         34,
+         15,
+         9,
+         9,
+         22,
+         59,
+         128
+        ]
+       ],
+       [
+        [
+         81,
+         95,
+         124,
+         141,
+         171,
+         183
+        ],
+        [
+         73,
+         76,
+         66,
+         65,
+         83,
+         98
+        ]
+       ],
+       [
+        [
+         180,
+         224,
+         242,
+         252,
+         255,
+         253,
+         217,
+         211
+        ],
+        [
+         91,
+         22,
+         4,
+         1,
+         6,
+         17,
+         92,
+         99
+        ]
+       ],
+       [
+        [
+         58,
+         63,
+         72,
+         103,
+         120,
+         139,
+         171,
+         200,
+         218,
+         232,
+         238,
+         239,
+         230,
+         221,
+         196
+        ],
+        [
+         119,
+         152,
+         172,
+         214,
+         226,
+         234,
+         236,
+         223,
+         210,
+         189,
+         171,
+         138,
+         111,
+         99,
+         93
+        ]
+       ],
+       [
+        [
+         144,
+         74
+        ],
+        [
+         153,
+         122
+        ]
+       ],
+       [
+        [
+         128,
+         91,
+         60
+        ],
+        [
+         172,
+         163,
+         149
+        ]
+       ],
+       [
+        [
+         99,
+         42
+        ],
+        [
+         199,
+         167
+        ]
+       ],
+       [
+        [
+         184,
+         199,
+         252
+        ],
+        [
+         161,
+         158,
+         134
+        ]
+       ],
+       [
+        [
+         175,
+         184,
+         238
+        ],
+        [
+         193,
+         188,
+         174
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "cat",
+     "phrase": "a white cat",
+     "placement_box": [
+      220,
+      280,
+      380,
+      470
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/cat.ndjson",
+      "line_index": 4001,
+      "key_id": "5748639823560704",
+      "recognized": true,
+      "countrycode": "CO",
+      "drawing": [
+       [
+        [
+         88,
+         74,
+         107,
+         141,
+         164,
+         168,
+         178,
+         186,
+         182,
+         187,
+         178,
+         161,
+         110,
+         100,
+         94,
+         90,
+         91,
+         88
+        ],
+        [
+         47,
+         19,
+         29,
+         25,
+         28,
+         13,
+         0,
+         29,
+         60,
+         84,
+         99,
+         106,
+         107,
+         105,
+         99,
+         89,
+         60,
+         45
+        ]
+       ],
+       [
+        [
+         140,
+         129,
+         134,
+         142
+        ],
+        [
+         64,
+         68,
+         75,
+         64
+        ]
+       ],
+       [
+        [
+         138,
+         138
+        ],
+        [
+         72,
+         88
+        ]
+       ],
+       [
+        [
+         124,
+         145,
+         154
+        ],
+        [
+         88,
+         91,
+         83
+        ]
+       ],
+       [
+        [
+         158,
+         220
+        ],
+        [
+         80,
+         56
+        ]
+       ],
+       [
+        [
+         171,
+         255
+        ],
+        [
+         81,
+         82
+        ]
+       ],
+       [
+        [
+         99,
+         32
+        ],
+        [
+         86,
+         86
+        ]
+       ],
+       [
+        [
+         107,
+         0
+        ],
+        [
+         94,
+         101
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "tree",
+     "phrase": "a tree",
+     "placement_box": [
+      330,
+      30,
+      500,
+      270
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/tree.ndjson",
+      "line_index": 4000,
+      "key_id": "6436208789946368",
+      "recognized": true,
+      "countrycode": "TH",
+      "drawing": [
+       [
+        [
+         0,
+         15,
+         15,
+         35,
+         45,
+         60,
+         74,
+         90,
+         98,
+         110,
+         128,
+         130,
+         120,
+         117,
+         108,
+         88,
+         68
+        ],
+        [
+         73,
+         157,
+         176,
+         223,
+         236,
+         249,
+         255,
+         255,
+         251,
+         235,
+         180,
+         165,
+         107,
+         51,
+         1,
+         1,
+         13
+        ]
+       ]
+      ]
+     }
+    }
+   ],
+   "selection": "First recognized QuickDraw records at zero-based line index >= 4000 (wide objects: first with width/height >= 2.2); fixed before outputs; development scenes, not a held-out benchmark."
+  },
+  {
+   "sid": "dev3_umbrellas_palm",
+   "group": "same_class_colours",
+   "size": 512,
+   "caption": "a red umbrella and a blue umbrella on a sandy beach, with a palm tree on the right",
+   "caption_vi": "M\u1ed9t c\u00e2y d\u00f9 \u0111\u1ecf v\u00e0 m\u1ed9t c\u00e2y d\u00f9 xanh d\u01b0\u01a1ng tr\u00ean b\u00e3i c\u00e1t, c\u00f3 m\u1ed9t c\u00e2y d\u1eeba b\u00ean ph\u1ea3i.",
+   "objects": [
+    {
+     "cls": "umbrella",
+     "phrase": "a red umbrella",
+     "placement_box": [
+      20,
+      140,
+      190,
+      330
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/umbrella.ndjson",
+      "line_index": 4000,
+      "key_id": "6455393129594880",
+      "recognized": true,
+      "countrycode": "CA",
+      "drawing": [
+       [
+        [
+         3,
+         3,
+         9,
+         19,
+         39,
+         115,
+         151,
+         160,
+         166,
+         166
+        ],
+        [
+         120,
+         62,
+         47,
+         36,
+         22,
+         1,
+         1,
+         12,
+         53,
+         100
+        ]
+       ],
+       [
+        [
+         154,
+         85,
+         0
+        ],
+        [
+         100,
+         103,
+         119
+        ]
+       ],
+       [
+        [
+         77,
+         78,
+         83,
+         90,
+         103,
+         121,
+         125,
+         124
+        ],
+        [
+         106,
+         182,
+         219,
+         237,
+         253,
+         255,
+         231,
+         216
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "umbrella",
+     "phrase": "a blue umbrella",
+     "placement_box": [
+      205,
+      160,
+      350,
+      330
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/umbrella.ndjson",
+      "line_index": 4001,
+      "key_id": "4560171906891776",
+      "recognized": true,
+      "countrycode": "US",
+      "drawing": [
+       [
+        [
+         176,
+         172,
+         168
+        ],
+        [
+         70,
+         193,
+         222
+        ]
+       ],
+       [
+        [
+         175,
+         172,
+         155,
+         142,
+         134,
+         116,
+         106,
+         68,
+         56,
+         40,
+         1,
+         0,
+         21,
+         40,
+         94,
+         148,
+         222,
+         242,
+         250,
+         254,
+         255,
+         252,
+         241,
+         231,
+         207,
+         200,
+         181,
+         174
+        ],
+        [
+         65,
+         72,
+         65,
+         65,
+         74,
+         78,
+         77,
+         61,
+         70,
+         71,
+         56,
+         46,
+         24,
+         14,
+         0,
+         0,
+         16,
+         27,
+         37,
+         51,
+         72,
+         73,
+         71,
+         79,
+         88,
+         70,
+         72,
+         67
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "palm tree",
+     "phrase": "a palm tree",
+     "placement_box": [
+      370,
+      40,
+      500,
+      420
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/palm%20tree.ndjson",
+      "line_index": 4000,
+      "key_id": "6060477664722944",
+      "recognized": true,
+      "countrycode": "US",
+      "drawing": [
+       [
+        [
+         30,
+         41,
+         49
+        ],
+        [
+         90,
+         224,
+         255
+        ]
+       ],
+       [
+        [
+         73,
+         104
+        ],
+        [
+         97,
+         238
+        ]
+       ],
+       [
+        [
+         72,
+         97,
+         151,
+         140,
+         130,
+         99,
+         135,
+         133,
+         91,
+         75,
+         59,
+         13,
+         58,
+         34,
+         0,
+         33,
+         60,
+         25,
+         0,
+         7,
+         22,
+         40,
+         61
+        ],
+        [
+         96,
+         104,
+         132,
+         109,
+         96,
+         68,
+         22,
+         18,
+         30,
+         44,
+         31,
+         21,
+         64,
+         65,
+         77,
+         79,
+         90,
+         90,
+         155,
+         139,
+         118,
+         102,
+         93
+        ]
+       ],
+       [
+        [
+         145,
+         170,
+         193
+        ],
+        [
+         0,
+         31,
+         48
+        ]
+       ]
+      ]
+     }
+    }
+   ],
+   "selection": "First recognized QuickDraw records at zero-based line index >= 4000 (wide objects: first with width/height >= 2.2); fixed before outputs; development scenes, not a held-out benchmark."
+  },
+  {
+   "sid": "dev4_apples_cup",
+   "group": "same_class_colours",
+   "size": 512,
+   "caption": "a green apple and a red apple next to a white cup on a wooden table",
+   "caption_vi": "M\u1ed9t qu\u1ea3 t\u00e1o xanh l\u00e1 v\u00e0 m\u1ed9t qu\u1ea3 t\u00e1o \u0111\u1ecf c\u1ea1nh m\u1ed9t chi\u1ebfc c\u1ed1c tr\u1eafng tr\u00ean b\u00e0n g\u1ed7.",
+   "objects": [
+    {
+     "cls": "apple",
+     "phrase": "a green apple",
+     "placement_box": [
+      40,
+      290,
+      180,
+      430
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/apple.ndjson",
+      "line_index": 4000,
+      "key_id": "6060407741480960",
+      "recognized": true,
+      "countrycode": "ZA",
+      "drawing": [
+       [
+        [
+         118,
+         111,
+         93,
+         69,
+         43,
+         26,
+         17,
+         1,
+         2,
+         11,
+         35,
+         54,
+         89,
+         105,
+         112,
+         117,
+         129,
+         136,
+         153,
+         179,
+         193,
+         205,
+         219,
+         225,
+         221,
+         210,
+         189,
+         167,
+         152,
+         137,
+         121,
+         119,
+         118,
+         110,
+         114,
+         150,
+         170
+        ],
+        [
+         91,
+         85,
+         75,
+         70,
+         75,
+         89,
+         103,
+         158,
+         194,
+         213,
+         238,
+         247,
+         246,
+         229,
+         226,
+         229,
+         249,
+         255,
+         252,
+         237,
+         225,
+         208,
+         180,
+         148,
+         110,
+         85,
+         67,
+         55,
+         55,
+         63,
+         87,
+         99,
+         93,
+         48,
+         21,
+         1,
+         0
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "apple",
+     "phrase": "a red apple",
+     "placement_box": [
+      195,
+      300,
+      325,
+      430
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/apple.ndjson",
+      "line_index": 4001,
+      "key_id": "4995896401985536",
+      "recognized": true,
+      "countrycode": "FR",
+      "drawing": [
+       [
+        [
+         78,
+         68,
+         58,
+         42,
+         16,
+         8,
+         1,
+         0,
+         9,
+         25,
+         57,
+         65,
+         91,
+         142,
+         158,
+         171,
+         179,
+         180,
+         172,
+         160,
+         146,
+         129,
+         99,
+         83,
+         101,
+         113,
+         129
+        ],
+        [
+         99,
+         67,
+         62,
+         64,
+         87,
+         103,
+         128,
+         154,
+         178,
+         199,
+         223,
+         235,
+         255,
+         225,
+         211,
+         190,
+         167,
+         146,
+         118,
+         103,
+         89,
+         80,
+         79,
+         87,
+         28,
+         13,
+         0
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "cup",
+     "phrase": "a white cup",
+     "placement_box": [
+      350,
+      230,
+      480,
+      430
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/cup.ndjson",
+      "line_index": 4000,
+      "key_id": "6561932549029888",
+      "recognized": true,
+      "countrycode": "US",
+      "drawing": [
+       [
+        [
+         111,
+         78,
+         35,
+         10,
+         1,
+         3,
+         15,
+         47,
+         81,
+         113,
+         147,
+         163,
+         174,
+         169,
+         152,
+         123,
+         100
+        ],
+        [
+         2,
+         3,
+         14,
+         29,
+         40,
+         54,
+         63,
+         71,
+         74,
+         72,
+         62,
+         51,
+         32,
+         18,
+         8,
+         1,
+         2
+        ]
+       ],
+       [
+        [
+         4,
+         8,
+         15,
+         38,
+         65,
+         84,
+         120,
+         134
+        ],
+        [
+         62,
+         63,
+         85,
+         244,
+         253,
+         255,
+         253,
+         248
+        ]
+       ],
+       [
+        [
+         145,
+         177,
+         181
+        ],
+        [
+         249,
+         78,
+         29
+        ]
+       ]
+      ]
+     }
+    }
+   ],
+   "selection": "First recognized QuickDraw records at zero-based line index >= 4000 (wide objects: first with width/height >= 2.2); fixed before outputs; development scenes, not a held-out benchmark."
+  },
+  {
+   "sid": "dev5_dog_couch",
+   "group": "overlap",
+   "size": 512,
+   "caption": "a brown dog sitting on a gray couch next to a floor lamp in a living room",
+   "caption_vi": "M\u1ed9t con ch\u00f3 n\u00e2u ng\u1ed3i tr\u00ean gh\u1ebf sofa x\u00e1m, c\u1ea1nh m\u1ed9t c\u00e2y \u0111\u00e8n \u0111\u1ee9ng trong ph\u00f2ng kh\u00e1ch.",
+   "objects": [
+    {
+     "cls": "couch",
+     "phrase": "a gray couch",
+     "placement_box": [
+      20,
+      220,
+      400,
+      440
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/couch.ndjson",
+      "line_index": 4000,
+      "key_id": "4571105983463424",
+      "recognized": true,
+      "countrycode": "SA",
+      "drawing": [
+       [
+        [
+         12,
+         12,
+         35,
+         35,
+         218,
+         228,
+         255,
+         254,
+         205,
+         0
+        ],
+        [
+         87,
+         34,
+         27,
+         0,
+         0,
+         28,
+         30,
+         73,
+         73,
+         82
+        ]
+       ],
+       [
+        [
+         32,
+         32,
+         43,
+         43
+        ],
+        [
+         74,
+         55,
+         44,
+         20
+        ]
+       ],
+       [
+        [
+         227,
+         226,
+         248,
+         248
+        ],
+        [
+         25,
+         39,
+         44,
+         54
+        ]
+       ],
+       [
+        [
+         227,
+         43
+        ],
+        [
+         49,
+         49
+        ]
+       ],
+       [
+        [
+         42,
+         202
+        ],
+        [
+         33,
+         33
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "dog",
+     "phrase": "a brown dog",
+     "placement_box": [
+      150,
+      130,
+      300,
+      330
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/dog.ndjson",
+      "line_index": 4000,
+      "key_id": "6610816587530240",
+      "recognized": true,
+      "countrycode": "SG",
+      "drawing": [
+       [
+        [
+         72,
+         174,
+         192,
+         223,
+         245,
+         255,
+         254,
+         244,
+         220,
+         195,
+         186,
+         187,
+         165,
+         115,
+         66,
+         49,
+         47,
+         49,
+         100
+        ],
+        [
+         58,
+         50,
+         42,
+         3,
+         0,
+         5,
+         19,
+         37,
+         63,
+         81,
+         93,
+         137,
+         148,
+         156,
+         156,
+         152,
+         148,
+         67,
+         56
+        ]
+       ],
+       [
+        [
+         79,
+         78,
+         79,
+         83,
+         97,
+         122,
+         112
+        ],
+        [
+         167,
+         198,
+         209,
+         209,
+         199,
+         193,
+         155
+        ]
+       ],
+       [
+        [
+         164,
+         164,
+         170,
+         190,
+         202,
+         204,
+         182
+        ],
+        [
+         158,
+         202,
+         202,
+         184,
+         180,
+         175,
+         136
+        ]
+       ],
+       [
+        [
+         54,
+         44,
+         18,
+         0,
+         44,
+         56
+        ],
+        [
+         63,
+         67,
+         92,
+         118,
+         101,
+         93
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "floor lamp",
+     "phrase": "a floor lamp",
+     "placement_box": [
+      420,
+      40,
+      500,
+      440
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/floor%20lamp.ndjson",
+      "line_index": 4000,
+      "key_id": "5992956618080256",
+      "recognized": true,
+      "countrycode": "SE",
+      "drawing": [
+       [
+        [
+         50,
+         44,
+         44
+        ],
+        [
+         255,
+         197,
+         58
+        ]
+       ],
+       [
+        [
+         2,
+         13,
+         109
+        ],
+        [
+         61,
+         59,
+         59
+        ]
+       ],
+       [
+        [
+         109,
+         84,
+         30,
+         9,
+         0
+        ],
+        [
+         59,
+         1,
+         0,
+         37,
+         72
+        ]
+       ],
+       [
+        [
+         67,
+         64,
+         67
+        ],
+        [
+         62,
+         75,
+         236
+        ]
+       ]
+      ]
+     }
+    }
+   ],
+   "selection": "First recognized QuickDraw records at zero-based line index >= 4000 (wide objects: first with width/height >= 2.2); fixed before outputs; development scenes, not a held-out benchmark."
+  },
+  {
+   "sid": "dev6_bird_fence",
+   "group": "overlap",
+   "size": 512,
+   "caption": "a small bird perched on a wooden fence in a garden, with a flower in front of the fence",
+   "caption_vi": "M\u1ed9t ch\u00fa chim nh\u1ecf \u0111\u1eadu tr\u00ean h\u00e0ng r\u00e0o g\u1ed7 trong v\u01b0\u1eddn, c\u00f3 m\u1ed9t b\u00f4ng hoa tr\u01b0\u1edbc h\u00e0ng r\u00e0o.",
+   "objects": [
+    {
+     "cls": "fence",
+     "phrase": "a wooden fence",
+     "placement_box": [
+      20,
+      250,
+      492,
+      410
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/fence.ndjson",
+      "line_index": 4000,
+      "key_id": "5305508619616256",
+      "recognized": true,
+      "countrycode": "CH",
+      "drawing": [
+       [
+        [
+         19,
+         20,
+         59,
+         114,
+         255,
+         248,
+         236,
+         0
+        ],
+        [
+         54,
+         76,
+         83,
+         86,
+         74,
+         57,
+         43,
+         54
+        ]
+       ],
+       [
+        [
+         49,
+         46,
+         58,
+         70,
+         76,
+         86,
+         86,
+         91,
+         88,
+         41
+        ],
+        [
+         136,
+         47,
+         19,
+         0,
+         7,
+         33,
+         78,
+         131,
+         135,
+         144
+        ]
+       ],
+       [
+        [
+         144,
+         136,
+         156,
+         154,
+         129
+        ],
+        [
+         145,
+         37,
+         38,
+         9,
+         37
+        ]
+       ],
+       [
+        [
+         152,
+         159,
+         165
+        ],
+        [
+         40,
+         107,
+         139
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "bird",
+     "phrase": "a small bird",
+     "placement_box": [
+      190,
+      200,
+      320,
+      290
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/bird.ndjson",
+      "line_index": 4000,
+      "key_id": "6461614976925696",
+      "recognized": true,
+      "countrycode": "GB",
+      "drawing": [
+       [
+        [
+         240,
+         238,
+         228,
+         178,
+         143,
+         130,
+         122,
+         99,
+         83,
+         51,
+         24,
+         0,
+         12,
+         29,
+         79,
+         95,
+         129,
+         135,
+         152,
+         168,
+         191,
+         244,
+         255
+        ],
+        [
+         22,
+         13,
+         12,
+         12,
+         25,
+         40,
+         24,
+         5,
+         0,
+         0,
+         10,
+         45,
+         33,
+         27,
+         28,
+         37,
+         86,
+         91,
+         69,
+         58,
+         55,
+         54,
+         49
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "flower",
+     "phrase": "a flower",
+     "placement_box": [
+      370,
+      320,
+      480,
+      490
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/flower.ndjson",
+      "line_index": 4000,
+      "key_id": "6197766042681344",
+      "recognized": true,
+      "countrycode": "US",
+      "drawing": [
+       [
+        [
+         83,
+         79
+        ],
+        [
+         89,
+         255
+        ]
+       ],
+       [
+        [
+         79,
+         80,
+         87,
+         97,
+         105,
+         105,
+         95,
+         87,
+         70,
+         58,
+         51,
+         51,
+         60,
+         77,
+         77,
+         63,
+         50,
+         39,
+         25,
+         15,
+         16,
+         35,
+         53,
+         26,
+         11,
+         7,
+         1,
+         0,
+         5,
+         17,
+         42,
+         49,
+         54,
+         53,
+         70,
+         87,
+         96,
+         104,
+         104,
+         97,
+         121,
+         137,
+         152,
+         158,
+         163,
+         163,
+         144,
+         130,
+         99,
+         113,
+         123,
+         128,
+         126,
+         115,
+         103,
+         95,
+         80
+        ],
+        [
+         87,
+         90,
+         89,
+         84,
+         72,
+         57,
+         45,
+         41,
+         41,
+         47,
+         59,
+         74,
+         85,
+         91,
+         94,
+         120,
+         132,
+         137,
+         136,
+         120,
+         98,
+         79,
+         74,
+         84,
+         85,
+         82,
+         67,
+         47,
+         36,
+         27,
+         23,
+         27,
+         37,
+         8,
+         1,
+         0,
+         4,
+         16,
+         28,
+         39,
+         25,
+         22,
+         23,
+         27,
+         38,
+         48,
+         68,
+         75,
+         78,
+         86,
+         98,
+         111,
+         126,
+         131,
+         131,
+         127,
+         101
+        ]
+       ]
+      ]
+     }
+    }
+   ],
+   "selection": "First recognized QuickDraw records at zero-based line index >= 4000 (wide objects: first with width/height >= 2.2); fixed before outputs; development scenes, not a held-out benchmark."
+  },
+  {
+   "sid": "dev7_train_tree_sun",
+   "group": "wide_box",
+   "size": 512,
+   "caption": "a long train passing by a tree under the sun",
+   "caption_vi": "M\u1ed9t \u0111o\u00e0n t\u00e0u d\u00e0i ch\u1ea1y qua m\u1ed9t c\u00e1i c\u00e2y d\u01b0\u1edbi m\u1eb7t tr\u1eddi.",
+   "objects": [
+    {
+     "cls": "train",
+     "phrase": "a long train",
+     "placement_box": [
+      20,
+      260,
+      400,
+      400
+     ],
+     "wide_rule": true,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/train.ndjson",
+      "line_index": 4000,
+      "key_id": "5446354182602752",
+      "recognized": true,
+      "countrycode": "MP",
+      "drawing": [
+       [
+        [
+         187,
+         189,
+         207,
+         208,
+         203
+        ],
+        [
+         48,
+         4,
+         0,
+         11,
+         52
+        ]
+       ],
+       [
+        [
+         205,
+         245,
+         243,
+         110,
+         106,
+         138,
+         189
+        ],
+        [
+         46,
+         39,
+         87,
+         80,
+         47,
+         44,
+         50
+        ]
+       ],
+       [
+        [
+         241,
+         236,
+         236,
+         243,
+         250,
+         251,
+         246,
+         238,
+         235,
+         240,
+         247,
+         248,
+         244,
+         240,
+         238,
+         244,
+         249,
+         251,
+         244
+        ],
+        [
+         81,
+         71,
+         60,
+         52,
+         57,
+         69,
+         75,
+         71,
+         60,
+         56,
+         61,
+         69,
+         77,
+         72,
+         61,
+         55,
+         59,
+         68,
+         76
+        ]
+       ],
+       [
+        [
+         94,
+         94
+        ],
+        [
+         52,
+         52
+        ]
+       ],
+       [
+        [
+         98,
+         92,
+         49,
+         5,
+         3,
+         6,
+         45,
+         95
+        ],
+        [
+         49,
+         81,
+         73,
+         74,
+         47,
+         39,
+         40,
+         51
+        ]
+       ],
+       [
+        [
+         97,
+         106,
+         98
+        ],
+        [
+         66,
+         66,
+         65
+        ]
+       ],
+       [
+        [
+         0,
+         44,
+         161,
+         255
+        ],
+        [
+         93,
+         97,
+         96,
+         107
+        ]
+       ],
+       [
+        [
+         27,
+         25,
+         27
+        ],
+        [
+         92,
+         76,
+         72
+        ]
+       ],
+       [
+        [
+         48,
+         48
+        ],
+        [
+         94,
+         93
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "tree",
+     "phrase": "a tree",
+     "placement_box": [
+      410,
+      120,
+      500,
+      420
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/tree.ndjson",
+      "line_index": 4001,
+      "key_id": "5415361904115712",
+      "recognized": true,
+      "countrycode": "US",
+      "drawing": [
+       [
+        [
+         0,
+         18,
+         40,
+         61,
+         74,
+         83,
+         86,
+         87
+        ],
+        [
+         255,
+         253,
+         243,
+         227,
+         213,
+         192,
+         174,
+         104
+        ]
+       ],
+       [
+        [
+         182,
+         171,
+         159,
+         148,
+         139,
+         139,
+         146,
+         143
+        ],
+        [
+         226,
+         225,
+         217,
+         201,
+         182,
+         158,
+         113,
+         83
+        ]
+       ],
+       [
+        [
+         143,
+         164,
+         175,
+         166,
+         175,
+         176,
+         172,
+         161,
+         115,
+         107,
+         98,
+         68,
+         60,
+         50,
+         43,
+         35,
+         29,
+         28,
+         30,
+         38,
+         36,
+         49,
+         82
+        ],
+        [
+         83,
+         81,
+         73,
+         55,
+         37,
+         24,
+         16,
+         10,
+         0,
+         4,
+         19,
+         18,
+         22,
+         31,
+         50,
+         49,
+         57,
+         86,
+         89,
+         90,
+         111,
+         112,
+         101
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "sun",
+     "phrase": "the sun",
+     "placement_box": [
+      40,
+      30,
+      150,
+      140
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/sun.ndjson",
+      "line_index": 4000,
+      "key_id": "5436262527795200",
+      "recognized": true,
+      "countrycode": "RU",
+      "drawing": [
+       [
+        [
+         123,
+         114,
+         106,
+         100,
+         108,
+         117,
+         136,
+         149,
+         145,
+         137
+        ],
+        [
+         30,
+         29,
+         37,
+         72,
+         89,
+         88,
+         77,
+         64,
+         35,
+         23
+        ]
+       ],
+       [
+        [
+         86,
+         46,
+         0
+        ],
+        [
+         77,
+         83,
+         101
+        ]
+       ],
+       [
+        [
+         120,
+         145,
+         188,
+         216,
+         229
+        ],
+        [
+         107,
+         125,
+         148,
+         156,
+         155
+        ]
+       ],
+       [
+        [
+         193,
+         183,
+         188,
+         255
+        ],
+        [
+         64,
+         56,
+         52,
+         51
+        ]
+       ],
+       [
+        [
+         113,
+         33
+        ],
+        [
+         36,
+         11
+        ]
+       ],
+       [
+        [
+         132,
+         132,
+         139
+        ],
+        [
+         29,
+         14,
+         0
+        ]
+       ]
+      ]
+     }
+    }
+   ],
+   "selection": "First recognized QuickDraw records at zero-based line index >= 4000 (wide objects: first with width/height >= 2.2); fixed before outputs; development scenes, not a held-out benchmark."
+  },
+  {
+   "sid": "dev8_canoe_mountain",
+   "group": "wide_box",
+   "size": 512,
+   "caption": "a red canoe on a calm lake, with a mountain behind it and a cloud in the sky",
+   "caption_vi": "M\u1ed9t chi\u1ebfc xu\u1ed3ng \u0111\u1ecf tr\u00ean m\u1eb7t h\u1ed3 ph\u1eb3ng l\u1eb7ng, ph\u00eda sau l\u00e0 ng\u1ecdn n\u00fai v\u00e0 m\u1ed9t \u0111\u00e1m m\u00e2y tr\u00ean tr\u1eddi.",
+   "objects": [
+    {
+     "cls": "canoe",
+     "phrase": "a red canoe",
+     "placement_box": [
+      90,
+      340,
+      430,
+      420
+     ],
+     "wide_rule": true,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/canoe.ndjson",
+      "line_index": 4000,
+      "key_id": "5427819972657152",
+      "recognized": true,
+      "countrycode": "US",
+      "drawing": [
+       [
+        [
+         0,
+         31,
+         56,
+         92,
+         122,
+         148,
+         198,
+         248,
+         253,
+         255,
+         248,
+         229,
+         194,
+         145,
+         80,
+         65,
+         43,
+         30,
+         21,
+         10
+        ],
+        [
+         0,
+         24,
+         37,
+         51,
+         54,
+         54,
+         44,
+         27,
+         21,
+         24,
+         40,
+         56,
+         69,
+         69,
+         62,
+         58,
+         44,
+         21,
+         12,
+         9
+        ]
+       ],
+       [
+        [
+         7,
+         7
+        ],
+        [
+         8,
+         14
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "mountain",
+     "phrase": "a mountain",
+     "placement_box": [
+      150,
+      70,
+      492,
+      290
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/mountain.ndjson",
+      "line_index": 4000,
+      "key_id": "6363603957448704",
+      "recognized": true,
+      "countrycode": "CA",
+      "drawing": [
+       [
+        [
+         0,
+         10,
+         42,
+         68,
+         81,
+         149,
+         165,
+         171,
+         172,
+         179,
+         208,
+         237,
+         255
+        ],
+        [
+         96,
+         101,
+         104,
+         100,
+         95,
+         36,
+         14,
+         0,
+         18,
+         44,
+         120,
+         167,
+         179
+        ]
+       ],
+       [
+        [
+         120,
+         130,
+         155,
+         157
+        ],
+        [
+         59,
+         70,
+         70,
+         77
+        ]
+       ]
+      ]
+     }
+    },
+    {
+     "cls": "cloud",
+     "phrase": "a cloud",
+     "placement_box": [
+      20,
+      20,
+      140,
+      100
+     ],
+     "wide_rule": false,
+     "source": {
+      "source_url": "https://storage.googleapis.com/quickdraw_dataset/full/simplified/cloud.ndjson",
+      "line_index": 4000,
+      "key_id": "5419589389254656",
+      "recognized": true,
+      "countrycode": "US",
+      "drawing": [
+       [
+        [
+         19,
+         22,
+         32,
+         73,
+         85,
+         95,
+         120,
+         151,
+         169,
+         180,
+         196,
+         229,
+         243,
+         253,
+         253,
+         219,
+         230,
+         230,
+         224,
+         197,
+         190,
+         181,
+         171,
+         130,
+         102,
+         104,
+         97,
+         88,
+         62,
+         57,
+         50,
+         48,
+         19,
+         4,
+         0,
+         10,
+         2,
+         2,
+         8,
+         26
+        ],
+        [
+         16,
+         9,
+         5,
+         2,
+         5,
+         21,
+         5,
+         0,
+         7,
+         17,
+         10,
+         9,
+         15,
+         27,
+         43,
+         48,
+         70,
+         86,
+         94,
+         95,
+         87,
+         96,
+         101,
+         105,
+         94,
+         86,
+         93,
+         96,
+         97,
+         95,
+         85,
+         76,
+         78,
+         66,
+         49,
+         43,
+         36,
+         28,
+         22,
+         17
+        ]
+       ]
+      ]
+     }
+    }
+   ],
+   "selection": "First recognized QuickDraw records at zero-based line index >= 4000 (wide objects: first with width/height >= 2.2); fixed before outputs; development scenes, not a held-out benchmark."
+  }
+ ]
+}

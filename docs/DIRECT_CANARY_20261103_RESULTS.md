@@ -96,7 +96,7 @@ InstanceDiffusion sampler, not as part of InstanceDiffusion.
 
 ## 5. Next step
 
-See [DIRECT_DEV_PROTOCOL_DRAFT.md](DIRECT_DEV_PROTOCOL_DRAFT.md). Nothing new should be run on Colab
+See [DIRECT_DEV_PROTOCOL.md](DIRECT_DEV_PROTOCOL.md). Nothing new should be run on Colab
 until that protocol is locked; re-running `direct_canary` now would regenerate the same four images
 under a new contract (source hashes changed) and waste compute.
 

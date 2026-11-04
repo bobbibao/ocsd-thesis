@@ -86,12 +86,12 @@ class Preflight(unittest.TestCase):
             self.assertEqual(saved['model_provenance'],model.provenance)
             self.assertIn('ocsd/direct_instances.py',saved['code_sha256'])
 
-    def test_run_all_canary_default_and_all_legacy_stages_guarded(self):
+    def test_run_all_dev_default_and_all_legacy_stages_guarded(self):
         nb=json.loads((ROOT/'notebooks/RUN_ALL.ipynb').read_text())
         self.assertEqual(nb['metadata']['accelerator'],'GPU')
         code=[''.join(c['source']) for c in nb['cells'] if c['cell_type']=='code']
         config={};exec(code[0],config)
-        self.assertEqual(config['RUN_MODE'],'direct_canary')
+        self.assertEqual(config['RUN_MODE'],'direct_dev')
         self.assertEqual(config['RUN_ID'],'')
         # No imports, GPU access, downloads, model generation or uploads are reachable
         # in later cells when the earlier preflight succeeds OR fails.
@@ -103,7 +103,7 @@ class Preflight(unittest.TestCase):
             self.assertEqual(len(tree.body),1)
             self.assertIsInstance(tree.body[0],ast.If)
             self.assertEqual(ast.unparse(tree.body[0].test),"RUN_MODE == 'experiment'")
-            for mode in ('direct_preflight','direct_canary'):
+            for mode in ('direct_preflight','direct_canary','direct_dev'):
                 scope={'RUN_MODE':mode};exec(source,scope)
                 self.assertEqual(set(scope),{'RUN_MODE','__builtins__'})
         # The branch is an indentation guard only: historical scientific code is retained.

@@ -86,7 +86,7 @@ DIRECT_MOUNT = MOUNT.replace(
     'gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True)\n'
     'if gpu.returncode:\n    raise RuntimeError("Select a GPU runtime before Run all")\nprint(gpu.stdout)',
     '''import shutil
-if RUN_MODE not in ("direct_preflight", "direct_canary", "experiment"):
+if RUN_MODE not in ("direct_preflight", "direct_canary", "direct_dev", "experiment"):
     raise ValueError("Unknown RUN_MODE")
 gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True) if shutil.which("nvidia-smi") else None
 if RUN_MODE == "direct_preflight":
@@ -96,10 +96,10 @@ if RUN_MODE == "direct_preflight":
         raise RuntimeError("Bước này dùng CPU: Runtime > Change runtime type > Hardware accelerator: None, rồi Run all")
     print("CPU preflight: kiểm tra trọng số thật; không sinh ảnh, không cần GH_TOKEN.")
 else:
-    if RUN_MODE == "direct_canary" and RUN_ID:
-        raise ValueError("Canary resumes compatible images automatically: leave RUN_ID empty")
+    if RUN_MODE in ("direct_canary", "direct_dev") and RUN_ID:
+        raise ValueError("Direct runs resume compatible images automatically: leave RUN_ID empty")
     if gpu is None or gpu.returncode:
-        raise RuntimeError("Select an L4/A100 GPU runtime for direct_canary or experiment mode")
+        raise RuntimeError("Select an L4/A100 GPU runtime for direct_canary, direct_dev or experiment mode")
     print(gpu.stdout)''')
 
 DIRECT_PREFLIGHT = r'''#@title 3. Kiểm tra mô hình trực tiếp trên CPU và tải ZIP log
@@ -187,6 +187,52 @@ if RUN_MODE == "direct_canary":
 else:
     print("Bỏ qua canary GPU trong chế độ này.")'''
 
+
+DIRECT_DEV = r'''#@title 3c. Development study: 8 scenes x 2 seeds x 3 settings = 48 images, then download ZIPs
+if RUN_MODE == "direct_dev":
+    import json, uuid
+    from pathlib import Path
+    from google.colab import files
+    DEV_OUT = Path(DRIVE_ROOT) / "results" / "direct_dev"
+    attempt = DEV_OUT / ("attempt_" + uuid.uuid4().hex[:12]); attempt.mkdir(parents=True)
+    print("Locked development study: 48 images, at most 2400 s after library install. Completed images are reused.", flush=True)
+    print("May download ~13.6 GB checkpoint + 1.71 GB CLIP if the runtime cache is empty. No automatic retries.", flush=True)
+    installed = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r",
+                               os.path.join(CODE, "requirements-direct-preflight.txt")], capture_output=True, text=True)
+    (attempt / "setup.log").write_text(installed.stdout + "\n" + installed.stderr)
+    script = os.path.join(CODE, "tools", "run_direct_dev.py")
+    interrupted = False
+    try:
+        subprocess.run([sys.executable, script, "--cache", "/content/ocsd-direct-cache",
+            "--out", str(DEV_OUT), "--attempt", str(attempt), "--setup-returncode", str(installed.returncode)],
+            env=dict(os.environ, PYTHONUNBUFFERED="1"), timeout=2400)
+        interrupted = not (attempt / "result.json").exists()
+    except subprocess.TimeoutExpired:
+        interrupted = True
+        print("Stopped at the 2400 s limit; completed images and logs are kept.")
+    if interrupted:
+        subprocess.run([sys.executable, script, "--attempt", str(attempt), "--finalize-only", "--interrupted"], timeout=120)
+    result_path = attempt / "result.json"
+    if not result_path.exists():
+        raise RuntimeError(f"Could not package; keep this folder for inspection: {attempt}")
+    result = json.loads(result_path.read_text())
+    print("Status:", result["status"], "| full ZIP:", result["archive"])
+    downloads = [result["archive"]]
+    if result["status"] == "complete":
+        print("Review ZIP (16 PNG sheets + HOW_TO_REVIEW.txt + REVIEW_TEMPLATE.txt):", result["review_archive"])
+        downloads.append(result["review_archive"])
+        print("'complete' means all images exist; it is not a quality pass.")
+    else:
+        print("Send the ZIP so the failure can be checked; do not change settings or rerun with more images.")
+    print("GPU work finished. Disconnect the GPU runtime after downloading to avoid idle compute units.")
+    for path in downloads:
+        try:
+            files.download(path)
+        except Exception as exc:
+            print("Get it from the Drive path above:", path, exc)
+else:
+    print("Skipping the development study in this mode.")'''
+
 def nb(cells, name):
     n = nbf.v4.new_notebook()
     n.metadata = {"accelerator": "GPU", "colab": {"gpuType": "L4", "machine_shape": "hm", "provenance": []},
@@ -230,21 +276,20 @@ nb([
     "[Xem A–D bằng PNG, không cần HTML](https://raw.githubusercontent.com/bobbibao/ocsd-thesis/main/docs/reviews/foreground_20261103_ABCD.png). "
     "Hướng mới: điều kiện hóa trực tiếp từng đối tượng bằng nét phác thảo với lõi InstanceDiffusion chính thức. "
     "Đây là ứng viên đang kiểm chứng, chưa có kết quả chứng minh chất lượng ảnh tốt hơn.\n\n"
-    "**CPU preflight đã PASS** (`20261103T142406Z_013a5f0e`), không cần chạy lại. "
-    "**Bước tiếp theo:** Runtime → Change runtime type → **GPU L4 hoặc A100**. "
-    "Giữ `RUN_MODE=\"direct_canary\"`, `RUN_ID=\"\"` → Runtime → **Run all**. "
-    "Chỉ thử 4 ảnh: một cảnh mới, hai seed, có/không có nét vẽ từng đối tượng. Giới hạn tiến trình 600 giây gồm tải/nạp/sinh ảnh, chưa gồm cài thư viện. "
-    "Tải mới khoảng 13,6 GB checkpoint + 1,71 GB CLIP; cache CPU có thể mất khi đổi runtime. "
-    "Notebook xuất ZIP và PNG A/B kèm mẫu trả lời; gửi ZIP rồi điền mẫu nếu đã đủ ảnh. Không cần export screen hay GH_TOKEN. "
-    "Đây là canary phát triển, chưa chứng minh ảnh tốt hơn OCSD/ControlNet. Các ô A–F tự bỏ qua. "
-    "[Protocol](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/DIRECT_CANARY.md).\n\n"
+    "**Update 2026-11-04:** CPU preflight passed and the 4-image GPU canary is done and audited "
+    "([results](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/DIRECT_CANARY_20261103_RESULTS.md)); do not rerun either. "
+    "**Next step:** Runtime → Change runtime type → **GPU L4 or A100**. Keep `RUN_MODE=\"direct_dev\"`, `RUN_ID=\"\"` → Runtime → **Run all**. "
+    "This runs the locked development study: 8 new scenes × 2 seeds × 3 settings = 48 images (about 20 min generation on L4, "
+    "child limit 2400 s, excluding library install). It downloads a full ZIP and a small review ZIP with 16 PNG sheets and a text template. "
+    "Development only, no ControlNet/OCSD comparison yet. "
+    "[Protocol](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/DIRECT_DEV_PROTOCOL.md).\n\n"
     "Chỉ khi chủ động tái lập thí nghiệm cũ: chọn `RUN_MODE=\"experiment\"` và GPU L4/A100. "
     "Luồng này chạy 4 giai đoạn: (A) dựng bộ dữ liệu, (B) sinh ảnh cho E1–E4 và khảo sát α, (C) đánh giá, "
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
     "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
-    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "direct_canary"  #@param ["direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'),
-    DIRECT_MOUNT, DIRECT_PREFLIGHT, DIRECT_CANARY, INSTALL,
+    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "direct_dev"  #@param ["direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'),
+    DIRECT_MOUNT, DIRECT_PREFLIGHT, DIRECT_CANARY, DIRECT_DEV, INSTALL,
     "MD:## Các ô dưới chỉ chạy khi RUN_MODE=experiment\nPhép thử cũ `foreground_screen`: 1 cảnh xe đạp × 4 đối chứng "
     "= 4 ảnh cuối. So sánh clean cũ, anchor có nền cảnh, mask học được dạng cứng và dạng mềm. "
     "BiRefNet-lite chạy CPU, tải khoảng 224 MB một lần và kiểm tra SHA-256. "

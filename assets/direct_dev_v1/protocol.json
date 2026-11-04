@@ -1,0 +1,59 @@
+{
+  "schema": "ocsd-direct-dev-v1",
+  "stage": "development (stage 1), not held-out",
+  "scenes": "assets/direct_dev_v1/scenes.json",
+  "seeds": [
+    0,
+    1
+  ],
+  "arms": [
+    {
+      "name": "direct_box",
+      "scribble": false,
+      "fusion": "official_mean"
+    },
+    {
+      "name": "direct_scribble",
+      "scribble": true,
+      "fusion": "official_mean"
+    },
+    {
+      "name": "direct_scribble_region",
+      "scribble": true,
+      "fusion": "region"
+    }
+  ],
+  "steps": 50,
+  "mis": 0.36,
+  "alpha": 0.8,
+  "guidance": 7.5,
+  "region_feather_latent_px": 2,
+  "negative": "blurry, low quality, distorted, deformed, watermark, text",
+  "max_seconds": 2400,
+  "max_unet_sample_calls": 10368,
+  "precision": "UNet autocast float16, VAE float32",
+  "model_provenance": {
+    "source_commit": "722900ef03e3579fb693e65a1550333a4a162581",
+    "model_revisions": {
+      "xudongw/InstanceDiffusion": "fc74d76cde4a3dd0c3894e1764c8cf7299c77595",
+      "openai/clip-vit-large-patch14": "32bd64288804d66eefd0ccbe215aa642df71cc41"
+    },
+    "checkpoint_sha256": "b4de3f7877a1860b52837afe3a767ca92a2ef5084056048b503af80027cde1d1",
+    "checkpoint_state": "ema",
+    "phrase_text_weights_complete": true,
+    "base_conv_sha256": "0b6406769828fa6c5360c0187790e93964c167f646de271ce6510105b3a59ae6",
+    "ignored_nonlearned_text_buffers": [],
+    "config_sha256": "0d35e81804aa2fec6176dfa5a1f636159a6f51b94ed8748f63b1c00c191e9399"
+  },
+  "accepted_cpu_run": "20261103T142406Z_013a5f0e",
+  "accepted_cpu_report": "docs/direct_preflight_20261103_pass.json",
+  "decision_rules": [
+    "Unit: 16 scene/seed pairs. Primary evidence: the user's blind review sheets; OWLv2/CLIP are secondary only.",
+    "Structure failure = count, colour or shape marked fail for an image.",
+    "Region merge (direct_scribble_region) replaces direct_scribble for stage 2 only if it is chosen as most natural with correct structure in at least 3 more pairs than direct_scribble, and has at most 1 more structure failure across the 16 pairs.",
+    "The scribble arm kept by the rule above goes to stage 2 instead of direct_box only if it has no more structure failures than direct_box and is chosen in at least 3 more pairs than direct_box; otherwise stage 2 uses direct_box.",
+    "If every arm has a structure failure in more than 4 of the 16 pairs, stop the direct line and report it as negative.",
+    "No tuning, reranking, extra seeds or reruns on these scenes to change the outcome; failed images stay in the record."
+  ],
+  "locked_note": "Locked before any output for these scenes. Bird placement box was moved once after viewing the rendered sketches (no generated images) so the overlap scene actually overlaps."
+}
