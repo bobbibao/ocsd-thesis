@@ -1,0 +1,97 @@
+{
+ "sid": "h3_qd_3_complex_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "complex",
+ "bg": "in a green meadow",
+ "caption": "three houses in a green meadow",
+ "objects": [
+  {
+   "cls": "house",
+   "phrase": "house",
+   "box": [
+    64.0,
+    270.0,
+    166.0,
+    471.0
+   ],
+   "qd_key": "6697447692697600",
+   "recognized": true,
+   "n_strokes": 2
+  },
+  {
+   "cls": "house",
+   "phrase": "house",
+   "box": [
+    157.0,
+    265.0,
+    348.0,
+    416.0
+   ],
+   "qd_key": "5656373889073152",
+   "recognized": true,
+   "n_strokes": 2
+  },
+  {
+   "cls": "house",
+   "phrase": "house",
+   "box": [
+    35.0,
+    114.0,
+    181.0,
+    247.0
+   ],
+   "qd_key": "5896532471578624",
+   "recognized": true,
+   "n_strokes": 1
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "left_of"
+  ],
+  [
+   0,
+   1,
+   "below"
+  ],
+  [
+   0,
+   1,
+   "in_front_of"
+  ],
+  [
+   0,
+   2,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.02735847092381686,
+ "heldout_set": "heldout_v3",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261107,
+  "per_cell": 2,
+  "original_sid": "qd_3_complex_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "heldout_v2",
+   "direct_dev_v1"
+  ]
+ }
+}

@@ -68,16 +68,17 @@ hfcache.repair(os.environ["HF_HOME"])   # delete broken model files so they down
 from ocsd import runlog
 from ocsd.config import Paths, ExperimentConfig, TIERS
 EXP_ROOT = DRIVE_ROOT
-if globals().get("RUN_MODE") in ("heldout", "heldout2"):
+if globals().get("RUN_MODE") in ("heldout", "heldout2", "heldout3"):
     # Locked held-out comparison: own data root, fixed tier and generation budget
-    # (docs/HELDOUT_PROTOCOL.md for v1, docs/HELDOUT2_PROTOCOL.md for v2)
-    HELDOUT_SET = "v2" if RUN_MODE == "heldout2" else "v1"
+    # (docs/HELDOUT_PROTOCOL.md, HELDOUT2_PROTOCOL.md, HELDOUT3_PROTOCOL.md)
+    HELDOUT_SET = {"heldout": "v1", "heldout2": "v2", "heldout3": "v3"}[RUN_MODE]
     os.environ["OCSD_HELDOUT"] = HELDOUT_SET
-    from ocsd import heldout as _heldout; _heldout.use(HELDOUT_SET)
-    EXP_ROOT, TIER, MAX_MINUTES = os.path.join(DRIVE_ROOT, "heldout_" + HELDOUT_SET), "heldout_screen", 180
+    from ocsd import heldout as _heldout; _cfg = _heldout.use(HELDOUT_SET)
+    EXP_ROOT, TIER = os.path.join(DRIVE_ROOT, "heldout_" + HELDOUT_SET), _cfg["tier"]
+    MAX_MINUTES = 300 if HELDOUT_SET == "v3" else 180
 P = Paths(EXP_ROOT); P.makedirs()
 E = ExperimentConfig(backbone=BACKBONE, tier=TIER, skip_jobs=SKIP_JOBS,
-                     extra_detectors=() if TIER in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen") else ("owlv2", "owlv2d", "detr"))
+                     extra_detectors=() if TIER in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen", "heldout_final") else ("owlv2", "owlv2d", "detr"))
 from ocsd.provenance import start_run
 P, RUN = start_run(P, E, run_id=RUN_ID)
 RUN_ID = P.run_id
@@ -94,7 +95,7 @@ DIRECT_MOUNT = MOUNT.replace(
     'gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True)\n'
     'if gpu.returncode:\n    raise RuntimeError("Select a GPU runtime before Run all")\nprint(gpu.stdout)',
     '''import shutil
-if RUN_MODE not in ("direct_preflight", "direct_canary", "direct_dev", "silhouette_dev", "heldout", "heldout2", "experiment"):
+if RUN_MODE not in ("direct_preflight", "direct_canary", "direct_dev", "silhouette_dev", "naturalness_dev", "heldout", "heldout2", "heldout3", "experiment"):
     raise ValueError("Unknown RUN_MODE")
 gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True) if shutil.which("nvidia-smi") else None
 if RUN_MODE == "direct_preflight":
@@ -104,7 +105,7 @@ if RUN_MODE == "direct_preflight":
         raise RuntimeError("Bước này dùng CPU: Runtime > Change runtime type > Hardware accelerator: None, rồi Run all")
     print("CPU preflight: kiểm tra trọng số thật; không sinh ảnh, không cần GH_TOKEN.")
 else:
-    if RUN_MODE in ("direct_canary", "direct_dev", "silhouette_dev") and RUN_ID:
+    if RUN_MODE in ("direct_canary", "direct_dev", "silhouette_dev", "naturalness_dev") and RUN_ID:
         raise ValueError("Direct runs resume compatible images automatically: leave RUN_ID empty")
     if gpu is None or gpu.returncode:
         raise RuntimeError("Select an L4/A100 GPU runtime for this mode")
@@ -196,29 +197,35 @@ else:
     print("Bỏ qua canary GPU trong chế độ này.")'''
 
 
-DIRECT_DEV = r'''#@title 3c. Development study: 8 scenes x 2 seeds x 3 settings = 48 images, then download ZIPs
-if RUN_MODE in ("direct_dev", "silhouette_dev"):
+DIRECT_DEV = r'''#@title 3c. Development study (8 dev scenes x 2 seeds), then download ZIPs
+if RUN_MODE in ("direct_dev", "silhouette_dev", "naturalness_dev"):
     import json, uuid
     from pathlib import Path
     from google.colab import files
-    DEV_VERSION = "v2" if RUN_MODE == "silhouette_dev" else "v1"
-    DEV_OUT = Path(DRIVE_ROOT) / "results" / ("direct_dev2" if DEV_VERSION == "v2" else "direct_dev")
+    DEV_VERSION = {"direct_dev": "v1", "silhouette_dev": "v2", "naturalness_dev": "v3"}[RUN_MODE]
+    DEV_OUT = Path(DRIVE_ROOT) / "results" / {"v1": "direct_dev", "v2": "direct_dev2", "v3": "direct_dev3"}[DEV_VERSION]
+    DEV_SECONDS = 3000 if DEV_VERSION == "v3" else 2400
     attempt = DEV_OUT / ("attempt_" + uuid.uuid4().hex[:12]); attempt.mkdir(parents=True)
-    print("Locked development study: 48 images, at most 2400 s after library install. Completed images are reused.", flush=True)
+    if DEV_VERSION == "v3":
+        print("Locked naturalness study: 32 InstanceDiffusion images + 32 SDXL-Refiner images + SAM sketch fidelity,", flush=True)
+        print("at most 3000 s. Extra downloads: SDXL refiner ~6 GB, SAM ViT-H ~2.6 GB.", flush=True)
+    else:
+        print("Locked development study: 48 images, at most 2400 s after library install. Completed images are reused.", flush=True)
     print("May download ~13.6 GB checkpoint + 1.71 GB CLIP if the runtime cache is empty. No automatic retries.", flush=True)
-    installed = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r",
-                               os.path.join(CODE, "requirements-direct-preflight.txt")], capture_output=True, text=True)
+    reqs = ["-r", os.path.join(CODE, "requirements-direct-preflight.txt")]
+    if DEV_VERSION == "v3": reqs += ["-r", os.path.join(CODE, "requirements-direct-refiner.txt")]
+    installed = subprocess.run([sys.executable, "-m", "pip", "install", "-q", *reqs], capture_output=True, text=True)
     (attempt / "setup.log").write_text(installed.stdout + "\n" + installed.stderr)
     script = os.path.join(CODE, "tools", "run_direct_dev.py")
     interrupted = False
     try:
         subprocess.run([sys.executable, script, "--cache", "/content/ocsd-direct-cache",
             "--out", str(DEV_OUT), "--attempt", str(attempt), "--setup-returncode", str(installed.returncode), "--version", DEV_VERSION],
-            env=dict(os.environ, PYTHONUNBUFFERED="1"), timeout=2400)
+            env=dict(os.environ, PYTHONUNBUFFERED="1"), timeout=DEV_SECONDS)
         interrupted = not (attempt / "result.json").exists()
     except subprocess.TimeoutExpired:
         interrupted = True
-        print("Stopped at the 2400 s limit; completed images and logs are kept.")
+        print(f"Stopped at the {DEV_SECONDS} s limit; completed images and logs are kept.")
     if interrupted:
         subprocess.run([sys.executable, script, "--attempt", str(attempt), "--finalize-only", "--interrupted"], timeout=120)
     result_path = attempt / "result.json"
@@ -243,18 +250,19 @@ else:
     print("Skipping the development study in this mode.")'''
 
 
-DIRECT_HELDOUT = r'''#@title 3d. Held-out comparison, part 1: InstanceDiffusion arms (72 images), then ControlNet/OCSD below
-if RUN_MODE in ("heldout", "heldout2"):
+DIRECT_HELDOUT = r'''#@title 3d. Held-out comparison, part 1: InstanceDiffusion-core arms (72 images), then the other methods below
+if RUN_MODE in ("heldout", "heldout2", "heldout3"):
     import json, uuid
     from pathlib import Path
-    HELDOUT_SET = "v2" if RUN_MODE == "heldout2" else "v1"
+    HELDOUT_SET = {"heldout": "v1", "heldout2": "v2", "heldout3": "v3"}[RUN_MODE]
     os.environ["OCSD_HELDOUT"] = HELDOUT_SET
     HELDOUT_DIRECT = Path(DRIVE_ROOT) / ("heldout_" + HELDOUT_SET) / "direct"
     attempt = HELDOUT_DIRECT / ("attempt_" + uuid.uuid4().hex[:12]); attempt.mkdir(parents=True)
-    arms = "(box, silhouette)" if HELDOUT_SET == "v2" else "(box, scribble)"
+    arms = {"v1": "(box, scribble)", "v2": "(box, silhouette)", "v3": "(InstanceDiffusion box, OCSD v3)"}[HELDOUT_SET]
     print(f"Locked held-out {HELDOUT_SET}: 18 scenes x 2 seeds x {arms} = 72 images, at most 3600 s. Completed images are reused.", flush=True)
-    installed = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r",
-                               os.path.join(CODE, "requirements-direct-preflight.txt")], capture_output=True, text=True)
+    reqs = ["-r", os.path.join(CODE, "requirements-direct-preflight.txt")]
+    if HELDOUT_SET == "v3": reqs += ["-r", os.path.join(CODE, "requirements-direct-refiner.txt")]
+    installed = subprocess.run([sys.executable, "-m", "pip", "install", "-q", *reqs], capture_output=True, text=True)
     (attempt / "setup.log").write_text(installed.stdout + "\n" + installed.stderr)
     script = os.path.join(CODE, "tools", "run_direct_heldout.py")
     interrupted = False
@@ -276,7 +284,7 @@ if RUN_MODE in ("heldout", "heldout2"):
             print("Get the log ZIP from Drive:", exc)
         raise RuntimeError("Direct arms incomplete. Run all again to resume (completed images are kept), or send the log ZIP.")
     import gc; gc.collect()
-    print("Direct arms complete. Continuing with ControlNet and OCSD soft-matte (resumable, up to 180 min).")
+    print("Direct arms complete. Continuing with the other methods (resumable).")
 else:
     print("Skipping the held-out comparison in this mode.")'''
 
@@ -297,7 +305,7 @@ def nb(cells, name):
                 experiment = True
             if experiment and not c.startswith("MD:"):
                 title, body = c.split('\n', 1)
-                c = title + '\nif RUN_MODE in ("experiment", "heldout", "heldout2"):\n' + '\n'.join('    ' + line for line in body.splitlines())
+                c = title + '\nif RUN_MODE in ("experiment", "heldout", "heldout2", "heldout3"):\n' + '\n'.join('    ' + line for line in body.splitlines())
             guarded.append(c)
         cells = guarded
     cells = [c.replace("start_run(P, E, run_id=RUN_ID)", f'start_run(P, E, run_id=RUN_ID, notebook="notebooks/{name}")') for c in cells]
@@ -325,18 +333,20 @@ nb([
     "Đây là ứng viên đang kiểm chứng, chưa có kết quả chứng minh chất lượng ảnh tốt hơn.\n\n"
     "**Update 2026-11-04:** the canary and the 8-scene development study are done and reviewed; do not rerun them "
     "([dev results](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/DIRECT_DEV_20261104_RESULTS.md)). "
-    "Held-out v1 and the silhouette dev study are done; do not rerun them. "
-    "**Next step:** Runtime → Change runtime type → **GPU L4 or A100** → keep `RUN_MODE=\"heldout2\"`, `RUN_ID=\"\"` → **Run all**. "
-    "This is the locked held-out v2 confirmation: 18 new scenes × 2 seeds × 4 methods (OCSD silhouette + InstanceDiffusion, "
-    "InstanceDiffusion box, ControlNet, OCSD soft-matte) = 144 images, then sketch-fidelity (SAM), OWLv2/CLIP metrics and 36 review sheets. "
-    "Expect about 1 GPU hour; every part resumes if stopped (Run all again with `RUN_ID` empty). Two ZIPs download at the end. "
-    "[Protocol](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/HELDOUT2_PROTOCOL.md).\n\n"
+    "Held-out v1, the silhouette dev study and held-out v2 are done; do not rerun them "
+    "([held-out v2 results](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/HELDOUT2_20261104_RESULTS.md)).\n\n"
+    "**Next step (2026-11-04):** Runtime → Change runtime type → **GPU L4 or A100** → keep `RUN_MODE=\"naturalness_dev\"`, `RUN_ID=\"\"` → **Run all**. "
+    "This is the locked naturalness dev study for the silhouette model on the 8 dev scenes × 2 seeds: silhouette on all steps vs "
+    "layout steps only, each without/with the upstream SDXL refiner = 64 images, then SAM sketch fidelity. "
+    "Expect about 30–45 min; it resumes if stopped. Download the two ZIPs at the end (or leave them on Drive in `results/direct_dev3`). "
+    "No manual review needed; Claude reviews it. "
+    "[Protocol](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/DIRECT_DEV3_PROTOCOL.md).\n\n"
     "Chỉ khi chủ động tái lập thí nghiệm cũ: chọn `RUN_MODE=\"experiment\"` và GPU L4/A100. "
     "Luồng này chạy 4 giai đoạn: (A) dựng bộ dữ liệu, (B) sinh ảnh cho E1–E4 và khảo sát α, (C) đánh giá, "
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
     "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
-    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "heldout2"  #@param ["heldout2", "silhouette_dev", "heldout", "direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'),
+    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "naturalness_dev"  #@param ["naturalness_dev", "heldout3", "heldout2", "silhouette_dev", "heldout", "direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'),
     DIRECT_MOUNT, DIRECT_PREFLIGHT, DIRECT_CANARY, DIRECT_DEV, DIRECT_HELDOUT, INSTALL,
     "MD:## Các ô dưới chỉ chạy khi RUN_MODE=experiment\nPhép thử cũ `foreground_screen`: 1 cảnh xe đạp × 4 đối chứng "
     "= 4 ảnh cuối. So sánh clean cũ, anchor có nền cảnh, mask học được dạng cứng và dạng mềm. "
@@ -350,7 +360,7 @@ nb([
     r'''#@title A. Build benchmarks (skipped if already built for this tier)
 from ocsd import stages
 with RUN.stage("A_data"):
-    stages.setup_data(P, TIER, with_coco=TIER not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen"))
+    stages.setup_data(P, TIER, with_coco=TIER not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen", "heldout_final"))
     RUN.seal_data()
     RUN.plan(E)
 from IPython.display import Image, display
@@ -383,7 +393,7 @@ _GLIGEN.clear()
 import gc
 gc.collect(); torch.cuda.empty_cache()
 with RUN.stage("C_evaluate"):
-    vis = stages.evaluate(P, E, vis=vis, fid=TIER not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen"))''',
+    vis = stages.evaluate(P, E, vis=vis, fid=TIER not in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen", "heldout_final"))''',
     "MD:## D. Báo cáo",
     r'''#@title D. Tables, figures, statistics, summary
 with RUN.stage("D_report"):
@@ -404,9 +414,9 @@ if PUSH_RESULTS:
 else:
     print("Results retained on Drive:", P.results)''',
     r'''#@title G. Held-out mode: download the results ZIP and the blind review ZIP
-if RUN_MODE in ("heldout", "heldout2"):
+if RUN_MODE in ("heldout", "heldout2", "heldout3"):
     from google.colab import files
-    tag = "heldout2" if RUN_MODE == "heldout2" else "heldout"
+    tag = RUN_MODE
     for name in (f"ocsd_{tag}_results.zip", f"REVIEW_{tag}.zip"):
         path = os.path.join(P.results, name)
         print(path)

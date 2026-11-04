@@ -1,0 +1,208 @@
+{
+ "sid": "h3_qd_5_complex_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 5,
+ "count_bin": "5",
+ "complexity": "complex",
+ "bg": "at an airport",
+ "caption": "a red bus, a blue bus, two airplanes and a bus at an airport",
+ "objects": [
+  {
+   "cls": "bus",
+   "phrase": "red bus",
+   "box": [
+    276.0,
+    162.0,
+    412.0,
+    238.0
+   ],
+   "qd_key": "5295677720494080",
+   "recognized": true,
+   "n_strokes": 4
+  },
+  {
+   "cls": "bus",
+   "phrase": "blue bus",
+   "box": [
+    141.0,
+    329.0,
+    285.0,
+    394.0
+   ],
+   "qd_key": "4874075375665152",
+   "recognized": true,
+   "n_strokes": 6
+  },
+  {
+   "cls": "airplane",
+   "phrase": "airplane",
+   "box": [
+    11.0,
+    281.0,
+    175.0,
+    373.0
+   ],
+   "qd_key": "5806658284421120",
+   "recognized": true,
+   "n_strokes": 1
+  },
+  {
+   "cls": "airplane",
+   "phrase": "airplane",
+   "box": [
+    55.0,
+    351.0,
+    231.0,
+    455.0
+   ],
+   "qd_key": "6632066424766464",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "bus",
+   "phrase": "bus",
+   "box": [
+    157.0,
+    272.0,
+    316.0,
+    343.0
+   ],
+   "qd_key": "6399722048716800",
+   "recognized": true,
+   "n_strokes": 5
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   0,
+   3,
+   "right_of"
+  ],
+  [
+   0,
+   3,
+   "above"
+  ],
+  [
+   0,
+   4,
+   "right_of"
+  ],
+  [
+   0,
+   4,
+   "above"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "in_front_of"
+  ],
+  [
+   1,
+   3,
+   "right_of"
+  ],
+  [
+   1,
+   3,
+   "above"
+  ],
+  [
+   1,
+   3,
+   "behind"
+  ],
+  [
+   1,
+   4,
+   "below"
+  ],
+  [
+   1,
+   4,
+   "in_front_of"
+  ],
+  [
+   2,
+   3,
+   "left_of"
+  ],
+  [
+   2,
+   3,
+   "above"
+  ],
+  [
+   2,
+   3,
+   "behind"
+  ],
+  [
+   2,
+   4,
+   "left_of"
+  ],
+  [
+   2,
+   4,
+   "in_front_of"
+  ],
+  [
+   3,
+   4,
+   "left_of"
+  ],
+  [
+   3,
+   4,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.1626460452214844,
+ "heldout_set": "heldout_v3",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261107,
+  "per_cell": 2,
+  "original_sid": "qd_5_complex_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "heldout_v2",
+   "direct_dev_v1"
+  ]
+ }
+}

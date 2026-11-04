@@ -1,0 +1,87 @@
+{
+ "sid": "h3_qd_3_simple_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "simple",
+ "bg": "on a farm",
+ "caption": "three horses on a farm",
+ "objects": [
+  {
+   "cls": "horse",
+   "phrase": "horse",
+   "box": [
+    149.0,
+    117.0,
+    304.0,
+    258.0
+   ],
+   "qd_key": "6251243213160448",
+   "recognized": true,
+   "n_strokes": 9
+  },
+  {
+   "cls": "horse",
+   "phrase": "horse",
+   "box": [
+    144.0,
+    282.0,
+    352.0,
+    443.0
+   ],
+   "qd_key": "4682040391761920",
+   "recognized": true,
+   "n_strokes": 11
+  },
+  {
+   "cls": "horse",
+   "phrase": "horse",
+   "box": [
+    314.0,
+    138.0,
+    451.0,
+    221.0
+   ],
+   "qd_key": "6540217664143360",
+   "recognized": true,
+   "n_strokes": 47
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.0,
+ "heldout_set": "heldout_v3",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261107,
+  "per_cell": 2,
+  "original_sid": "qd_3_simple_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "heldout_v2",
+   "direct_dev_v1"
+  ]
+ }
+}

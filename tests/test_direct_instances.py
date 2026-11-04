@@ -98,6 +98,23 @@ class DirectInputs(unittest.TestCase):
         self.assertEqual(net.forward,original)
 
 
+class Refiner(unittest.TestCase):
+    def test_refine_uses_upstream_settings_seeded_generator_and_keeps_size(self):
+        from ocsd.direct_instances import refine
+        calls = []
+        def pipe(prompt, image, strength, num_inference_steps, generator, output_type):
+            calls.append((prompt, image.size, strength, num_inference_steps, output_type, torch.rand(1, generator=generator).item()))
+            return SimpleNamespace(images=[np.asarray(image, np.float32)/255])
+        pixels = np.random.default_rng(0).integers(0, 256, (512, 512, 3), dtype=np.uint8)
+        out, log = refine(pipe, pixels, 'a red car', 3)
+        again, _ = refine(pipe, pixels, 'a red car', 3)
+        self.assertTrue(np.array_equal(out, pixels)); self.assertEqual(calls[0], calls[1])
+        self.assertEqual(calls[0][:5], ('a red car', (512, 512), .35, 20, 'np'))
+        self.assertEqual(log['refiner_denoise_steps'], 7)
+        bad = lambda *a, **k: SimpleNamespace(images=[np.full((512, 512, 3), np.nan, np.float32)])
+        with self.assertRaisesRegex(RuntimeError, 'Nonfinite'): refine(bad, pixels, 'x', 0)
+
+
 class Silhouettes(unittest.TestCase):
     def outline(self, closed):
         ink=np.full((200,200),255,np.uint8)
@@ -222,7 +239,7 @@ class OfficialCore(unittest.TestCase):
         noise=torch.randn(1,4,8,8);contexts=[torch.randn(1,5,32) for _ in range(3)];negative=torch.randn(1,5,32)
         base={k:v.clone()*.9 for k,v in model.input_blocks[0][0].state_dict().items()}
         ours,log=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2)
-        with patch('ocsd.direct_instances.mis_sampler_class',side_effect=lambda f,d: PLMSSamplerInst):
+        with patch('ocsd.direct_instances.mis_sampler_class',side_effect=lambda *a: PLMSSamplerInst):
             upstream,_=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2)
         self.assertTrue(torch.equal(ours,upstream))
         self.assertEqual(log['mis_fusion'],'official_mean');self.assertEqual(log['mis_merge']['merge_step'],2)
@@ -232,6 +249,30 @@ class OfficialCore(unittest.TestCase):
         self.assertTrue(torch.isfinite(region).all());self.assertGreater(float((region-ours).abs().max()),1e-7)
         with self.assertRaisesRegex(ValueError,'Unknown MIS fusion'):
             sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2,fusion='paste')
+
+    def test_layout_only_silhouette_is_released_after_merge_and_restored(self):
+        torch.manual_seed(5);model=self.model;net=model.position_net
+        batch=conditioning_batch(scene_condition(scene()),torch.randn(2,32))
+        noise=torch.randn(1,4,8,8);contexts=[torch.randn(1,5,32) for _ in range(3)];negative=torch.randn(1,5,32)
+        base={k:v.clone()*.9 for k,v in model.input_blocks[0][0].state_dict().items()}
+        seen=[]
+        def spy(*args):
+            seen.append(net.test_drop_masks);return type(net).forward(net,*args)
+        net.test_drop_masks=False
+        with patch.object(net,'forward',spy,create=True):
+            _,log=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2,
+                                 release_silhouette_after_merge=True)
+        self.assertFalse(net.test_drop_masks)  # restored for the next image
+        # Masks on for the n+1 layout trajectories, off for the joint steps after the merge;
+        # the cache key includes the flag, so post-merge calls are fresh evaluations.
+        self.assertIn(False,seen);self.assertIn(True,seen)
+        first_true=seen.index(True);self.assertTrue(all(seen[first_true:]))
+        self.assertEqual(log['conditioning_cache']['evaluations'],len(seen))
+        seen.clear()
+        with patch.object(net,'forward',spy,create=True):
+            sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2)
+        self.assertEqual(set(seen),{False})
+        net.test_drop_masks=True
 
     def test_region_fusion_keeps_global_background_and_halves_inside_boxes(self):
         boxes=torch.zeros(1,30,4);masks=torch.zeros(1,30)

@@ -10,7 +10,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--cache'); p.add_argument('--out'); p.add_argument('--attempt', required=True)
     p.add_argument('--setup-returncode', type=int, default=0)
-    p.add_argument('--version', choices=('v1', 'v2'), default='v1')
+    p.add_argument('--version', choices=('v1', 'v2', 'v3'), default='v1')
     p.add_argument('--finalize-only', action='store_true'); p.add_argument('--interrupted', action='store_true')
     a = p.parse_args()
     if a.finalize_only: result = finalize(a.attempt, a.interrupted)

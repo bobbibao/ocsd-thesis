@@ -119,4 +119,47 @@ class Dev(unittest.TestCase):
         v1, _ = dev.read_protocol(); self.assertNotIn('_version', v1)
 
 
+    def test_v3_layout_release_refines_same_base_and_scores_fidelity(self):
+        seen, refined = [], []
+        original = self.model.generate
+        def record(condition, seed, negative, **kw):
+            seen.append((kw.get('silhouette', False), kw.get('silhouette_layout_only', False)))
+            return original(condition, seed, negative, **kw)
+        self.model.generate = record
+        def fake_refine(pipe, pixels, caption, seed, strength, steps):
+            refined.append((pixels[0, 0, 0], caption, seed, strength, steps))
+            return (255-pixels).astype(np.uint8), dict(refiner_strength=strength)
+        def fake_sam(device, cache_dir=None):
+            def segment(img, box):
+                m = np.zeros(img.shape[:2], bool); x0, y0, x1, y1 = box; m[y0:y1, x0:x1] = True; return m
+            return segment
+        rev = 'a'*40
+        with patch('ocsd.direct_instances.load_refiner', return_value=(object(), rev)), \
+             patch('ocsd.direct_instances.refine', side_effect=fake_refine), \
+             patch('ocsd.vision.SAM', side_effect=fake_sam), \
+             patch('huggingface_hub.HfApi.model_info', return_value=SimpleNamespace(sha='b'*40)), \
+             contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            result = dev.run(self.root/'cache', self.root, self.root/'v3', version='v3')
+            again = dev.run(self.root/'cache', self.root, self.root/'v3b', version='v3')
+        self.assertEqual(result['status'], 'complete')
+        # Only the two unrefined arms run the diffusion model; the refined arms reuse their base image.
+        self.assertEqual(len(seen), 32); self.assertEqual(seen[:2], [(True, False), (True, True)])
+        self.assertEqual(len(refined), 32)
+        directory = Path(result['directory']); self.assertTrue(directory.name.startswith('dev3_'))
+        sid = self.scenes[0]['sid']
+        base = np.array(Image.open(directory/sid/'sil_layout_s1.png')); ref = np.array(Image.open(directory/sid/'sil_layout_refine_s1.png'))
+        self.assertTrue(np.array_equal(ref, 255-base))
+        self.assertEqual(refined[0][1:], (self.scenes[0]['caption'], 0, .35, 20))
+        meta = json.loads((directory/sid/'sil_full_refine_s0.json').read_text())
+        self.assertEqual(meta['compute']['base_image'], 'sil_full_s0.png')
+        state = json.loads((directory/'run.json').read_text()); self.assertEqual(state['refiner_revision'], rev)
+        summary = json.loads((directory/'sketch_fidelity_summary.json').read_text())
+        self.assertEqual(set(summary['arms']), set(dev.ARMS_V3)); self.assertEqual(summary['segmenter_revision'], 'b'*40)
+        self.assertEqual(len((directory/'sketch_fidelity.csv').read_text().strip().splitlines()), 65)
+        key = json.loads((directory/'review_key.json').read_text()); self.assertEqual(set(key[sid+'_s0']), set('ABCD'))
+        with Image.open(directory/'review'/f'01_{sid}_seed0.png') as sheet: self.assertEqual(sheet.size, (2560, 690))
+        with ZipFile(result['archive']) as z: self.assertTrue(any(n.endswith('sketch_fidelity.csv') for n in z.namelist()))
+        self.assertEqual(again['status'], 'complete'); self.assertEqual(len(seen), 32); self.assertEqual(len(refined), 32)
+
+
 if __name__ == '__main__': unittest.main()

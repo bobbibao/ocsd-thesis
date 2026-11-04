@@ -1,0 +1,97 @@
+{
+ "sid": "h3_qd_3_simple_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "simple",
+ "bg": "in a forest",
+ "caption": "three green trees in a forest",
+ "objects": [
+  {
+   "cls": "tree",
+   "phrase": "green tree",
+   "box": [
+    127.0,
+    154.0,
+    261.0,
+    304.0
+   ],
+   "qd_key": "6329902506704896",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "tree",
+   "phrase": "green tree",
+   "box": [
+    13.0,
+    188.0,
+    120.0,
+    338.0
+   ],
+   "qd_key": "4713073677959168",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "tree",
+   "phrase": "green tree",
+   "box": [
+    169.0,
+    316.0,
+    359.0,
+    469.0
+   ],
+   "qd_key": "5532538825080832",
+   "recognized": true,
+   "n_strokes": 4
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "left_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   1,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ]
+ ],
+ "overlap_max": 0.0,
+ "heldout_set": "heldout_v3",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261107,
+  "per_cell": 2,
+  "original_sid": "qd_3_simple_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "heldout_v2",
+   "direct_dev_v1"
+  ]
+ }
+}

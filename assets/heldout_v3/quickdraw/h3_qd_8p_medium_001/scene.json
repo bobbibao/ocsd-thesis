@@ -1,0 +1,603 @@
+{
+ "sid": "h3_qd_8p_medium_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 10,
+ "count_bin": "8+",
+ "complexity": "medium",
+ "bg": "in a living room",
+ "caption": "an orange chair, a yellow chair, a teddy bear, a cat, two golden cats, a black cat, two green chairs and a shiny umbrella in a living room",
+ "objects": [
+  {
+   "cls": "chair",
+   "phrase": "orange chair",
+   "box": [
+    13.0,
+    265.0,
+    96.0,
+    366.0
+   ],
+   "qd_key": "6197263531507712",
+   "recognized": true,
+   "n_strokes": 4
+  },
+  {
+   "cls": "chair",
+   "phrase": "yellow chair",
+   "box": [
+    404.0,
+    278.0,
+    472.0,
+    396.0
+   ],
+   "qd_key": "5406579396444160",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "teddy bear",
+   "phrase": "teddy bear",
+   "box": [
+    185.0,
+    348.0,
+    295.0,
+    462.0
+   ],
+   "qd_key": "6683679948537856",
+   "recognized": true,
+   "n_strokes": 9
+  },
+  {
+   "cls": "cat",
+   "phrase": "cat",
+   "box": [
+    157.0,
+    274.0,
+    271.0,
+    383.0
+   ],
+   "qd_key": "5102305642807296",
+   "recognized": true,
+   "n_strokes": 8
+  },
+  {
+   "cls": "cat",
+   "phrase": "golden cat",
+   "box": [
+    41.0,
+    134.0,
+    124.0,
+    197.0
+   ],
+   "qd_key": "5046952959934464",
+   "recognized": true,
+   "n_strokes": 11
+  },
+  {
+   "cls": "cat",
+   "phrase": "black cat",
+   "box": [
+    126.0,
+    147.0,
+    227.0,
+    244.0
+   ],
+   "qd_key": "5429311853035520",
+   "recognized": true,
+   "n_strokes": 10
+  },
+  {
+   "cls": "chair",
+   "phrase": "green chair",
+   "box": [
+    112.0,
+    325.0,
+    193.0,
+    441.0
+   ],
+   "qd_key": "6417576026439680",
+   "recognized": true,
+   "n_strokes": 4
+  },
+  {
+   "cls": "umbrella",
+   "phrase": "shiny umbrella",
+   "box": [
+    106.0,
+    211.0,
+    164.0,
+    310.0
+   ],
+   "qd_key": "5005325197377536",
+   "recognized": true,
+   "n_strokes": 4
+  },
+  {
+   "cls": "cat",
+   "phrase": "golden cat",
+   "box": [
+    199.0,
+    135.0,
+    284.0,
+    199.0
+   ],
+   "qd_key": "5152612829626368",
+   "recognized": true,
+   "n_strokes": 9
+  },
+  {
+   "cls": "chair",
+   "phrase": "green chair",
+   "box": [
+    215.0,
+    172.0,
+    281.0,
+    277.0
+   ],
+   "qd_key": "6155724000329728",
+   "recognized": true,
+   "n_strokes": 6
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "left_of"
+  ],
+  [
+   0,
+   2,
+   "left_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   0,
+   3,
+   "left_of"
+  ],
+  [
+   0,
+   4,
+   "left_of"
+  ],
+  [
+   0,
+   4,
+   "below"
+  ],
+  [
+   0,
+   5,
+   "left_of"
+  ],
+  [
+   0,
+   5,
+   "below"
+  ],
+  [
+   0,
+   6,
+   "left_of"
+  ],
+  [
+   0,
+   6,
+   "above"
+  ],
+  [
+   0,
+   7,
+   "left_of"
+  ],
+  [
+   0,
+   7,
+   "below"
+  ],
+  [
+   0,
+   8,
+   "left_of"
+  ],
+  [
+   0,
+   8,
+   "below"
+  ],
+  [
+   0,
+   9,
+   "left_of"
+  ],
+  [
+   0,
+   9,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ],
+  [
+   1,
+   3,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "below"
+  ],
+  [
+   1,
+   5,
+   "right_of"
+  ],
+  [
+   1,
+   5,
+   "below"
+  ],
+  [
+   1,
+   6,
+   "right_of"
+  ],
+  [
+   1,
+   6,
+   "above"
+  ],
+  [
+   1,
+   7,
+   "right_of"
+  ],
+  [
+   1,
+   7,
+   "below"
+  ],
+  [
+   1,
+   8,
+   "right_of"
+  ],
+  [
+   1,
+   8,
+   "below"
+  ],
+  [
+   1,
+   9,
+   "right_of"
+  ],
+  [
+   1,
+   9,
+   "below"
+  ],
+  [
+   2,
+   3,
+   "right_of"
+  ],
+  [
+   2,
+   3,
+   "below"
+  ],
+  [
+   2,
+   3,
+   "in_front_of"
+  ],
+  [
+   2,
+   4,
+   "right_of"
+  ],
+  [
+   2,
+   4,
+   "below"
+  ],
+  [
+   2,
+   5,
+   "right_of"
+  ],
+  [
+   2,
+   5,
+   "below"
+  ],
+  [
+   2,
+   6,
+   "right_of"
+  ],
+  [
+   2,
+   6,
+   "in_front_of"
+  ],
+  [
+   2,
+   7,
+   "right_of"
+  ],
+  [
+   2,
+   7,
+   "below"
+  ],
+  [
+   2,
+   8,
+   "below"
+  ],
+  [
+   2,
+   9,
+   "below"
+  ],
+  [
+   3,
+   4,
+   "right_of"
+  ],
+  [
+   3,
+   4,
+   "below"
+  ],
+  [
+   3,
+   5,
+   "right_of"
+  ],
+  [
+   3,
+   5,
+   "below"
+  ],
+  [
+   3,
+   6,
+   "right_of"
+  ],
+  [
+   3,
+   6,
+   "above"
+  ],
+  [
+   3,
+   6,
+   "behind"
+  ],
+  [
+   3,
+   7,
+   "right_of"
+  ],
+  [
+   3,
+   7,
+   "below"
+  ],
+  [
+   3,
+   7,
+   "in_front_of"
+  ],
+  [
+   3,
+   8,
+   "left_of"
+  ],
+  [
+   3,
+   8,
+   "below"
+  ],
+  [
+   3,
+   9,
+   "left_of"
+  ],
+  [
+   3,
+   9,
+   "below"
+  ],
+  [
+   3,
+   9,
+   "in_front_of"
+  ],
+  [
+   4,
+   5,
+   "left_of"
+  ],
+  [
+   4,
+   5,
+   "above"
+  ],
+  [
+   4,
+   6,
+   "left_of"
+  ],
+  [
+   4,
+   6,
+   "above"
+  ],
+  [
+   4,
+   7,
+   "left_of"
+  ],
+  [
+   4,
+   7,
+   "above"
+  ],
+  [
+   4,
+   8,
+   "left_of"
+  ],
+  [
+   4,
+   9,
+   "left_of"
+  ],
+  [
+   4,
+   9,
+   "above"
+  ],
+  [
+   5,
+   6,
+   "above"
+  ],
+  [
+   5,
+   7,
+   "right_of"
+  ],
+  [
+   5,
+   7,
+   "above"
+  ],
+  [
+   5,
+   7,
+   "behind"
+  ],
+  [
+   5,
+   8,
+   "left_of"
+  ],
+  [
+   5,
+   8,
+   "below"
+  ],
+  [
+   5,
+   8,
+   "in_front_of"
+  ],
+  [
+   5,
+   9,
+   "left_of"
+  ],
+  [
+   5,
+   9,
+   "above"
+  ],
+  [
+   5,
+   9,
+   "behind"
+  ],
+  [
+   6,
+   7,
+   "below"
+  ],
+  [
+   6,
+   8,
+   "left_of"
+  ],
+  [
+   6,
+   8,
+   "below"
+  ],
+  [
+   6,
+   9,
+   "left_of"
+  ],
+  [
+   6,
+   9,
+   "below"
+  ],
+  [
+   7,
+   8,
+   "left_of"
+  ],
+  [
+   7,
+   8,
+   "below"
+  ],
+  [
+   7,
+   9,
+   "left_of"
+  ],
+  [
+   7,
+   9,
+   "below"
+  ],
+  [
+   8,
+   9,
+   "above"
+  ],
+  [
+   8,
+   9,
+   "behind"
+  ]
+ ],
+ "overlap_max": 0.16830374008311297,
+ "heldout_set": "heldout_v3",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261107,
+  "per_cell": 2,
+  "original_sid": "qd_8p_medium_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "heldout_v2",
+   "direct_dev_v1"
+  ]
+ }
+}

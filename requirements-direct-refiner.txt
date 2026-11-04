@@ -1,0 +1,2 @@
+# Dev v3 / OCSD v3 only: upstream SDXL-Refiner cascade (same diffusers version as requirements-colab.txt).
+diffusers==0.40.0

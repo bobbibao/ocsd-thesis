@@ -1,0 +1,357 @@
+{
+ "sid": "h3_qd_8p_complex_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 8,
+ "count_bin": "8+",
+ "complexity": "complex",
+ "bg": "in a park",
+ "caption": "a black dog, two small rabbits, two black umbrellas, a tall tree, an umbrella and a gray cat in a park",
+ "objects": [
+  {
+   "cls": "dog",
+   "phrase": "black dog",
+   "box": [
+    298.0,
+    237.0,
+    394.0,
+    325.0
+   ],
+   "qd_key": "6077430471065600",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "rabbit",
+   "phrase": "small rabbit",
+   "box": [
+    363.0,
+    260.0,
+    419.0,
+    361.0
+   ],
+   "qd_key": "4685402612957184",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "umbrella",
+   "phrase": "black umbrella",
+   "box": [
+    355.0,
+    147.0,
+    427.0,
+    227.0
+   ],
+   "qd_key": "5344081687347200",
+   "recognized": true,
+   "n_strokes": 2
+  },
+  {
+   "cls": "rabbit",
+   "phrase": "small rabbit",
+   "box": [
+    154.0,
+    267.0,
+    264.0,
+    388.0
+   ],
+   "qd_key": "4614595664674816",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "tree",
+   "phrase": "tall tree",
+   "box": [
+    151.0,
+    143.0,
+    233.0,
+    230.0
+   ],
+   "qd_key": "5178420499578880",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "umbrella",
+   "phrase": "umbrella",
+   "box": [
+    105.0,
+    173.0,
+    187.0,
+    234.0
+   ],
+   "qd_key": "4806050261762048",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "cat",
+   "phrase": "gray cat",
+   "box": [
+    274.0,
+    275.0,
+    377.0,
+    369.0
+   ],
+   "qd_key": "6353640707063808",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "umbrella",
+   "phrase": "black umbrella",
+   "box": [
+    83.0,
+    257.0,
+    208.0,
+    376.0
+   ],
+   "qd_key": "4883279746433024",
+   "recognized": true,
+   "n_strokes": 2
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "left_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   1,
+   "behind"
+  ],
+  [
+   0,
+   2,
+   "left_of"
+  ],
+  [
+   0,
+   2,
+   "below"
+  ],
+  [
+   0,
+   3,
+   "right_of"
+  ],
+  [
+   0,
+   3,
+   "above"
+  ],
+  [
+   0,
+   4,
+   "right_of"
+  ],
+  [
+   0,
+   4,
+   "below"
+  ],
+  [
+   0,
+   5,
+   "right_of"
+  ],
+  [
+   0,
+   5,
+   "below"
+  ],
+  [
+   0,
+   6,
+   "above"
+  ],
+  [
+   0,
+   6,
+   "behind"
+  ],
+  [
+   0,
+   7,
+   "right_of"
+  ],
+  [
+   0,
+   7,
+   "above"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ],
+  [
+   1,
+   3,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "below"
+  ],
+  [
+   1,
+   5,
+   "right_of"
+  ],
+  [
+   1,
+   5,
+   "below"
+  ],
+  [
+   1,
+   6,
+   "right_of"
+  ],
+  [
+   1,
+   7,
+   "right_of"
+  ],
+  [
+   2,
+   3,
+   "right_of"
+  ],
+  [
+   2,
+   3,
+   "above"
+  ],
+  [
+   2,
+   4,
+   "right_of"
+  ],
+  [
+   2,
+   5,
+   "right_of"
+  ],
+  [
+   2,
+   6,
+   "right_of"
+  ],
+  [
+   2,
+   6,
+   "above"
+  ],
+  [
+   2,
+   7,
+   "right_of"
+  ],
+  [
+   2,
+   7,
+   "above"
+  ],
+  [
+   3,
+   4,
+   "below"
+  ],
+  [
+   3,
+   5,
+   "right_of"
+  ],
+  [
+   3,
+   5,
+   "below"
+  ],
+  [
+   3,
+   6,
+   "left_of"
+  ],
+  [
+   3,
+   7,
+   "right_of"
+  ],
+  [
+   4,
+   5,
+   "right_of"
+  ],
+  [
+   4,
+   6,
+   "left_of"
+  ],
+  [
+   4,
+   6,
+   "above"
+  ],
+  [
+   4,
+   7,
+   "right_of"
+  ],
+  [
+   4,
+   7,
+   "above"
+  ],
+  [
+   5,
+   6,
+   "left_of"
+  ],
+  [
+   5,
+   6,
+   "above"
+  ],
+  [
+   5,
+   7,
+   "above"
+  ],
+  [
+   6,
+   7,
+   "right_of"
+  ]
+ ],
+ "overlap_max": 0.27856135401974613,
+ "heldout_set": "heldout_v3",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261107,
+  "per_cell": 2,
+  "original_sid": "qd_8p_complex_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "heldout_v2",
+   "direct_dev_v1"
+  ]
+ }
+}
