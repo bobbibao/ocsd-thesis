@@ -9,7 +9,8 @@ from unittest.mock import patch
 import numpy as np
 import torch
 from ocsd.direct_instances import (scene_condition, sketch_points, conditioning_batch,
-                                   cached_conditioning, sampling_work, sample_latents, SOURCE_COMMIT, load_global_text_weights)
+                                   cached_conditioning, sampling_work, sample_latents, SOURCE_COMMIT, load_global_text_weights,
+                                   fusion_weights, mis_sampler_class)
 
 
 def scene():
@@ -159,6 +160,39 @@ class OfficialCore(unittest.TestCase):
         self.assertGreater(float((other-cached).abs().max()),1e-7)
         plain,c=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=0)
         self.assertTrue(torch.isfinite(plain).all());self.assertEqual(c['unet_sample_calls'],22)
+
+    def test_official_mean_fusion_is_bit_identical_to_upstream_sampler(self):
+        from ldm.models.diffusion.plms_instance import PLMSSamplerInst
+        torch.manual_seed(91);model=self.model
+        batch=conditioning_batch(scene_condition(scene()),torch.randn(2,32))
+        noise=torch.randn(1,4,8,8);contexts=[torch.randn(1,5,32) for _ in range(3)];negative=torch.randn(1,5,32)
+        base={k:v.clone()*.9 for k,v in model.input_blocks[0][0].state_dict().items()}
+        ours,log=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2)
+        with patch('ocsd.direct_instances.mis_sampler_class',side_effect=lambda f,d: PLMSSamplerInst):
+            upstream,_=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2)
+        self.assertTrue(torch.equal(ours,upstream))
+        self.assertEqual(log['mis_fusion'],'official_mean');self.assertEqual(log['mis_merge']['merge_step'],2)
+        self.assertEqual(len(log['mis_merge']['background_gap_to_global']),2)
+        region,rlog=sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2,fusion='region')
+        self.assertEqual(rlog['unet_sample_calls'],log['unet_sample_calls'])
+        self.assertTrue(torch.isfinite(region).all());self.assertGreater(float((region-ours).abs().max()),1e-7)
+        with self.assertRaisesRegex(ValueError,'Unknown MIS fusion'):
+            sample_latents(model,self.diffusion,batch,contexts,negative,noise,base,steps=10,mis=.2,fusion='paste')
+
+    def test_region_fusion_keeps_global_background_and_halves_inside_boxes(self):
+        boxes=torch.zeros(1,30,4);masks=torch.zeros(1,30)
+        boxes[0,0]=torch.tensor([0,0,.5,.5]);boxes[0,1]=torch.tensor([.25,.25,.75,.75]);masks[0,:2]=1
+        mean=fusion_weights(boxes,masks,8,'official_mean');self.assertTrue(torch.equal(mean,torch.ones(3,1,1,8,8)))
+        hard=fusion_weights(boxes,masks,8,'region',feather=0)
+        self.assertEqual(hard.shape,(3,1,1,8,8));self.assertTrue(torch.equal(hard[0],torch.ones(1,1,8,8)))
+        self.assertEqual(float(hard[1,0,0,0,0]),1.);self.assertEqual(float(hard[1,0,0,7,7]),0.)
+        stack=torch.stack([torch.full((1,1,8,8),v) for v in (0.,3.,6.)])
+        fused=(stack*hard).sum(0)/hard.sum(0)
+        self.assertEqual(float(fused[0,0,7,7]),0.)   # background: global only
+        self.assertEqual(float(fused[0,0,0,0]),1.5)  # one box: (global+instance)/2
+        self.assertEqual(float(fused[0,0,3,3]),3.)   # overlap: (0+3+6)/3
+        soft=fusion_weights(boxes,masks,8,'region',feather=2)
+        self.assertTrue(((soft>=0)&(soft<=1)).all());self.assertTrue(torch.equal(soft[0],hard[0]))
 
     def test_failed_sampling_restores_convolution_null_cache_and_scales(self):
         from ldm.modules.attention import GatedSelfAttentionDense

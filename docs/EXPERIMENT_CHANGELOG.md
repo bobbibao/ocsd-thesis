@@ -97,3 +97,14 @@ The verifier/CLIP acceptance guard can reject a repair; it is not a guarantee of
 `screen` is a separate 12-scene, 84-output plan, with no M3/COCO/FID/tuning. New variants are not
 automatically added to paper/full. Full baselines, negative ablations and historical preregistrations
 remain intact. See QUALITY_SCREEN.md for prospective rules, checks, cost accounting and limitations.
+
+## Direct canary audited, review font fixed, region MIS merge added — 2026-11-04
+
+Canary `direct_9b63ee5bdadc694320c9` (L4) completed 4/4 images within plan: 864 UNet sample calls,
+peak 5.95 GiB, 199 s attempt wall time, checksums and provenance match the CPU PASS. Analyst
+observations and limits: [DIRECT_CANARY_20261103_RESULTS.md](DIRECT_CANARY_20261103_RESULTS.md).
+The review sheets showed boxes instead of Vietnamese text (Pillow fallback font); fixed with a
+glyph-checked font choice and an accent-free fallback. `sample_latents` now runs the upstream MIS
+loop with a pluggable merge: `official_mean` (default, bit-identical to upstream, tested) or
+`region` (OCSD variant, untested on GPU). Merge diagnostics are logged per image. The next run is
+only drafted: [DIRECT_DEV_PROTOCOL_DRAFT.md](DIRECT_DEV_PROTOCOL_DRAFT.md).

@@ -25,6 +25,7 @@ class Canary(unittest.TestCase):
         for target,value in [('is_available',True),('get_device_properties',SimpleNamespace(name='test GPU',total_memory=24*1024**3)),
                              ('reset_peak_memory_stats',None),('synchronize',None),('max_memory_allocated',1024)]:
             self.stack.enter_context(patch.object(torch.cuda,target,return_value=value))
+        self.stack.enter_context(patch.object(torch.backends.cudnn,'version',return_value=1))
         self.calls=[]
         def generate(condition,seed,negative,**kwargs):
             self.calls.append((seed,kwargs['scribble']))
@@ -95,6 +96,19 @@ class Canary(unittest.TestCase):
         state=json.loads((Path(packed['directory'])/'run.json').read_text())
         self.assertFalse(state['quality_validated'])
         self.assertEqual(len(state['completed']),4)
+
+    def test_review_text_never_renders_missing_glyph_boxes(self):
+        from PIL import ImageFont
+        self.assertFalse(canary._covers_vietnamese(ImageFont.load_default(size=21)))
+        font,plain=canary.review_font(21)
+        text=plain('Phác thảo đầu vào, ghế băng gỗ')
+        if plain(text)!=text or text.isascii():
+            self.assertEqual(text,'Phac thao dau vao, ghe bang go')
+        else:
+            self.assertTrue(canary._covers_vietnamese(font))
+        with patch.dict('sys.modules',{'matplotlib':None}):
+            _,plain=canary.review_font(21,candidates=['/missing.ttf'])
+        self.assertEqual(plain('Đường ghế'),'Duong ghe')
 
 
 if __name__=='__main__':unittest.main()
