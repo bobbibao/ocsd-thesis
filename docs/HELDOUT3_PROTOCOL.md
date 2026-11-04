@@ -1,6 +1,6 @@
 # Held-out v3: complete OCSD v3 vs the original OCSD (protocol)
 
-Status: locked by `assets/heldout_v3/protocol.json` (written by `tools/lock_heldout_v3.py` right after the dev v3 decision and before any held-out v3 output).
+Status: LOCKED 2026-11-04 by `assets/heldout_v3/protocol.json` (written by `tools/lock_heldout_v3.py` from dev v3 run dev3_c4c37905e295bb1fb60f, kept arm sil_layout_refine, before any held-out v3 output).
 
 ## Question
 

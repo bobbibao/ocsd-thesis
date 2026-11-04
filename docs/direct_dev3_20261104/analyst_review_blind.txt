@@ -1,0 +1,97 @@
+Analyst blind review (Claude), dev v3, written before opening review_key.json. Criteria as HOW_TO_REVIEW.txt.
+=== 01_dev1_cars_house_seed0 ===
+A: count=pass colour=fail(white car red) shape=pass pos=pass natural=2
+B: count=pass colour=fail(white car red) shape=pass pos=pass natural=2
+C: count=pass colour=fail(white car red) shape=pass pos=pass natural=2
+D: count=pass colour=fail(white car red) shape=pass pos=pass natural=2
+pick: none (all colour fail)
+=== 01_dev1_cars_house_seed1 ===
+A: count=pass colour=pass shape=pass pos=pass natural=1 note=two panels/frame seams
+B: count=pass colour=pass shape=pass pos=pass natural=1 note=panels
+C: count=pass colour=pass shape=pass pos=pass natural=1 note=panels
+D: count=pass colour=pass shape=pass pos=pass natural=1 note=panels, blurry border
+pick: tie
+=== 02_dev2_cats_tree_seed0 ===
+A: count=pass colour=pass shape=pass pos=pass natural=2
+B: count=pass colour=pass shape=pass pos=pass natural=1 note=tree is a flat U-shaped topiary blob, flat ground
+C: count=pass colour=pass shape=pass pos=pass natural=2
+D: count=pass colour=pass shape=pass pos=pass natural=1 note=topiary tree, flat ground
+pick: C
+=== 02_dev2_cats_tree_seed1 ===
+A: count=pass colour=pass shape=pass pos=pass natural=1 note=white cat pasted/flat
+B: count=pass colour=pass shape=pass pos=pass natural=1 note=white cat pasted
+C: count=pass colour=pass shape=pass pos=pass natural=2
+D: count=pass colour=pass shape=pass pos=pass natural=2
+pick: C
+=== 03_dev3_umbrellas_palm_seed0 ===
+A: count=pass colour=pass shape=pass pos=pass natural=2 note=red handle on blue umbrella (minor)
+B: count=pass colour=pass shape=pass pos=pass natural=1 note=odd red post under blue umbrella, extra trunk
+C: count=pass colour=pass shape=pass pos=pass natural=1 note=odd red/blue object under blue umbrella, stray trunk
+D: count=pass colour=pass shape=pass pos=pass natural=2 note=red handle on blue umbrella (minor)
+pick: D
+=== 03_dev3_umbrellas_palm_seed1 ===
+A: count=pass colour=pass shape=pass pos=pass natural=2
+B: count=pass colour=pass shape=pass pos=pass natural=2
+C: count=pass colour=pass shape=pass pos=pass natural=2
+D: count=pass colour=pass shape=pass pos=pass natural=2
+pick: tie
+=== 04_dev4_apples_cup_seed0 ===
+A: count=pass colour=pass shape=pass pos=pass natural=2 note=white cup with red logo
+B: count=pass colour=fail(cup mostly red marbled) shape=pass pos=pass natural=1
+C: count=pass colour=pass shape=pass pos=pass natural=2 note=white cup with red logo
+D: count=pass colour=fail(cup mostly red) shape=pass pos=pass natural=1
+pick: A
+=== 04_dev4_apples_cup_seed1 ===
+A: count=pass colour=fail(black cup) shape=pass pos=pass natural=2
+B: count=pass colour=fail(black cup) shape=pass pos=pass natural=1 note=smeared wall
+C: count=pass colour=fail(black cup) shape=pass pos=pass natural=2
+D: count=pass colour=fail(black cup) shape=pass pos=pass natural=2
+pick: none
+=== 05_dev5_dog_couch_seed0 ===
+A: count=pass colour=pass shape=pass pos=pass natural=2
+B: count=fail(extra dog lower right) colour=pass shape=pass pos=pass natural=1
+C: count=pass colour=pass shape=pass pos=pass natural=2 note=pet bed lower right, not an animal
+D: count=fail(extra animal at right edge) colour=pass shape=pass pos=pass natural=1
+pick: A
+=== 05_dev5_dog_couch_seed1 ===
+A: count=pass colour=pass shape=pass pos=pass natural=2
+B: count=pass colour=pass shape=pass pos=pass natural=1 note=dog pose awkward, merges into couch back
+C: count=pass colour=pass shape=pass pos=pass natural=2
+D: count=pass colour=pass shape=pass pos=pass natural=2
+pick: A
+=== 06_dev6_bird_fence_seed0 ===
+A: count=pass colour=pass shape=pass pos=pass natural=2
+B: count=pass colour=pass shape=pass pos=pass natural=1 note=fence post turned into a mossy planter
+C: count=pass colour=pass shape=pass pos=pass natural=2
+D: count=pass colour=pass shape=pass pos=pass natural=2
+pick: C
+=== 06_dev6_bird_fence_seed1 ===
+A: count=pass colour=pass shape=fail(fence = odd stick construction, star-like object) pos=pass natural=1
+B: count=pass colour=pass shape=pass pos=pass natural=2
+C: count=pass colour=pass shape=pass pos=pass natural=2
+D: count=pass colour=pass shape=fail(fence = stick construction) pos=pass natural=1
+pick: C
+=== 07_dev7_train_tree_sun_seed0 ===
+A: count=pass colour=pass shape=pass pos=pass natural=2 note=coach-style loco, no chimney
+B: count=pass colour=pass shape=pass pos=pass natural=2 note=steam loco with chimney like the sketch
+C: count=pass colour=pass shape=pass pos=pass natural=2
+D: count=pass colour=pass shape=pass pos=pass natural=2 note=steam loco with chimney
+pick: B
+=== 07_dev7_train_tree_sun_seed1 ===
+A: count=pass colour=pass shape=pass pos=pass natural=1 note=dark frame border top/left
+B: count=pass colour=pass shape=pass pos=pass natural=1 note=frame border
+C: count=pass colour=pass shape=pass pos=pass natural=1 note=frame border
+D: count=pass colour=pass shape=pass pos=pass natural=1 note=frame border
+pick: tie
+=== 08_dev8_canoe_mountain_seed0 ===
+A: count=pass colour=pass shape=pass pos=pass natural=2
+B: count=pass colour=pass shape=pass pos=pass natural=2
+C: count=pass colour=pass shape=pass pos=pass natural=2
+D: count=pass colour=pass shape=pass pos=pass natural=2
+pick: tie
+=== 08_dev8_canoe_mountain_seed1 ===
+A: count=pass colour=pass shape=pass pos=pass natural=2 note=extra background clouds in all four (not counted)
+B: count=pass colour=pass shape=pass pos=pass natural=2
+C: count=pass colour=pass shape=pass pos=pass natural=2
+D: count=pass colour=pass shape=pass pos=pass natural=2 note=odd raised bow tip
+pick: tie

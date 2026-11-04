@@ -1,0 +1,30 @@
+{
+  "segmenter": "facebook/sam-vit-huge",
+  "segmenter_revision": "87aecf0df4ce6b30cd7de76e87673c49644bdf67",
+  "arms": {
+    "sil_full": {
+      "sketch_chamfer": 0.03530471411600403,
+      "found_rate": 1.0,
+      "facing_acc_pooled": 1.0,
+      "facing_n": 14
+    },
+    "sil_layout": {
+      "sketch_chamfer": 0.04489307453943007,
+      "found_rate": 1.0,
+      "facing_acc_pooled": 0.7857142857142857,
+      "facing_n": 14
+    },
+    "sil_full_refine": {
+      "sketch_chamfer": 0.03834893915090952,
+      "found_rate": 1.0,
+      "facing_acc_pooled": 0.9285714285714286,
+      "facing_n": 14
+    },
+    "sil_layout_refine": {
+      "sketch_chamfer": 0.04511249105408117,
+      "found_rate": 1.0,
+      "facing_acc_pooled": 0.9285714285714286,
+      "facing_n": 14
+    }
+  }
+}

@@ -40,7 +40,8 @@ class Config:
 
 
 # Set from the dev v3 result; see docs/DIRECT_DEV3_PROTOCOL.md.
-FROZEN = Config()
+FROZEN = Config(layout_only=True, refine=True, refiner_revision='5d4cfe854c9a9a87939ff3653551c2b3c99a4356',
+                decided_by='dev v3 run dev3_c4c37905e295bb1fb60f, kept arm sil_layout_refine (docs/DIRECT_DEV3_20261104_RESULTS.md)')
 
 
 class OCSDv3:
