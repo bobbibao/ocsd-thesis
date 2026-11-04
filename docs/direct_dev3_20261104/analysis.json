@@ -1,0 +1,44 @@
+{
+ "rule": "assets/direct_dev_v3/protocol.json decision_rules",
+ "blind_review_sha256": "648a30584915d0bb3bbbd62abe4320e9e9bb5cd95ddaad8431019b9f1ebe7798",
+ "picks": {
+  "tie": 5,
+  "sil_layout_refine": 3,
+  "sil_full": 3,
+  "none": 2,
+  "sil_full_refine": 2,
+  "sil_layout": 1
+ },
+ "arms": {
+  "sil_full": {
+   "structure_failures_of_16": 5,
+   "mean_naturalness": 1.5625,
+   "sketch_chamfer": 0.03530471411600403,
+   "facing_acc_pooled": 1.0,
+   "admissible": true
+  },
+  "sil_layout": {
+   "structure_failures_of_16": 2,
+   "mean_naturalness": 1.75,
+   "sketch_chamfer": 0.04489307453943007,
+   "facing_acc_pooled": 0.7857142857142857,
+   "admissible": false
+  },
+  "sil_full_refine": {
+   "structure_failures_of_16": 5,
+   "mean_naturalness": 1.5625,
+   "sketch_chamfer": 0.03834893915090952,
+   "facing_acc_pooled": 0.9285714285714286,
+   "admissible": true
+  },
+  "sil_layout_refine": {
+   "structure_failures_of_16": 2,
+   "mean_naturalness": 1.6875,
+   "sketch_chamfer": 0.04511249105408117,
+   "facing_acc_pooled": 0.9285714285714286,
+   "admissible": true
+  }
+ },
+ "kept": "sil_layout_refine",
+ "note": "sil_layout_refine beats sil_full on naturalness by 0.125 (> 0.10 tie band); its chamfer 0.04511 is just inside the 0.04530 limit."
+}

@@ -1,5 +1,10 @@
 # Experiment changes
 
+## OCSD v3 frozen; held-out v3 locked — 2026-11-04
+
+- Dev v3 (`dev3_c4c37905e295bb1fb60f`, 64 images, audit clean) kept `sil_layout_refine` by the locked rule: silhouettes only during the MIS layout steps, then the upstream SDXL-Refiner cascade (0.35, 20 steps). Naturalness 1.69 vs 1.56 and structure failures 2 vs 5 against full-step silhouettes; chamfer 0.045 vs 0.035 (inside the limit); facing 0.93 vs 1.00. Layout-only without the refiner failed the facing limit. [Results](DIRECT_DEV3_20261104_RESULTS.md).
+- Frozen as OCSD v3 (`ocsd/ocsd_v3.py`, default method of the Gradio demo). Held-out v3 locked before any output: 18 new disjoint scenes; OCSD v3, InstanceDiffusion box, original OCSD (paper tier + frozen paper_v2 tuning), GLIGEN, Collage, ControlNet; primary = OCSD v3 vs original OCSD on OPR, mIoU, sketch chamfer (Holm). RUN_ALL default `heldout3`. [Protocol](HELDOUT3_PROTOCOL.md).
+
 ## Real-weight CPU PASS and bounded GPU canary — 2026-11-03
 
 - Audited `20261103T142406Z_013a5f0e`: matching code hashes, complete EMA/text weights, exact conditioner cache parity, nonzero scribble response and finite pretrained UNet output on an 8×8 latent. Preserved the result JSON; this is not image-quality evidence.

@@ -91,7 +91,7 @@ class Preflight(unittest.TestCase):
         self.assertEqual(nb['metadata']['accelerator'],'GPU')
         code=[''.join(c['source']) for c in nb['cells'] if c['cell_type']=='code']
         config={};exec(code[0],config)
-        self.assertEqual(config['RUN_MODE'],'naturalness_dev')
+        self.assertEqual(config['RUN_MODE'],'heldout3')
         self.assertEqual(config['RUN_ID'],'')
         # No imports, GPU access, downloads, model generation or uploads are reachable
         # in later cells when the earlier preflight succeeds OR fails.

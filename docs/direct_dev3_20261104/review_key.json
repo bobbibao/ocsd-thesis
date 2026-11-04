@@ -1,0 +1,98 @@
+{
+  "dev1_cars_house_s0": {
+    "A": "sil_full_refine",
+    "B": "sil_layout",
+    "C": "sil_full",
+    "D": "sil_layout_refine"
+  },
+  "dev1_cars_house_s1": {
+    "A": "sil_layout_refine",
+    "B": "sil_full",
+    "C": "sil_full_refine",
+    "D": "sil_layout"
+  },
+  "dev2_cats_tree_s0": {
+    "A": "sil_layout_refine",
+    "B": "sil_full",
+    "C": "sil_layout",
+    "D": "sil_full_refine"
+  },
+  "dev2_cats_tree_s1": {
+    "A": "sil_full",
+    "B": "sil_layout",
+    "C": "sil_full_refine",
+    "D": "sil_layout_refine"
+  },
+  "dev3_umbrellas_palm_s0": {
+    "A": "sil_full",
+    "B": "sil_layout_refine",
+    "C": "sil_layout",
+    "D": "sil_full_refine"
+  },
+  "dev3_umbrellas_palm_s1": {
+    "A": "sil_layout_refine",
+    "B": "sil_full_refine",
+    "C": "sil_layout",
+    "D": "sil_full"
+  },
+  "dev4_apples_cup_s0": {
+    "A": "sil_layout_refine",
+    "B": "sil_full_refine",
+    "C": "sil_layout",
+    "D": "sil_full"
+  },
+  "dev4_apples_cup_s1": {
+    "A": "sil_layout",
+    "B": "sil_layout_refine",
+    "C": "sil_full",
+    "D": "sil_full_refine"
+  },
+  "dev5_dog_couch_s0": {
+    "A": "sil_layout_refine",
+    "B": "sil_full_refine",
+    "C": "sil_layout",
+    "D": "sil_full"
+  },
+  "dev5_dog_couch_s1": {
+    "A": "sil_full",
+    "B": "sil_full_refine",
+    "C": "sil_layout_refine",
+    "D": "sil_layout"
+  },
+  "dev6_bird_fence_s0": {
+    "A": "sil_layout",
+    "B": "sil_layout_refine",
+    "C": "sil_full",
+    "D": "sil_full_refine"
+  },
+  "dev6_bird_fence_s1": {
+    "A": "sil_full_refine",
+    "B": "sil_layout",
+    "C": "sil_layout_refine",
+    "D": "sil_full"
+  },
+  "dev7_train_tree_sun_s0": {
+    "A": "sil_layout_refine",
+    "B": "sil_full",
+    "C": "sil_layout",
+    "D": "sil_full_refine"
+  },
+  "dev7_train_tree_sun_s1": {
+    "A": "sil_layout",
+    "B": "sil_layout_refine",
+    "C": "sil_full_refine",
+    "D": "sil_full"
+  },
+  "dev8_canoe_mountain_s0": {
+    "A": "sil_full_refine",
+    "B": "sil_layout_refine",
+    "C": "sil_layout",
+    "D": "sil_full"
+  },
+  "dev8_canoe_mountain_s1": {
+    "A": "sil_layout",
+    "B": "sil_layout_refine",
+    "C": "sil_full_refine",
+    "D": "sil_full"
+  }
+}

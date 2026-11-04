@@ -23,7 +23,7 @@ class Pipeline(unittest.TestCase):
         self.model = SimpleNamespace(generate=generate)
 
     def test_sketch_to_image_uses_parsed_silhouettes_and_frozen_settings(self):
-        pipe = ocsd_v3.OCSDv3(self.model, config=ocsd_v3.with_overrides(layout_only=True), device='cpu')
+        pipe = ocsd_v3.OCSDv3(self.model, config=ocsd_v3.with_overrides(layout_only=True, refine=False), device='cpu')
         image, log = pipe(sketch_rgb(), 'a red box, a blue hook', 'on a table', seed=3)
         self.assertEqual(image.shape, (512, 512, 3))
         condition, seed, kw = self.calls[0]

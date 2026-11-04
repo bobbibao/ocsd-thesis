@@ -1,0 +1,224 @@
+{
+  "run_id": "dev3_c4c37905e295bb1fb60f",
+  "status": "complete",
+  "contract": {
+    "protocol": {
+      "schema": "ocsd-direct-dev-v3",
+      "stage": "development (stage 4: naturalness of the sketch-silhouette model), not held-out; same 8 dev scenes as stages 1-3",
+      "scenes": "assets/direct_dev_v1/scenes.json",
+      "seeds": [
+        0,
+        1
+      ],
+      "arms": [
+        {
+          "name": "sil_full",
+          "scribble": false,
+          "fusion": "official_mean",
+          "silhouette": true
+        },
+        {
+          "name": "sil_layout",
+          "scribble": false,
+          "fusion": "official_mean",
+          "silhouette": true,
+          "silhouette_layout_only": true
+        },
+        {
+          "name": "sil_full_refine",
+          "scribble": false,
+          "fusion": "official_mean",
+          "silhouette": true,
+          "refine_of": "sil_full"
+        },
+        {
+          "name": "sil_layout_refine",
+          "scribble": false,
+          "fusion": "official_mean",
+          "silhouette": true,
+          "silhouette_layout_only": true,
+          "refine_of": "sil_layout"
+        }
+      ],
+      "silhouette_parser": {
+        "function": "ocsd.direct_instances.sketch_silhouette",
+        "bridge_fraction_of_diagonal": 1.0,
+        "close_radius_fraction_of_diagonal": 0.03,
+        "polygon_points": 256,
+        "note": "Masks are parsed from each instance sketch only (stroke-end bridging, closing, hole fill); no oracle or dataset masks. Polygon sampling follows upstream sample_sparse_points_from_mask, made deterministic."
+      },
+      "layout_only_rule": "Silhouette masks and polygons condition the n+1 MIS layout trajectories (first int(50*0.36)=18 of 50 PLMS steps); after the merge the joint trajectory keeps boxes, centre points and phrases only (UniFusion test_drop_masks). Fixed a priori; not tuned.",
+      "refiner_repo": "stabilityai/stable-diffusion-xl-refiner-1.0",
+      "refiner_strength": 0.35,
+      "refiner_steps": 20,
+      "refiner_note": "Upstream InstanceDiffusion inference.py cascade defaults (fp16 weights, caption prompt, no negative prompt, 512 px). Revision resolved at first download and stored in run.json; held-out v3 pins it. Refined arms refine the SAME base image of the same scene/seed, so the refiner effect is paired.",
+      "sketch_fidelity": true,
+      "steps": 50,
+      "mis": 0.36,
+      "alpha": 0.8,
+      "guidance": 7.5,
+      "negative": "blurry, low quality, distorted, deformed, watermark, text",
+      "max_seconds": 3000,
+      "max_unet_sample_calls": 6912,
+      "precision": "UNet autocast float16, VAE float32; refiner float16 (diffusers upcasts the SDXL VAE for decode)",
+      "model_provenance": {
+        "source_commit": "722900ef03e3579fb693e65a1550333a4a162581",
+        "model_revisions": {
+          "xudongw/InstanceDiffusion": "fc74d76cde4a3dd0c3894e1764c8cf7299c77595",
+          "openai/clip-vit-large-patch14": "32bd64288804d66eefd0ccbe215aa642df71cc41"
+        },
+        "checkpoint_sha256": "b4de3f7877a1860b52837afe3a767ca92a2ef5084056048b503af80027cde1d1",
+        "checkpoint_state": "ema",
+        "phrase_text_weights_complete": true,
+        "base_conv_sha256": "0b6406769828fa6c5360c0187790e93964c167f646de271ce6510105b3a59ae6",
+        "ignored_nonlearned_text_buffers": [],
+        "config_sha256": "0d35e81804aa2fec6176dfa5a1f636159a6f51b94ed8748f63b1c00c191e9399"
+      },
+      "accepted_cpu_run": "20261103T142406Z_013a5f0e",
+      "accepted_cpu_report": "docs/direct_preflight_20261103_pass.json",
+      "decision_rules": [
+        "Unit: 16 scene/seed pairs. Bobby delegated review: the analyst (Claude) reviews the blind sheets BEFORE opening review_key.json, with the held-out criteria (count, colour, shape incl. pose/facing, position; naturalness 0/1/2), and commits the blind review before unblinding.",
+        "Automatic evidence: SAM sketch fidelity (sketch_chamfer per image, pooled facing accuracy over asymmetric instances), same metric code as held-out v2.",
+        "An arm is admissible if: structure failures <= sil_full + 1; mean sketch_chamfer <= sil_full + 0.010; pooled facing accuracy >= sil_full - 0.10. sil_full is always admissible.",
+        "Kept arm = admissible arm with the highest mean naturalness; ties (difference < 0.10) -> fewer structure failures -> earlier arm in the list (simpler).",
+        "The kept arm becomes the frozen OCSD v3 configuration for the new locked held-out v3 comparison against the original OCSD (paper_v2 tuned config), InstanceDiffusion box, ControlNet and GLIGEN. No tuning of the parser, release step or refiner strength on these scenes; no reranking, extra seeds or reruns; failed images stay in the record."
+      ],
+      "locked_note": "Locked before any image with layout-only release or the refiner. sil_full equals the held-out v2 winning arm (direct_silhouette) and is regenerated here so all four arms come from one run.",
+      "_version": "v3"
+    },
+    "source": {
+      "ocsd/direct_dev.py": "005f2cb1141084e81abd234c28290426de71c8d3b1cffe9953d071038ee0400f",
+      "ocsd/direct_canary.py": "0766b3eb78a07d11c3e7eeb1bf57f2d00548b2696e2661186c867b7f846f5e3d",
+      "ocsd/direct_instances.py": "52cd31cd96122c3cd2c03596200f3b00d761bf64a8f252d4d668e0eae58cc1cb",
+      "ocsd/provenance.py": "666dcc4715375371500de092389736b4751f884b62a5cb81aa35c837035487ac",
+      "ocsd/runlog.py": "a5e2ba4681d5926e696ae8e2627565ed9a34269be49d2fbd6dad4785612ad38b",
+      "tools/run_direct_dev.py": "4c669d9cd30bf02b13e2c1fb37b085d57c9abaa0739bb995580a3afbf1d688c3",
+      "requirements-direct-preflight.txt": "28142f3bca99ad7e092d4b67a7aa744841cf666c230cdd884843902dd9db9830",
+      "assets/direct_dev_v3/protocol.json": "e40e7b17184c9754e83d259eb367d5c0fce53ee6f4811ab5c5cca5e58d384126",
+      "assets/direct_dev_v1/scenes.json": "a4b1cfeb2a653a8029cbef2ee83b8727feb608b7fd80203739c30d13fcdc469c",
+      "docs/direct_preflight_20261103_pass.json": "886ddc4695d231a802898fe325d24b7269b5eef5aaf4fd72a3eb3fb3eb5c9c29",
+      "ocsd/sketch_fidelity.py": "2029198c9a8d6a775c8a2ee8fd47c4531e133f5e39304da3b24a5c746f78902d",
+      "ocsd/vision.py": "4d5aebe4c23a16d25c3ffa7bfac432d1910224504997a01a58c1db2c1f5e7e31",
+      "ocsd/config.py": "a3e5921355b7b207b061f7cdacdea09cf7839abc666a12bc1e812a58baa209a7",
+      "requirements-direct-refiner.txt": "011068f840d5a3c7dcb7b170123fac51c18abf9fb09903ff524b1a1fca454197"
+    },
+    "python": "3.13.16",
+    "libraries": {
+      "torch": "2.11.0+cu130",
+      "torchvision": "0.26.0+cu130",
+      "transformers": "5.17.0",
+      "huggingface_hub": "1.33.0",
+      "timm": "1.0.30",
+      "einops": "0.8.2",
+      "numpy": "2.4.6",
+      "pillow": "11.3.0",
+      "omegaconf": "2.3.0",
+      "diffusers": "0.40.0"
+    },
+    "gpu": {
+      "name": "NVIDIA L4",
+      "total_memory": 23659151360,
+      "cuda": "13.0",
+      "cudnn": 92700
+    }
+  },
+  "quality_validated": false,
+  "ocsd_commit": "9b2e6a6804ebb0f641c72323f42735f4c50c744d",
+  "completed": [
+    "dev1_cars_house/sil_full_s0",
+    "dev1_cars_house/sil_layout_s0",
+    "dev1_cars_house/sil_full_s1",
+    "dev1_cars_house/sil_layout_s1",
+    "dev2_cats_tree/sil_full_s0",
+    "dev2_cats_tree/sil_layout_s0",
+    "dev2_cats_tree/sil_full_s1",
+    "dev2_cats_tree/sil_layout_s1",
+    "dev3_umbrellas_palm/sil_full_s0",
+    "dev3_umbrellas_palm/sil_layout_s0",
+    "dev3_umbrellas_palm/sil_full_s1",
+    "dev3_umbrellas_palm/sil_layout_s1",
+    "dev4_apples_cup/sil_full_s0",
+    "dev4_apples_cup/sil_layout_s0",
+    "dev4_apples_cup/sil_full_s1",
+    "dev4_apples_cup/sil_layout_s1",
+    "dev5_dog_couch/sil_full_s0",
+    "dev5_dog_couch/sil_layout_s0",
+    "dev5_dog_couch/sil_full_s1",
+    "dev5_dog_couch/sil_layout_s1",
+    "dev6_bird_fence/sil_full_s0",
+    "dev6_bird_fence/sil_layout_s0",
+    "dev6_bird_fence/sil_full_s1",
+    "dev6_bird_fence/sil_layout_s1",
+    "dev7_train_tree_sun/sil_full_s0",
+    "dev7_train_tree_sun/sil_layout_s0",
+    "dev7_train_tree_sun/sil_full_s1",
+    "dev7_train_tree_sun/sil_layout_s1",
+    "dev8_canoe_mountain/sil_full_s0",
+    "dev8_canoe_mountain/sil_layout_s0",
+    "dev8_canoe_mountain/sil_full_s1",
+    "dev8_canoe_mountain/sil_layout_s1",
+    "dev1_cars_house/sil_full_refine_s0",
+    "dev1_cars_house/sil_layout_refine_s0",
+    "dev1_cars_house/sil_full_refine_s1",
+    "dev1_cars_house/sil_layout_refine_s1",
+    "dev2_cats_tree/sil_full_refine_s0",
+    "dev2_cats_tree/sil_layout_refine_s0",
+    "dev2_cats_tree/sil_full_refine_s1",
+    "dev2_cats_tree/sil_layout_refine_s1",
+    "dev3_umbrellas_palm/sil_full_refine_s0",
+    "dev3_umbrellas_palm/sil_layout_refine_s0",
+    "dev3_umbrellas_palm/sil_full_refine_s1",
+    "dev3_umbrellas_palm/sil_layout_refine_s1",
+    "dev4_apples_cup/sil_full_refine_s0",
+    "dev4_apples_cup/sil_layout_refine_s0",
+    "dev4_apples_cup/sil_full_refine_s1",
+    "dev4_apples_cup/sil_layout_refine_s1",
+    "dev5_dog_couch/sil_full_refine_s0",
+    "dev5_dog_couch/sil_layout_refine_s0",
+    "dev5_dog_couch/sil_full_refine_s1",
+    "dev5_dog_couch/sil_layout_refine_s1",
+    "dev6_bird_fence/sil_full_refine_s0",
+    "dev6_bird_fence/sil_layout_refine_s0",
+    "dev6_bird_fence/sil_full_refine_s1",
+    "dev6_bird_fence/sil_layout_refine_s1",
+    "dev7_train_tree_sun/sil_full_refine_s0",
+    "dev7_train_tree_sun/sil_layout_refine_s0",
+    "dev7_train_tree_sun/sil_full_refine_s1",
+    "dev7_train_tree_sun/sil_layout_refine_s1",
+    "dev8_canoe_mountain/sil_full_refine_s0",
+    "dev8_canoe_mountain/sil_layout_refine_s0",
+    "dev8_canoe_mountain/sil_full_refine_s1",
+    "dev8_canoe_mountain/sil_layout_refine_s1"
+  ],
+  "total_images": 64,
+  "planned_unet_sample_calls": 6912,
+  "refiner_revision": "5d4cfe854c9a9a87939ff3653551c2b3c99a4356",
+  "sketch_fidelity": {
+    "sil_full": {
+      "sketch_chamfer": 0.03530471411600403,
+      "found_rate": 1.0,
+      "facing_acc_pooled": 1.0,
+      "facing_n": 14
+    },
+    "sil_layout": {
+      "sketch_chamfer": 0.04489307453943007,
+      "found_rate": 1.0,
+      "facing_acc_pooled": 0.7857142857142857,
+      "facing_n": 14
+    },
+    "sil_full_refine": {
+      "sketch_chamfer": 0.03834893915090952,
+      "found_rate": 1.0,
+      "facing_acc_pooled": 0.9285714285714286,
+      "facing_n": 14
+    },
+    "sil_layout_refine": {
+      "sketch_chamfer": 0.04511249105408117,
+      "found_rate": 1.0,
+      "facing_acc_pooled": 0.9285714285714286,
+      "facing_n": 14
+    }
+  },
+  "gpu_generation_finite": true,
+  "attempt_wall_s": 1020.9850050690001
+}

@@ -148,6 +148,65 @@ class HeldoutV2(Heldout):
             self.assertTrue(any(n.startswith('direct/') and n.endswith('run.json') for n in z.namelist()))
 
 
+class HeldoutV3(Heldout):
+    """Final set: OCSD v3 (layout-only silhouettes + refiner) vs original OCSD and baselines, paper tier."""
+    def setUp(self):
+        H.use('v3'); self.addCleanup(H.use, 'v1')
+        super().setUp()
+        original = self.model.generate; self.kw = []
+        def generate(condition, seed, negative, **kw):
+            self.kw.append(kw); return original(condition, seed, negative, **kw)
+        self.model.generate = generate
+        self.refined = []
+        def refine(pipe, pixels, caption, seed, strength, steps):
+            self.refined.append((caption, seed, strength, steps)); return (255-pixels).astype(np.uint8), dict(refiner_steps=steps)
+        rev = self.protocol['refiner_revision']
+        self.stack.enter_context(patch('ocsd.direct_instances.load_refiner', return_value=(object(), rev)))
+        self.stack.enter_context(patch('ocsd.direct_instances.refine', side_effect=refine))
+
+    def test_locked_scenes_bins_and_budget(self):
+        self.assertEqual(len(self.scenes), 18); self.assertTrue(all(s.sid.startswith('h3_qd_') for s in self.scenes))
+        bins = sorted(s.meta['count_bin'] for s in self.scenes)
+        self.assertEqual({b: bins.count(b) for b in set(bins)}, {'3': 6, '5': 6, '8+': 6})
+        self.assertEqual(sum(4*sampling_work(s.n) for s in self.scenes), self.protocol['direct_max_unet_sample_calls'])
+        used = set()
+        for name in ('heldout_v1', 'heldout_v2'):
+            used |= {str(o['qd_key']) for p in (H.ROOT/'assets'/name/'quickdraw').glob('*/scene.json')
+                     for o in json.loads(p.read_text())['objects']}
+        self.assertFalse({str(o['qd_key']) for s in self.scenes for o in s.meta['objects']} & used)
+        from ocsd import stages, ocsd_v3
+        E = ExperimentConfig(tier='heldout_final'); v, _ = stages.tier_variants(E)
+        c = v['ocsd']
+        self.assertEqual((c.alpha, c.lora_scale, c.use_energy, c.eta, c.use_region_attn, c.use_identity, c.S1, c.S2, c.steps),
+                         (0.1, 0.5, True, 20.0, True, True, 100, 100, 30))
+        b = stages.tier_baselines(E)
+        self.assertEqual((b['gligen'][1].gligen_beta, b['controlnet'][1].cn_scale, b['collage'][1].collage_strength), (1.0, 1.0, 0.2))
+        arm = self.protocol['direct_arms'][1]
+        self.assertEqual((arm['silhouette_layout_only'], arm['refine']), (ocsd_v3.FROZEN.layout_only, ocsd_v3.FROZEN.refine))
+        self.assertEqual(self.protocol['refiner_revision'], ocsd_v3.FROZEN.refiner_revision)
+
+    def test_direct_import_plan_baselines_and_report(self):
+        def segment(img, box):
+            m = np.zeros(img.shape[:2], bool); x0, y0, x1, y1 = box; m[max(0, y0):y1, max(0, x0):x1] = True; return m
+        from ocsd import stages
+        with patch('ocsd.vision.Vision', return_value=SimpleNamespace(sam=segment)), \
+             patch.object(stages, 'tier_baselines', side_effect=lambda E, P=None: {
+                 'controlnet': ('controlnet', SimpleNamespace(cn_scale=1.0)),
+                 'instance_repair_count_matte_soft': (None, SimpleNamespace(steps=30))}):
+            super().test_direct_import_plan_baselines_and_report()
+        self.assertEqual(len(self.refined), 36); self.assertEqual(self.refined[0][2:], (.35, 20))
+        self.assertEqual(sum(bool(k.get('silhouette_layout_only')) for k in self.kw), 36)
+        P = Paths(str(self.root/'exp'), run_id='r1')
+        summary = json.loads((Path(P.results)/'summary.json').read_text())
+        self.assertEqual(summary['tier'], 'heldout_final')
+        self.assertEqual([(r['a'], r['b'], r['metric']) for r in summary['primary']],
+                         [('ocsd_v3', 'ocsd', 'opr'), ('ocsd_v3', 'ocsd', 'miou'), ('ocsd_v3', 'ocsd', 'sketch_chamfer')])
+        self.assertEqual(len(summary['key_secondary']), 6)
+        self.assertTrue(all(r['p_holm'] >= r['p'] for r in summary['primary'] + summary['key_secondary']))
+        self.assertTrue((Path(P.results)/'ocsd_heldout3_results.zip').exists())
+        with Image.open(next((Path(P.results)/'review').glob('*.png'))) as sheet: self.assertEqual(sheet.size, (3584, 690))
+
+
 class Fidelity(unittest.TestCase):
     def test_mirror_and_missing_object(self):
         from ocsd.sketch_fidelity import instance_fidelity
