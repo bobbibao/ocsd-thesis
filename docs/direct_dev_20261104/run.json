@@ -1,0 +1,151 @@
+{
+  "run_id": "dev_c80aed018746b51a0cee",
+  "status": "complete",
+  "contract": {
+    "protocol": {
+      "schema": "ocsd-direct-dev-v1",
+      "stage": "development (stage 1), not held-out",
+      "scenes": "assets/direct_dev_v1/scenes.json",
+      "seeds": [
+        0,
+        1
+      ],
+      "arms": [
+        {
+          "name": "direct_box",
+          "scribble": false,
+          "fusion": "official_mean"
+        },
+        {
+          "name": "direct_scribble",
+          "scribble": true,
+          "fusion": "official_mean"
+        },
+        {
+          "name": "direct_scribble_region",
+          "scribble": true,
+          "fusion": "region"
+        }
+      ],
+      "steps": 50,
+      "mis": 0.36,
+      "alpha": 0.8,
+      "guidance": 7.5,
+      "region_feather_latent_px": 2,
+      "negative": "blurry, low quality, distorted, deformed, watermark, text",
+      "max_seconds": 2400,
+      "max_unet_sample_calls": 10368,
+      "precision": "UNet autocast float16, VAE float32",
+      "model_provenance": {
+        "source_commit": "722900ef03e3579fb693e65a1550333a4a162581",
+        "model_revisions": {
+          "xudongw/InstanceDiffusion": "fc74d76cde4a3dd0c3894e1764c8cf7299c77595",
+          "openai/clip-vit-large-patch14": "32bd64288804d66eefd0ccbe215aa642df71cc41"
+        },
+        "checkpoint_sha256": "b4de3f7877a1860b52837afe3a767ca92a2ef5084056048b503af80027cde1d1",
+        "checkpoint_state": "ema",
+        "phrase_text_weights_complete": true,
+        "base_conv_sha256": "0b6406769828fa6c5360c0187790e93964c167f646de271ce6510105b3a59ae6",
+        "ignored_nonlearned_text_buffers": [],
+        "config_sha256": "0d35e81804aa2fec6176dfa5a1f636159a6f51b94ed8748f63b1c00c191e9399"
+      },
+      "accepted_cpu_run": "20261103T142406Z_013a5f0e",
+      "accepted_cpu_report": "docs/direct_preflight_20261103_pass.json",
+      "decision_rules": [
+        "Unit: 16 scene/seed pairs. Primary evidence: the user's blind review sheets; OWLv2/CLIP are secondary only.",
+        "Structure failure = count, colour or shape marked fail for an image.",
+        "Region merge (direct_scribble_region) replaces direct_scribble for stage 2 only if it is chosen as most natural with correct structure in at least 3 more pairs than direct_scribble, and has at most 1 more structure failure across the 16 pairs.",
+        "The scribble arm kept by the rule above goes to stage 2 instead of direct_box only if it has no more structure failures than direct_box and is chosen in at least 3 more pairs than direct_box; otherwise stage 2 uses direct_box.",
+        "If every arm has a structure failure in more than 4 of the 16 pairs, stop the direct line and report it as negative.",
+        "No tuning, reranking, extra seeds or reruns on these scenes to change the outcome; failed images stay in the record."
+      ],
+      "locked_note": "Locked before any output for these scenes. Bird placement box was moved once after viewing the rendered sketches (no generated images) so the overlap scene actually overlaps."
+    },
+    "source": {
+      "ocsd/direct_dev.py": "32f93cdbf08d1eb480c30092e7aafd49757b83cb79258c530f0061d417e11711",
+      "ocsd/direct_canary.py": "0766b3eb78a07d11c3e7eeb1bf57f2d00548b2696e2661186c867b7f846f5e3d",
+      "ocsd/direct_instances.py": "20cb5368ed6e15e9e75611cd0e7afedc289b48e16cc7b43cf5ef7b0cac9f0ecd",
+      "ocsd/provenance.py": "666dcc4715375371500de092389736b4751f884b62a5cb81aa35c837035487ac",
+      "ocsd/runlog.py": "a5e2ba4681d5926e696ae8e2627565ed9a34269be49d2fbd6dad4785612ad38b",
+      "tools/run_direct_dev.py": "dcf318e5a245730c1b5499b9af00f872566257ae5caba111039c58691f45e1a2",
+      "requirements-direct-preflight.txt": "28142f3bca99ad7e092d4b67a7aa744841cf666c230cdd884843902dd9db9830",
+      "assets/direct_dev_v1/protocol.json": "5c8395e69366b64f51ec69ae0959fecc0afb72c88e062b491f8316ee8389a741",
+      "assets/direct_dev_v1/scenes.json": "a4b1cfeb2a653a8029cbef2ee83b8727feb608b7fd80203739c30d13fcdc469c",
+      "docs/direct_preflight_20261103_pass.json": "886ddc4695d231a802898fe325d24b7269b5eef5aaf4fd72a3eb3fb3eb5c9c29"
+    },
+    "python": "3.13.16",
+    "libraries": {
+      "torch": "2.11.0+cu130",
+      "torchvision": "0.26.0+cu130",
+      "transformers": "5.17.0",
+      "huggingface_hub": "1.33.0",
+      "timm": "1.0.30",
+      "einops": "0.8.2",
+      "numpy": "2.4.6",
+      "pillow": "11.3.0",
+      "omegaconf": "2.3.0"
+    },
+    "gpu": {
+      "name": "NVIDIA L4",
+      "total_memory": 23659151360,
+      "cuda": "13.0",
+      "cudnn": 92700
+    }
+  },
+  "quality_validated": false,
+  "ocsd_commit": "d89f9c9075b354f82b1a9ec18682dac750335b1b",
+  "completed": [
+    "dev1_cars_house/direct_box_s0",
+    "dev1_cars_house/direct_scribble_s0",
+    "dev1_cars_house/direct_scribble_region_s0",
+    "dev1_cars_house/direct_box_s1",
+    "dev1_cars_house/direct_scribble_s1",
+    "dev1_cars_house/direct_scribble_region_s1",
+    "dev2_cats_tree/direct_box_s0",
+    "dev2_cats_tree/direct_scribble_s0",
+    "dev2_cats_tree/direct_scribble_region_s0",
+    "dev2_cats_tree/direct_box_s1",
+    "dev2_cats_tree/direct_scribble_s1",
+    "dev2_cats_tree/direct_scribble_region_s1",
+    "dev3_umbrellas_palm/direct_box_s0",
+    "dev3_umbrellas_palm/direct_scribble_s0",
+    "dev3_umbrellas_palm/direct_scribble_region_s0",
+    "dev3_umbrellas_palm/direct_box_s1",
+    "dev3_umbrellas_palm/direct_scribble_s1",
+    "dev3_umbrellas_palm/direct_scribble_region_s1",
+    "dev4_apples_cup/direct_box_s0",
+    "dev4_apples_cup/direct_scribble_s0",
+    "dev4_apples_cup/direct_scribble_region_s0",
+    "dev4_apples_cup/direct_box_s1",
+    "dev4_apples_cup/direct_scribble_s1",
+    "dev4_apples_cup/direct_scribble_region_s1",
+    "dev5_dog_couch/direct_box_s0",
+    "dev5_dog_couch/direct_scribble_s0",
+    "dev5_dog_couch/direct_scribble_region_s0",
+    "dev5_dog_couch/direct_box_s1",
+    "dev5_dog_couch/direct_scribble_s1",
+    "dev5_dog_couch/direct_scribble_region_s1",
+    "dev6_bird_fence/direct_box_s0",
+    "dev6_bird_fence/direct_scribble_s0",
+    "dev6_bird_fence/direct_scribble_region_s0",
+    "dev6_bird_fence/direct_box_s1",
+    "dev6_bird_fence/direct_scribble_s1",
+    "dev6_bird_fence/direct_scribble_region_s1",
+    "dev7_train_tree_sun/direct_box_s0",
+    "dev7_train_tree_sun/direct_scribble_s0",
+    "dev7_train_tree_sun/direct_scribble_region_s0",
+    "dev7_train_tree_sun/direct_box_s1",
+    "dev7_train_tree_sun/direct_scribble_s1",
+    "dev7_train_tree_sun/direct_scribble_region_s1",
+    "dev8_canoe_mountain/direct_box_s0",
+    "dev8_canoe_mountain/direct_scribble_s0",
+    "dev8_canoe_mountain/direct_scribble_region_s0",
+    "dev8_canoe_mountain/direct_box_s1",
+    "dev8_canoe_mountain/direct_scribble_s1",
+    "dev8_canoe_mountain/direct_scribble_region_s1"
+  ],
+  "total_images": 48,
+  "planned_unet_sample_calls": 10368,
+  "gpu_generation_finite": true,
+  "attempt_wall_s": 1042.0978515839997
+}

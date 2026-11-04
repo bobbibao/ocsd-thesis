@@ -1,0 +1,962 @@
+[
+ {
+  "scene": "dev1_cars_house",
+  "arm": "direct_box",
+  "seed": 0,
+  "wall_s": 22.35,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9915,
+  "trajectory_std": [
+   1.0163,
+   1.0,
+   1.0017,
+   0.9982
+  ],
+  "background_gap_to_global": [
+   0.1825,
+   0.1565,
+   0.1277
+  ]
+ },
+ {
+  "scene": "dev1_cars_house",
+  "arm": "direct_box",
+  "seed": 1,
+  "wall_s": 18.69,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9844,
+  "trajectory_std": [
+   1.0133,
+   0.9988,
+   0.9877,
+   0.9977
+  ],
+  "background_gap_to_global": [
+   0.1789,
+   0.1548,
+   0.1551
+  ]
+ },
+ {
+  "scene": "dev1_cars_house",
+  "arm": "direct_scribble_region",
+  "seed": 0,
+  "wall_s": 18.52,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 1.0068,
+  "trajectory_std": [
+   1.0164,
+   0.9955,
+   0.9904,
+   0.9874
+  ],
+  "background_gap_to_global": [
+   0.2764,
+   0.2287,
+   0.0946
+  ]
+ },
+ {
+  "scene": "dev1_cars_house",
+  "arm": "direct_scribble_region",
+  "seed": 1,
+  "wall_s": 19.05,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 1.0167,
+  "trajectory_std": [
+   1.0253,
+   0.9995,
+   0.9801,
+   0.9855
+  ],
+  "background_gap_to_global": [
+   0.2835,
+   0.2539,
+   0.2611
+  ]
+ },
+ {
+  "scene": "dev1_cars_house",
+  "arm": "direct_scribble",
+  "seed": 0,
+  "wall_s": 18.36,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9762,
+  "trajectory_std": [
+   1.0164,
+   0.9955,
+   0.9904,
+   0.9874
+  ],
+  "background_gap_to_global": [
+   0.2764,
+   0.2287,
+   0.0946
+  ]
+ },
+ {
+  "scene": "dev1_cars_house",
+  "arm": "direct_scribble",
+  "seed": 1,
+  "wall_s": 18.87,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.973,
+  "trajectory_std": [
+   1.0253,
+   0.9995,
+   0.9801,
+   0.9855
+  ],
+  "background_gap_to_global": [
+   0.2835,
+   0.2539,
+   0.2611
+  ]
+ },
+ {
+  "scene": "dev2_cats_tree",
+  "arm": "direct_box",
+  "seed": 0,
+  "wall_s": 18.93,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9885,
+  "trajectory_std": [
+   1.009,
+   1.0004,
+   0.9865,
+   1.0067
+  ],
+  "background_gap_to_global": [
+   0.1875,
+   0.1544,
+   0.1939
+  ]
+ },
+ {
+  "scene": "dev2_cats_tree",
+  "arm": "direct_box",
+  "seed": 1,
+  "wall_s": 18.86,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9813,
+  "trajectory_std": [
+   1.0033,
+   0.9976,
+   0.9844,
+   0.9959
+  ],
+  "background_gap_to_global": [
+   0.1907,
+   0.1636,
+   0.1768
+  ]
+ },
+ {
+  "scene": "dev2_cats_tree",
+  "arm": "direct_scribble_region",
+  "seed": 0,
+  "wall_s": 18.85,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 1.0089,
+  "trajectory_std": [
+   1.0086,
+   0.9804,
+   0.9722,
+   0.978
+  ],
+  "background_gap_to_global": [
+   0.2841,
+   0.2029,
+   0.2144
+  ]
+ },
+ {
+  "scene": "dev2_cats_tree",
+  "arm": "direct_scribble_region",
+  "seed": 1,
+  "wall_s": 19.0,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9974,
+  "trajectory_std": [
+   0.9941,
+   0.9729,
+   0.9774,
+   0.9885
+  ],
+  "background_gap_to_global": [
+   0.2127,
+   0.1767,
+   0.1652
+  ]
+ },
+ {
+  "scene": "dev2_cats_tree",
+  "arm": "direct_scribble",
+  "seed": 0,
+  "wall_s": 18.8,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9675,
+  "trajectory_std": [
+   1.0086,
+   0.9804,
+   0.9722,
+   0.978
+  ],
+  "background_gap_to_global": [
+   0.2841,
+   0.2029,
+   0.2144
+  ]
+ },
+ {
+  "scene": "dev2_cats_tree",
+  "arm": "direct_scribble",
+  "seed": 1,
+  "wall_s": 18.92,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9683,
+  "trajectory_std": [
+   0.9941,
+   0.9729,
+   0.9774,
+   0.9885
+  ],
+  "background_gap_to_global": [
+   0.2127,
+   0.1767,
+   0.1652
+  ]
+ },
+ {
+  "scene": "dev3_umbrellas_palm",
+  "arm": "direct_box",
+  "seed": 0,
+  "wall_s": 18.91,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9941,
+  "trajectory_std": [
+   1.0215,
+   0.9981,
+   1.0052,
+   1.009
+  ],
+  "background_gap_to_global": [
+   0.2289,
+   0.2189,
+   0.176
+  ]
+ },
+ {
+  "scene": "dev3_umbrellas_palm",
+  "arm": "direct_box",
+  "seed": 1,
+  "wall_s": 18.93,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9915,
+  "trajectory_std": [
+   1.0169,
+   1.0,
+   0.9989,
+   0.998
+  ],
+  "background_gap_to_global": [
+   0.1882,
+   0.1794,
+   0.1322
+  ]
+ },
+ {
+  "scene": "dev3_umbrellas_palm",
+  "arm": "direct_scribble_region",
+  "seed": 0,
+  "wall_s": 18.87,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 1.0061,
+  "trajectory_std": [
+   1.0094,
+   0.9696,
+   0.9812,
+   0.9847
+  ],
+  "background_gap_to_global": [
+   0.226,
+   0.2294,
+   0.1633
+  ]
+ },
+ {
+  "scene": "dev3_umbrellas_palm",
+  "arm": "direct_scribble_region",
+  "seed": 1,
+  "wall_s": 18.93,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 1.0049,
+  "trajectory_std": [
+   1.0022,
+   0.9654,
+   0.9626,
+   0.9836
+  ],
+  "background_gap_to_global": [
+   0.188,
+   0.1805,
+   0.1677
+  ]
+ },
+ {
+  "scene": "dev3_umbrellas_palm",
+  "arm": "direct_scribble",
+  "seed": 0,
+  "wall_s": 18.77,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9688,
+  "trajectory_std": [
+   1.0094,
+   0.9696,
+   0.9812,
+   0.9847
+  ],
+  "background_gap_to_global": [
+   0.226,
+   0.2294,
+   0.1633
+  ]
+ },
+ {
+  "scene": "dev3_umbrellas_palm",
+  "arm": "direct_scribble",
+  "seed": 1,
+  "wall_s": 18.91,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9633,
+  "trajectory_std": [
+   1.0022,
+   0.9654,
+   0.9626,
+   0.9836
+  ],
+  "background_gap_to_global": [
+   0.188,
+   0.1805,
+   0.1677
+  ]
+ },
+ {
+  "scene": "dev4_apples_cup",
+  "arm": "direct_box",
+  "seed": 0,
+  "wall_s": 18.91,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9856,
+  "trajectory_std": [
+   1.0259,
+   0.9955,
+   0.9871,
+   0.9879
+  ],
+  "background_gap_to_global": [
+   0.1735,
+   0.1746,
+   0.1549
+  ]
+ },
+ {
+  "scene": "dev4_apples_cup",
+  "arm": "direct_box",
+  "seed": 1,
+  "wall_s": 18.87,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9845,
+  "trajectory_std": [
+   1.0208,
+   0.9985,
+   0.9896,
+   0.9814
+  ],
+  "background_gap_to_global": [
+   0.1411,
+   0.1244,
+   0.1107
+  ]
+ },
+ {
+  "scene": "dev4_apples_cup",
+  "arm": "direct_scribble_region",
+  "seed": 0,
+  "wall_s": 18.88,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 1.0093,
+  "trajectory_std": [
+   1.0054,
+   0.9702,
+   0.9639,
+   0.9708
+  ],
+  "background_gap_to_global": [
+   0.1479,
+   0.1336,
+   0.143
+  ]
+ },
+ {
+  "scene": "dev4_apples_cup",
+  "arm": "direct_scribble_region",
+  "seed": 1,
+  "wall_s": 18.91,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.996,
+  "trajectory_std": [
+   0.9933,
+   0.9702,
+   0.9609,
+   0.9659
+  ],
+  "background_gap_to_global": [
+   0.128,
+   0.093,
+   0.0745
+  ]
+ },
+ {
+  "scene": "dev4_apples_cup",
+  "arm": "direct_scribble",
+  "seed": 0,
+  "wall_s": 18.89,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9606,
+  "trajectory_std": [
+   1.0054,
+   0.9702,
+   0.9639,
+   0.9708
+  ],
+  "background_gap_to_global": [
+   0.1479,
+   0.1336,
+   0.143
+  ]
+ },
+ {
+  "scene": "dev4_apples_cup",
+  "arm": "direct_scribble",
+  "seed": 1,
+  "wall_s": 18.87,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9572,
+  "trajectory_std": [
+   0.9933,
+   0.9702,
+   0.9609,
+   0.9659
+  ],
+  "background_gap_to_global": [
+   0.128,
+   0.093,
+   0.0745
+  ]
+ },
+ {
+  "scene": "dev5_dog_couch",
+  "arm": "direct_box",
+  "seed": 0,
+  "wall_s": 18.85,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9896,
+  "trajectory_std": [
+   1.0276,
+   1.0078,
+   0.9744,
+   1.0065
+  ],
+  "background_gap_to_global": [
+   0.1546,
+   0.2167,
+   0.126
+  ]
+ },
+ {
+  "scene": "dev5_dog_couch",
+  "arm": "direct_box",
+  "seed": 1,
+  "wall_s": 18.88,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9769,
+  "trajectory_std": [
+   0.997,
+   0.9943,
+   0.9793,
+   0.9853
+  ],
+  "background_gap_to_global": [
+   0.1385,
+   0.1904,
+   0.1496
+  ]
+ },
+ {
+  "scene": "dev5_dog_couch",
+  "arm": "direct_scribble_region",
+  "seed": 0,
+  "wall_s": 18.88,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9919,
+  "trajectory_std": [
+   0.9973,
+   0.9793,
+   0.9731,
+   0.9926
+  ],
+  "background_gap_to_global": [
+   0.0936,
+   0.2365,
+   0.2023
+  ]
+ },
+ {
+  "scene": "dev5_dog_couch",
+  "arm": "direct_scribble_region",
+  "seed": 1,
+  "wall_s": 18.88,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9859,
+  "trajectory_std": [
+   0.9914,
+   0.9747,
+   0.9619,
+   0.9802
+  ],
+  "background_gap_to_global": [
+   0.1069,
+   0.1501,
+   0.2218
+  ]
+ },
+ {
+  "scene": "dev5_dog_couch",
+  "arm": "direct_scribble",
+  "seed": 0,
+  "wall_s": 18.9,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9643,
+  "trajectory_std": [
+   0.9973,
+   0.9793,
+   0.9731,
+   0.9926
+  ],
+  "background_gap_to_global": [
+   0.0936,
+   0.2365,
+   0.2023
+  ]
+ },
+ {
+  "scene": "dev5_dog_couch",
+  "arm": "direct_scribble",
+  "seed": 1,
+  "wall_s": 18.94,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9588,
+  "trajectory_std": [
+   0.9914,
+   0.9747,
+   0.9619,
+   0.9802
+  ],
+  "background_gap_to_global": [
+   0.1069,
+   0.1501,
+   0.2218
+  ]
+ },
+ {
+  "scene": "dev6_bird_fence",
+  "arm": "direct_box",
+  "seed": 0,
+  "wall_s": 18.9,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9867,
+  "trajectory_std": [
+   0.9997,
+   0.9966,
+   0.9898,
+   0.9956
+  ],
+  "background_gap_to_global": [
+   0.1262,
+   0.1679,
+   0.1151
+  ]
+ },
+ {
+  "scene": "dev6_bird_fence",
+  "arm": "direct_box",
+  "seed": 1,
+  "wall_s": 18.87,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9843,
+  "trajectory_std": [
+   0.9978,
+   0.9892,
+   0.9882,
+   0.9957
+  ],
+  "background_gap_to_global": [
+   0.1363,
+   0.1659,
+   0.1373
+  ]
+ },
+ {
+  "scene": "dev6_bird_fence",
+  "arm": "direct_scribble_region",
+  "seed": 0,
+  "wall_s": 18.93,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9978,
+  "trajectory_std": [
+   1.0066,
+   0.9839,
+   0.9839,
+   0.9909
+  ],
+  "background_gap_to_global": [
+   0.2246,
+   0.1788,
+   0.1332
+  ]
+ },
+ {
+  "scene": "dev6_bird_fence",
+  "arm": "direct_scribble_region",
+  "seed": 1,
+  "wall_s": 18.85,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9868,
+  "trajectory_std": [
+   0.9937,
+   0.9752,
+   0.9584,
+   0.9858
+  ],
+  "background_gap_to_global": [
+   0.2498,
+   0.1424,
+   0.1686
+  ]
+ },
+ {
+  "scene": "dev6_bird_fence",
+  "arm": "direct_scribble",
+  "seed": 0,
+  "wall_s": 18.87,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9745,
+  "trajectory_std": [
+   1.0066,
+   0.9839,
+   0.9839,
+   0.9909
+  ],
+  "background_gap_to_global": [
+   0.2246,
+   0.1788,
+   0.1332
+  ]
+ },
+ {
+  "scene": "dev6_bird_fence",
+  "arm": "direct_scribble",
+  "seed": 1,
+  "wall_s": 18.88,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9618,
+  "trajectory_std": [
+   0.9937,
+   0.9752,
+   0.9584,
+   0.9858
+  ],
+  "background_gap_to_global": [
+   0.2498,
+   0.1424,
+   0.1686
+  ]
+ },
+ {
+  "scene": "dev7_train_tree_sun",
+  "arm": "direct_box",
+  "seed": 0,
+  "wall_s": 18.96,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9907,
+  "trajectory_std": [
+   1.0037,
+   0.9985,
+   0.9967,
+   1.0155
+  ],
+  "background_gap_to_global": [
+   0.1606,
+   0.1372,
+   0.2047
+  ]
+ },
+ {
+  "scene": "dev7_train_tree_sun",
+  "arm": "direct_box",
+  "seed": 1,
+  "wall_s": 18.85,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9864,
+  "trajectory_std": [
+   0.9984,
+   0.9986,
+   0.991,
+   1.0012
+  ],
+  "background_gap_to_global": [
+   0.1594,
+   0.139,
+   0.1594
+  ]
+ },
+ {
+  "scene": "dev7_train_tree_sun",
+  "arm": "direct_scribble_region",
+  "seed": 0,
+  "wall_s": 18.9,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9957,
+  "trajectory_std": [
+   0.9949,
+   0.9924,
+   0.9842,
+   1.0023
+  ],
+  "background_gap_to_global": [
+   0.1641,
+   0.1829,
+   0.2345
+  ]
+ },
+ {
+  "scene": "dev7_train_tree_sun",
+  "arm": "direct_scribble_region",
+  "seed": 1,
+  "wall_s": 18.87,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 1.0015,
+  "trajectory_std": [
+   0.9979,
+   0.9775,
+   0.9845,
+   0.9846
+  ],
+  "background_gap_to_global": [
+   0.1772,
+   0.1405,
+   0.2196
+  ]
+ },
+ {
+  "scene": "dev7_train_tree_sun",
+  "arm": "direct_scribble",
+  "seed": 0,
+  "wall_s": 18.86,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.977,
+  "trajectory_std": [
+   0.9949,
+   0.9924,
+   0.9842,
+   1.0023
+  ],
+  "background_gap_to_global": [
+   0.1641,
+   0.1829,
+   0.2345
+  ]
+ },
+ {
+  "scene": "dev7_train_tree_sun",
+  "arm": "direct_scribble",
+  "seed": 1,
+  "wall_s": 18.91,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9713,
+  "trajectory_std": [
+   0.9979,
+   0.9775,
+   0.9845,
+   0.9846
+  ],
+  "background_gap_to_global": [
+   0.1772,
+   0.1405,
+   0.2196
+  ]
+ },
+ {
+  "scene": "dev8_canoe_mountain",
+  "arm": "direct_box",
+  "seed": 0,
+  "wall_s": 18.89,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9913,
+  "trajectory_std": [
+   1.028,
+   0.9967,
+   1.0023,
+   0.9867
+  ],
+  "background_gap_to_global": [
+   0.2128,
+   0.1742,
+   0.1811
+  ]
+ },
+ {
+  "scene": "dev8_canoe_mountain",
+  "arm": "direct_box",
+  "seed": 1,
+  "wall_s": 18.84,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.987,
+  "trajectory_std": [
+   1.0108,
+   0.9891,
+   1.0059,
+   0.9916
+  ],
+  "background_gap_to_global": [
+   0.183,
+   0.1478,
+   0.1359
+  ]
+ },
+ {
+  "scene": "dev8_canoe_mountain",
+  "arm": "direct_scribble_region",
+  "seed": 0,
+  "wall_s": 18.83,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 1.0196,
+  "trajectory_std": [
+   1.0158,
+   0.9865,
+   0.9967,
+   0.9826
+  ],
+  "background_gap_to_global": [
+   0.2329,
+   0.2009,
+   0.2482
+  ]
+ },
+ {
+  "scene": "dev8_canoe_mountain",
+  "arm": "direct_scribble_region",
+  "seed": 1,
+  "wall_s": 18.87,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 1.0206,
+  "trajectory_std": [
+   1.0193,
+   0.9795,
+   0.9913,
+   1.0043
+  ],
+  "background_gap_to_global": [
+   0.2523,
+   0.2097,
+   0.2398
+  ]
+ },
+ {
+  "scene": "dev8_canoe_mountain",
+  "arm": "direct_scribble",
+  "seed": 0,
+  "wall_s": 18.84,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9754,
+  "trajectory_std": [
+   1.0158,
+   0.9865,
+   0.9967,
+   0.9826
+  ],
+  "background_gap_to_global": [
+   0.2329,
+   0.2009,
+   0.2482
+  ]
+ },
+ {
+  "scene": "dev8_canoe_mountain",
+  "arm": "direct_scribble",
+  "seed": 1,
+  "wall_s": 18.85,
+  "unet_sample_calls": 216,
+  "peak_cuda_bytes": 6393032704,
+  "fused_std": 0.9776,
+  "trajectory_std": [
+   1.0193,
+   0.9795,
+   0.9913,
+   1.0043
+  ],
+  "background_gap_to_global": [
+   0.2523,
+   0.2097,
+   0.2398
+  ]
+ }
+]

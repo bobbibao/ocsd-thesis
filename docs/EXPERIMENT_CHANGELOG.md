@@ -116,3 +116,10 @@ rules (`assets/direct_dev_v1/protocol.json`, [DIRECT_DEV_PROTOCOL.md](DIRECT_DEV
 committed before any output. `ocsd/direct_dev.py` + `tools/run_direct_dev.py` run 8 scenes × 2 seeds
 × 3 arms with checksums, resume and attempt history; `RUN_ALL.ipynb` default is now
 `RUN_MODE="direct_dev"` and downloads a full ZIP plus a small blind review ZIP.
+
+## Direct development study reviewed — 2026-11-04
+
+Run `dev_c80aed018746b51a0cee` (L4, 48/48, 10 368 UNet sample calls, 1042 s). Blind review picks:
+box 8, scribble 5, scribble + region 3; region produced all 4 naturalness-0 images and is rejected by
+the locked rule; stage 2 uses `direct_box` by rule, although scribble had fewer structure failures
+(1 vs 4). See [DIRECT_DEV_20261104_RESULTS.md](DIRECT_DEV_20261104_RESULTS.md).
