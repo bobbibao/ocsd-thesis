@@ -107,4 +107,12 @@ The review sheets showed boxes instead of Vietnamese text (Pillow fallback font)
 glyph-checked font choice and an accent-free fallback. `sample_latents` now runs the upstream MIS
 loop with a pluggable merge: `official_mean` (default, bit-identical to upstream, tested) or
 `region` (OCSD variant, untested on GPU). Merge diagnostics are logged per image. The next run is
-only drafted: [DIRECT_DEV_PROTOCOL_DRAFT.md](DIRECT_DEV_PROTOCOL_DRAFT.md).
+only drafted: [DIRECT_DEV_PROTOCOL.md](DIRECT_DEV_PROTOCOL.md).
+
+## Direct development study locked — 2026-11-04
+
+User approved stage 1. Scenes (`assets/direct_dev_v1/scenes.json`) and the protocol with decision
+rules (`assets/direct_dev_v1/protocol.json`, [DIRECT_DEV_PROTOCOL.md](DIRECT_DEV_PROTOCOL.md)) are
+committed before any output. `ocsd/direct_dev.py` + `tools/run_direct_dev.py` run 8 scenes × 2 seeds
+× 3 arms with checksums, resume and attempt history; `RUN_ALL.ipynb` default is now
+`RUN_MODE="direct_dev"` and downloads a full ZIP plus a small blind review ZIP.
