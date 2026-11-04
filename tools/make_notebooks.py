@@ -567,6 +567,9 @@ nb([
     SETUP, MOUNT, INSTALL,
     r'''#@title Khởi chạy ứng dụng
 subprocess.run([sys.executable, "-m", "pip", "install", "-q", "gradio"], check=True)
+# OCSD v3 (default method): InstanceDiffusion core deps + SDXL refiner; weights download on first use (~22 GB).
+subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", os.path.join(CODE, "requirements-direct-preflight.txt"),
+                "-r", os.path.join(CODE, "requirements-direct-refiner.txt")], check=True)
 from ocsd.app import launch
 launch(backbone=E.backbone, share=True)''',
 ], "02_app_gradio.ipynb")

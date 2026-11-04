@@ -54,4 +54,14 @@ class Pipeline(unittest.TestCase):
             pipe(sketch_rgb(), 'a red box', 'on a table')
 
 
+    def test_demo_lists_v3_first_and_shows_parsed_silhouettes(self):
+        from ocsd import app
+        self.assertEqual(list(app.METHODS.values())[0], 'ocsd_v3')
+        scene = app.build_scene_from_input(sketch_rgb(), 'a red box, a blue hook', 'on a table')
+        overlay = app.silhouette_overlay(scene)
+        self.assertEqual(overlay.shape, (512, 512, 3))
+        # The closed square is filled (interior coloured), the open hook stays thin.
+        self.assertFalse((overlay[150, 130] == 255).all())
+        self.assertTrue((overlay[380, 400] == 255).all())
+
 if __name__ == '__main__': unittest.main()
