@@ -248,7 +248,7 @@ class Regression(unittest.TestCase):
         # Finalise outside the with-block, after runlog has written its final status.json.
         tree = ast.parse(report_cell)
         if len(tree.body) == 1 and isinstance(tree.body[0], ast.If):
-            self.assertEqual(ast.unparse(tree.body[0].test), "RUN_MODE in ('experiment', 'heldout', 'heldout2')")
+            self.assertEqual(ast.unparse(tree.body[0].test), "RUN_MODE in ('experiment', 'heldout', 'heldout2', 'heldout3')")
             self.assertFalse(tree.body[0].orelse)
             tree = ast.Module(body=tree.body[0].body, type_ignores=[])
         self.assertTrue(any(isinstance(n, ast.Expr) and isinstance(n.value, ast.Call)

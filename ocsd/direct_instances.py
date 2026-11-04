@@ -228,6 +228,7 @@ def cached_conditioning(position_net, enabled=True):
     """Request-local cache; never reused across weights, modalities or scenes."""
     stats = dict(calls=0, evaluations=0, hits=0)
     original = position_net.forward
+    own = 'forward' in vars(position_net)
     cache = {}
     def forward(*args):
         stats['calls'] += 1
@@ -238,7 +239,8 @@ def cached_conditioning(position_net, enabled=True):
             raise RuntimeError('Conditioning cache is inference-only')
         # Keep tensors alive so an allocator cannot reuse an old identity. An
         # in-place edit bumps _version and must cause a new evaluation.
-        key = tuple((id(a), a._version) if torch.is_tensor(a) else a for a in args)
+        key = tuple((id(a), a._version) if torch.is_tensor(a) else a for a in args) + tuple(
+            getattr(position_net, f, None) for f in ('test_drop_masks', 'test_drop_scribbles', 'test_drop_boxes'))
         if key not in cache:
             cache[key] = (args, original(*args)); stats['evaluations'] += 1
         else:
@@ -248,7 +250,8 @@ def cached_conditioning(position_net, enabled=True):
     try:
         yield stats
     finally:
-        position_net.forward = original
+        if own: position_net.forward = original
+        else: del position_net.forward
         cache.clear()
 
 
@@ -294,7 +297,7 @@ def fusion_weights(boxes, masks, size, fusion='official_mean', feather=REGION_FE
     return ones
 
 
-def mis_sampler_class(fusion='official_mean', diagnostics=None):
+def mis_sampler_class(fusion='official_mean', diagnostics=None, on_merge=None):
     """Official PLMSSamplerInst with only the latent merge made pluggable.
 
     With official_mean the loop is the upstream code path and must reproduce
@@ -352,6 +355,7 @@ def mis_sampler_class(fusion='official_mean', diagnostics=None):
                                    background_fraction=float(outside.float().mean()),
                                    background_gap_to_global=gap)
             item['x'] = fused
+            if on_merge is not None: on_merge()
             for i, step in enumerate(time_range):
                 if i < mis_step: continue
                 if self.alpha_generator_func is not None:
@@ -373,7 +377,7 @@ def mis_sampler_class(fusion='official_mean', diagnostics=None):
 @torch.no_grad()
 def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv,
                    steps=50, alpha=.8, mis=.36, guidance=7.5, cache=True, deadline=None,
-                   fusion='official_mean'):
+                   fusion='official_mean', release_silhouette_after_merge=False):
     """Official PLMS/MIS with fixed input RNG and reversible per-image state.
 
     This preserves the official late SD input-convolution restoration and
@@ -399,6 +403,7 @@ def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv
             conv.load_state_dict(base_conv, strict=True); restorations += 1
     fusers = [m for m in model.modules() if isinstance(m, GatedSelfAttentionDense)]
     scales = [m.scale for m in fusers]
+    drop_masks = getattr(model.position_net, 'test_drop_masks', None)
     def scale(_, value):
         for m in fusers: m.scale = value
     def schedule(length):
@@ -422,7 +427,12 @@ def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv
     merge = {}
     if mis:
         # Upstream loop with a pluggable merge; official_mean is bit-identical to PLMSSamplerInst (tested).
-        sampler = mis_sampler_class(fusion, merge)(diffusion, model, alpha_generator_func=schedule, set_alpha_scale=scale, mis=mis)
+        def release():
+            # OCSD v3: silhouette masks shape the layout phase (the n+1 MIS trajectories); afterwards the joint
+            # trajectory keeps boxes + phrases only, so texture and lighting are not held to a flat mask.
+            if release_silhouette_after_merge: model.position_net.test_drop_masks = True
+        sampler = mis_sampler_class(fusion, merge, release)(diffusion, model, alpha_generator_func=schedule,
+                                                             set_alpha_scale=scale, mis=mis)
     else:
         sampler = PLMSSampler(diffusion, model, alpha_generator_func=schedule, set_alpha_scale=scale)
     hook = model.register_forward_pre_hook(count)
@@ -448,6 +458,7 @@ def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv
         model.restore_first_conv_from_SD = original_restore
         model.grounding_tokenizer_input = original_null
         for m, value in zip(fusers, scales): m.scale = value
+        if drop_masks is not None: model.position_net.test_drop_masks = drop_masks
 
 
 def load_global_text_weights(encoder, state):
@@ -470,6 +481,41 @@ def load_global_text_weights(encoder, state):
             text_state[key] = value
     encoder.load_state_dict(text_state, strict=True, assign=True)
     return ignored
+
+
+REFINER_REPO = 'stabilityai/stable-diffusion-xl-refiner-1.0'
+REFINER_STRENGTH, REFINER_STEPS = .35, 20  # upstream inference.py defaults (--cascade_strength 0.35, 20 steps)
+
+
+def load_refiner(cache, revision=None, device='cuda'):
+    """Upstream InstanceDiffusion cascade: SDXL-Refiner img2img on the 512 px output (fp16 weights).
+
+    Same model, dtype, variant and settings as upstream inference.py; we add a pinned revision and
+    a seeded generator. Returns (pipeline, resolved revision)."""
+    from huggingface_hub import HfApi
+    from diffusers import StableDiffusionXLImg2ImgPipeline
+    revision = revision or HfApi(token=False).model_info(REFINER_REPO).sha
+    if not re.fullmatch(r'[a-f0-9]{40}', revision): raise ValueError('Expected an exact refiner revision')
+    pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained(
+        REFINER_REPO, revision=revision, torch_dtype=torch.float16, variant='fp16', use_safetensors=True,
+        cache_dir=str(Path(cache)/'hf'), token=False)
+    pipe.set_progress_bar_config(disable=True)
+    return pipe.to(device), revision
+
+
+@torch.no_grad()
+def refine(pipe, pixels, caption, seed, strength=REFINER_STRENGTH, steps=REFINER_STEPS, device='cuda'):
+    """Prompt = global caption, no negative prompt (as upstream). Returns uint8 pixels and a log."""
+    from PIL import Image
+    start = time.perf_counter()
+    generator = torch.Generator('cpu').manual_seed(int(seed))
+    out = pipe(caption, image=Image.fromarray(pixels), strength=strength, num_inference_steps=steps,
+               generator=generator, output_type='np').images[0]
+    if not np.isfinite(out).all(): raise RuntimeError('Nonfinite refiner image')
+    refined = (np.clip(out, 0, 1)*255).round().astype(np.uint8)
+    if refined.shape != pixels.shape: raise RuntimeError('Refiner changed the image size')
+    return refined, dict(refiner=REFINER_REPO, refiner_strength=strength, refiner_steps=steps,
+                         refiner_denoise_steps=int(steps*strength), refiner_wall_s=time.perf_counter()-start)
 
 
 def load_components(cache, lock=None, expected_checkpoint_sha256=None):
@@ -556,7 +602,7 @@ class DirectModel:
 
     @torch.no_grad()
     def generate(self, condition, seed, negative, scribble=True, device='cuda', steps=50, mis=.36, alpha=.8, deadline=None,
-                 fusion='official_mean', silhouette=False):
+                 fusion='official_mean', silhouette=False, silhouette_layout_only=False):
         start = time.perf_counter()
         features, contexts, uncond = self.encode(condition, negative)
         batch = conditioning_batch(condition, features, device=device)
@@ -573,7 +619,8 @@ class DirectModel:
         autocast = torch.autocast(device_type='cuda', dtype=torch.float16) if str(device).startswith('cuda') else nullcontext()
         with autocast:
             latent, log = sample_latents(self.model, self.diffusion, batch, contexts, uncond, noise, self.base_conv,
-                                        steps=steps, mis=mis, alpha=alpha, deadline=deadline, fusion=fusion)
+                                        steps=steps, mis=mis, alpha=alpha, deadline=deadline, fusion=fusion,
+                                        release_silhouette_after_merge=silhouette and silhouette_layout_only)
         if deadline is not None and time.monotonic() >= deadline:
             raise TimeoutError('Direct-generation time budget exhausted before VAE decode')
         # Fixed for both arms: decode in FP32 to avoid VAE FP16 overflow.
@@ -582,7 +629,8 @@ class DirectModel:
         pixels = ((image[0].clamp(-1,1)*.5+.5)*255).permute(1,2,0).cpu().numpy().astype(np.uint8)
         log.update(provenance=self.provenance, steps=steps, mis=mis, alpha=alpha, seed=seed,
                    conditioning=('boxes+centers' + ('+20_ink_points' if scribble else '')
-                                 + ('+sketch_silhouette_mask+256pt_polygon' if silhouette else '')),
+                                 + ('+sketch_silhouette_mask+256pt_polygon' if silhouette else '')
+                                 + ('(layout_steps_only)' if silhouette and silhouette_layout_only else '')),
                    unet_precision='autocast_float16' if str(device).startswith('cuda') else 'float32', vae_precision='float32',
                    wall_s=time.perf_counter()-start, image_size=512, refiner=False,
                    external_method='InstanceDiffusion pinned official core with OCSD input adapter')

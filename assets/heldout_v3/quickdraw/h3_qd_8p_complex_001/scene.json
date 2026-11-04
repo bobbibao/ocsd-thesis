@@ -1,0 +1,402 @@
+{
+ "sid": "h3_qd_8p_complex_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 8,
+ "count_bin": "8+",
+ "complexity": "complex",
+ "bg": "in a green meadow",
+ "caption": "a brown cow, a sheep, a white bench, a big rabbit, a tree, a green tree and two tall trees in a green meadow",
+ "objects": [
+  {
+   "cls": "cow",
+   "phrase": "brown cow",
+   "box": [
+    321.0,
+    199.0,
+    404.0,
+    246.0
+   ],
+   "qd_key": "5933898447978496",
+   "recognized": true,
+   "n_strokes": 7
+  },
+  {
+   "cls": "sheep",
+   "phrase": "sheep",
+   "box": [
+    314.0,
+    136.0,
+    404.0,
+    196.0
+   ],
+   "qd_key": "5254581846016000",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "bench",
+   "phrase": "white bench",
+   "box": [
+    114.0,
+    254.0,
+    232.0,
+    367.0
+   ],
+   "qd_key": "5856616911994880",
+   "recognized": true,
+   "n_strokes": 2
+  },
+  {
+   "cls": "rabbit",
+   "phrase": "big rabbit",
+   "box": [
+    238.0,
+    342.0,
+    349.0,
+    460.0
+   ],
+   "qd_key": "5932558455930880",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "tree",
+   "phrase": "tree",
+   "box": [
+    291.0,
+    174.0,
+    327.0,
+    257.0
+   ],
+   "qd_key": "6117459515932672",
+   "recognized": true,
+   "n_strokes": 2
+  },
+  {
+   "cls": "tree",
+   "phrase": "green tree",
+   "box": [
+    33.0,
+    133.0,
+    96.0,
+    211.0
+   ],
+   "qd_key": "6441289467822080",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "tree",
+   "phrase": "tall tree",
+   "box": [
+    192.0,
+    248.0,
+    288.0,
+    344.0
+   ],
+   "qd_key": "5427931562115072",
+   "recognized": true,
+   "n_strokes": 1
+  },
+  {
+   "cls": "tree",
+   "phrase": "tall tree",
+   "box": [
+    389.0,
+    144.0,
+    452.0,
+    231.0
+   ],
+   "qd_key": "6201898371645440",
+   "recognized": true,
+   "n_strokes": 3
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "below"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "above"
+  ],
+  [
+   0,
+   3,
+   "right_of"
+  ],
+  [
+   0,
+   3,
+   "above"
+  ],
+  [
+   0,
+   4,
+   "right_of"
+  ],
+  [
+   0,
+   5,
+   "right_of"
+  ],
+  [
+   0,
+   5,
+   "below"
+  ],
+  [
+   0,
+   6,
+   "right_of"
+  ],
+  [
+   0,
+   6,
+   "above"
+  ],
+  [
+   0,
+   7,
+   "left_of"
+  ],
+  [
+   0,
+   7,
+   "below"
+  ],
+  [
+   0,
+   7,
+   "in_front_of"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "above"
+  ],
+  [
+   1,
+   3,
+   "right_of"
+  ],
+  [
+   1,
+   3,
+   "above"
+  ],
+  [
+   1,
+   4,
+   "right_of"
+  ],
+  [
+   1,
+   4,
+   "above"
+  ],
+  [
+   1,
+   4,
+   "behind"
+  ],
+  [
+   1,
+   5,
+   "right_of"
+  ],
+  [
+   1,
+   6,
+   "right_of"
+  ],
+  [
+   1,
+   6,
+   "above"
+  ],
+  [
+   1,
+   7,
+   "left_of"
+  ],
+  [
+   1,
+   7,
+   "behind"
+  ],
+  [
+   2,
+   3,
+   "left_of"
+  ],
+  [
+   2,
+   3,
+   "above"
+  ],
+  [
+   2,
+   4,
+   "left_of"
+  ],
+  [
+   2,
+   4,
+   "below"
+  ],
+  [
+   2,
+   5,
+   "right_of"
+  ],
+  [
+   2,
+   5,
+   "below"
+  ],
+  [
+   2,
+   6,
+   "left_of"
+  ],
+  [
+   2,
+   6,
+   "in_front_of"
+  ],
+  [
+   2,
+   7,
+   "left_of"
+  ],
+  [
+   2,
+   7,
+   "below"
+  ],
+  [
+   3,
+   4,
+   "below"
+  ],
+  [
+   3,
+   5,
+   "right_of"
+  ],
+  [
+   3,
+   5,
+   "below"
+  ],
+  [
+   3,
+   6,
+   "right_of"
+  ],
+  [
+   3,
+   6,
+   "below"
+  ],
+  [
+   3,
+   6,
+   "in_front_of"
+  ],
+  [
+   3,
+   7,
+   "left_of"
+  ],
+  [
+   3,
+   7,
+   "below"
+  ],
+  [
+   4,
+   5,
+   "right_of"
+  ],
+  [
+   4,
+   5,
+   "below"
+  ],
+  [
+   4,
+   6,
+   "right_of"
+  ],
+  [
+   4,
+   6,
+   "above"
+  ],
+  [
+   4,
+   7,
+   "left_of"
+  ],
+  [
+   4,
+   7,
+   "below"
+  ],
+  [
+   5,
+   6,
+   "left_of"
+  ],
+  [
+   5,
+   6,
+   "above"
+  ],
+  [
+   5,
+   7,
+   "left_of"
+  ],
+  [
+   6,
+   7,
+   "left_of"
+  ],
+  [
+   6,
+   7,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.18997361477572558,
+ "heldout_set": "heldout_v3",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261107,
+  "per_cell": 2,
+  "original_sid": "qd_8p_complex_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "heldout_v2",
+   "direct_dev_v1"
+  ]
+ }
+}

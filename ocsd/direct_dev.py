@@ -28,7 +28,13 @@ ARMS = ('direct_box', 'direct_scribble', 'direct_scribble_region')
 # Stage 3 (dev v2): sketch-silhouette masks parsed by OCSD from the instance sketch.
 PROTOCOL_V2 = ROOT / 'assets/direct_dev_v2/protocol.json'
 ARMS_V2 = ('direct_box', 'direct_silhouette', 'direct_silhouette_scribble')
-VERSIONS = {'v1': (PROTOCOL, ARMS, 'ocsd-dev-v1'), 'v2': (PROTOCOL_V2, ARMS_V2, 'ocsd-dev-v2')}
+# Stage 4 (dev v3): naturalness of the silhouette model. 2x2: silhouette on all steps vs layout steps only
+# (released after the MIS merge) x without/with the upstream SDXL-Refiner cascade (refines the same base image).
+PROTOCOL_V3 = ROOT / 'assets/direct_dev_v3/protocol.json'
+ARMS_V3 = ('sil_full', 'sil_layout', 'sil_full_refine', 'sil_layout_refine')
+VERSIONS = {'v1': (PROTOCOL, ARMS, 'ocsd-dev-v1'), 'v2': (PROTOCOL_V2, ARMS_V2, 'ocsd-dev-v2'),
+            'v3': (PROTOCOL_V3, ARMS_V3, 'ocsd-dev-v3')}
+MAX_SECONDS = {'v1': 2400, 'v2': 2400, 'v3': 3000}
 LOG = 'direct_dev.log'
 
 
@@ -45,9 +51,12 @@ def read_protocol(version='v1'):
     if (len(scenes) != 8 or protocol['seeds'] != [0, 1] or tuple(a['name'] for a in protocol['arms']) != arms
             or any(a['fusion'] not in FUSIONS for a in protocol['arms'])):
         raise ValueError('Development study is fixed to 8 scenes, seeds 0/1 and three arms')
-    expected = sum(len(protocol['seeds'])*len(arms)*sampling_work(len(s['objects']), protocol['steps'], protocol['mis'])
+    if any(a.get('refine_of') not in (None, *arms[:i]) for i, a in enumerate(protocol['arms'])):
+        raise ValueError('A refined arm must refine an earlier unrefined arm')
+    generated = sum(1 for a in protocol['arms'] if not a.get('refine_of'))
+    expected = sum(len(protocol['seeds'])*generated*sampling_work(len(s['objects']), protocol['steps'], protocol['mis'])
                    for s in scenes)
-    if expected != protocol['max_unet_sample_calls'] or protocol['max_seconds'] != 2400:
+    if expected != protocol['max_unet_sample_calls'] or protocol['max_seconds'] != MAX_SECONDS[version]:
         raise ValueError('Development budget does not match its frozen plan')
     if version != 'v1': protocol['_version'] = version  # v1 contract (and run ID) unchanged
     return protocol, scenes
@@ -63,8 +72,11 @@ def identity(protocol, gpu):
              'ocsd/runlog.py', 'tools/run_direct_dev.py', 'requirements-direct-preflight.txt',
              str(VERSIONS[protocol.get('_version', 'v1')][0].relative_to(ROOT)), protocol['scenes'],
              protocol['accepted_cpu_report']]
+    if protocol.get('_version') == 'v3':
+        files += ['ocsd/sketch_fidelity.py', 'ocsd/vision.py', 'ocsd/config.py', 'requirements-direct-refiner.txt']
     versions = {}
-    for name in ('torch', 'torchvision', 'transformers', 'huggingface_hub', 'timm', 'einops', 'numpy', 'pillow', 'omegaconf'):
+    for name in ('torch', 'torchvision', 'transformers', 'huggingface_hub', 'timm', 'einops', 'numpy', 'pillow', 'omegaconf',
+                 *(('diffusers',) if protocol.get('_version') == 'v3' else ())):
         try: versions[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError: versions[name] = None
     return dict(protocol=protocol, source={f: file_hash(ROOT/f) for f in files}, python=platform.python_version(),
@@ -75,7 +87,7 @@ def review_order(sid, seed, version='v1'):
     """Fixed, seeded label order per sheet; the key is stored separately."""
     _, arms, salt = VERSIONS[version]
     order = list(arms); random.Random(f'{sid}:{seed}:{salt}').shuffle(order)
-    return dict(zip('ABC', order))
+    return dict(zip('ABCDE', order))
 
 
 def make_review(directory, protocol, scenes):
@@ -88,7 +100,7 @@ def make_review(directory, protocol, scenes):
         for seed in protocol['seeds']:
             sid = spec['sid']; mapping = review_order(sid, seed, protocol.get('_version', 'v1')); key[f'{sid}_s{seed}'] = mapping
             name = f'{n:02d}_{sid}_seed{seed}'
-            sheet = Image.new('RGB', (2048, 690), 'white'); draw = ImageDraw.Draw(sheet)
+            sheet = Image.new('RGB', (512*(len(mapping)+1), 690), 'white'); draw = ImageDraw.Draw(sheet)
             draw.text((12, 8), plain(f'Sheet {name} | objects: ' + ', '.join(o['phrase'] for o in spec['objects'])),
                       fill='black', font=font)
             for line, text in enumerate(textwrap.wrap(plain('Caption: ' + spec['caption']), width=150)):
@@ -100,13 +112,14 @@ def make_review(directory, protocol, scenes):
                 draw.text((i*512+12, 126), label, fill='black', font=font)
                 sheet.paste(Image.open(directory/sid/f'{arm}_s{seed}.png').convert('RGB'), (i*512, 160))
                 template.append(f'{label}: count=   colour=   shape=   position/relation=   natural(0/1/2)=   note=')
-            template += ['Most natural image that still has the right structure (A/B/C/tie/none): ', '']
+            template += [f'Most natural image that still has the right structure ({"/".join(mapping)}/tie/none): ', '']
             sheet.save(review/f'{name}.png')
     atomic_json(directory/'review_key.json', key)
     (review/'REVIEW_TEMPLATE.txt').write_text('\n'.join(template)+'\n', encoding='utf-8')
+    letters = ', '.join('ABCDE'[:len(protocol['arms'])])
     (review/'HOW_TO_REVIEW.txt').write_text(
         'Open the 16 PNG files in review/ with a normal image viewer (no HTML needed).\n'
-        'Each PNG: input sketch on the left, three generated images A, B, C. The order changes per sheet.\n'
+        f'Each PNG: input sketch on the left, then generated images {letters}. The order changes per sheet.\n'
         'Compare only within one PNG. Judge each image against the caption and sketch:\n'
         '  count: exactly the listed objects, no missing or extra copies.\n'
         '  colour: each object has its own colour from the caption (e.g. red car left, white car right).\n'
@@ -144,7 +157,7 @@ def finalize(attempt, interrupted=False):
         for base, prefix in ((directory, 'run'), (attempt, 'attempt')):
             if base is None: continue
             for path in sorted(base.rglob('*')):
-                if path.is_file() and path.suffix in ('.json', '.png', '.txt', '.log') and path.name != 'result.json':
+                if path.is_file() and path.suffix in ('.json', '.png', '.txt', '.log', '.csv') and path.name != 'result.json':
                     rel = prefix+'/'+path.relative_to(base).as_posix()
                     z.write(path, rel); artifacts[rel] = file_hash(path)
         z.writestr('checksums.json', json.dumps(artifacts, indent=2))
@@ -158,6 +171,73 @@ def finalize(attempt, interrupted=False):
     atomic_json(attempt/'result.json', result)
     print('Development bundle:', archive, 'status:', status, flush=True)
     return result
+
+
+def refine_stage(directory, protocol, scenes, todo, state, signature, cache, deadline, total):
+    """Upstream SDXL-Refiner cascade on already generated base images of the same scene/seed."""
+    import gc
+    import numpy as np
+    import torch
+    from PIL import Image
+    from .direct_instances import load_refiner, refine
+    gc.collect(); torch.cuda.empty_cache()
+    pipe, revision = load_refiner(cache, protocol.get('refiner_revision') or state.get('refiner_revision'))
+    state['refiner_revision'] = revision; atomic_json(directory/'run.json', state)
+    captions = {s['sid']: s['caption'] for s in scenes}
+    for sid, seed, arm in todo:
+        if time.monotonic() >= deadline: raise TimeoutError('Budget exhausted before the next image')
+        base = directory/sid/f'{arm["refine_of"]}_s{seed}.png'
+        if f'{sid}/{arm["refine_of"]}_s{seed}' not in state['completed']: raise RuntimeError('Base image missing: '+str(base))
+        torch.cuda.reset_peak_memory_stats()
+        print(f'Refining {sid} {arm["name"]} seed {seed}...', flush=True)
+        pixels, log = refine(pipe, np.asarray(Image.open(base).convert('RGB')), captions[sid], seed,
+                             protocol['refiner_strength'], protocol['refiner_steps'])
+        torch.cuda.synchronize()
+        log.update(peak_cuda_bytes=torch.cuda.max_memory_allocated(), seed=seed, method=arm['name'], scene=sid,
+                   base_image=base.name, base_png_sha256=file_hash(base), refiner_revision=revision,
+                   unet_sample_calls=0)
+        stem = f'{arm["name"]}_s{seed}'; save_job(directory/sid, stem, signature, pixels, log)
+        state['completed'].append(f'{sid}/{stem}'); atomic_json(directory/'run.json', state)
+        print(f'Completed {len(state["completed"])}/{total}', flush=True)
+    del pipe; gc.collect(); torch.cuda.empty_cache()
+
+
+def dev_fidelity(directory, protocol, scenes, cache, state):
+    """Automatic sketch fidelity (SAM box prompt; ocsd/sketch_fidelity.py) for every dev image."""
+    import gc
+    import numpy as np
+    import torch
+    from huggingface_hub import HfApi
+    from PIL import Image
+    from .config import AUX_MODELS
+    from .sketch_fidelity import image_fidelity
+    from .vision import SAM
+    repo = AUX_MODELS['sam']; revision = HfApi(token=False).model_info(repo).sha
+    sam = SAM('cuda', cache_dir=str(Path(cache)/'hf'))
+    rows, inst = [], []
+    for spec in scenes:
+        scene = render_scene(spec)
+        for seed in protocol['seeds']:
+            for arm in protocol['arms']:
+                png = directory/spec['sid']/f'{arm["name"]}_s{seed}.png'
+                per, summary = image_fidelity(np.asarray(Image.open(png).convert('RGB')), scene, sam)
+                rows.append(dict(method=arm['name'], sid=spec['sid'], seed=seed, png_sha256=file_hash(png), **summary))
+                inst += [dict(method=arm['name'], sid=spec['sid'], seed=seed, **r) for r in per]
+    import csv
+    for name, table in (('sketch_fidelity.csv', rows), ('sketch_fidelity_instances.csv', inst)):
+        with (directory/name).open('w', newline='') as f:
+            w = csv.DictWriter(f, fieldnames=list(table[0])); w.writeheader(); w.writerows(table)
+    summary = {}
+    for arm in protocol['arms']:
+        mine = [r for r in rows if r['method'] == arm['name']]; eligible = [r for r in inst if r['method'] == arm['name']
+                                                                            and r['facing_eligible']]
+        summary[arm['name']] = dict(sketch_chamfer=float(np.mean([r['sketch_chamfer'] for r in mine])),
+                                    found_rate=float(np.mean([r['found_rate'] for r in mine])),
+                                    facing_acc_pooled=float(np.mean([r['facing_correct'] for r in eligible])) if eligible else None,
+                                    facing_n=len(eligible))
+    atomic_json(directory/'sketch_fidelity_summary.json', dict(segmenter=repo, segmenter_revision=revision, arms=summary))
+    state['sketch_fidelity'] = summary; print('Sketch fidelity:', json.dumps(summary, indent=1), flush=True)
+    del sam; gc.collect(); torch.cuda.empty_cache()
 
 
 def run(cache, out, attempt, setup_returncode=0, version='v1'):
@@ -183,6 +263,9 @@ def run(cache, out, attempt, setup_returncode=0, version='v1'):
             state = dict(run_id=rid, status='running', contract=contract, quality_validated=False,
                          ocsd_commit=subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip(),
                          completed=[], total_images=len(all_jobs), planned_unet_sample_calls=protocol['max_unet_sample_calls'])
+            if (directory/'run.json').exists():  # a resumed run keeps the refiner revision its images were made with
+                previous = json.loads((directory/'run.json').read_text())
+                if previous.get('refiner_revision'): state['refiner_revision'] = previous['refiner_revision']
             atomic_json(directory/'run.json', state)
             atomic_json(attempt/'active_run.json', dict(directory=str(directory)))
             conditions, sizes = {}, {}
@@ -198,25 +281,29 @@ def run(cache, out, attempt, setup_returncode=0, version='v1'):
                 if cached_job(directory/sid, stem, signature): state['completed'].append(f'{sid}/{stem}')
                 else: todo.append((sid, seed, arm))
             atomic_json(directory/'run.json', state)
-            if todo:
+            refine_todo = [job for job in todo if job[2].get('refine_of')]
+            todo = [job for job in todo if not job[2].get('refine_of')]
+            if todo or refine_todo:
                 torch.backends.cudnn.benchmark = False
                 torch.backends.cuda.matmul.allow_tf32 = False
                 torch.backends.cudnn.allow_tf32 = False
                 torch.set_num_threads(4)
+                deadline = started + protocol['max_seconds'] - 60
+            if todo:
                 expected = protocol['model_provenance']
                 print(f'Fixed development study: {len(todo)}/{len(all_jobs)} images remaining; '
                       'no reranking or automatic retries.', flush=True)
                 model = load_components(cache, lock=expected['model_revisions'],
                                         expected_checkpoint_sha256=expected['checkpoint_sha256'])
                 if model.provenance != expected: raise ValueError('Loaded components differ from accepted CPU weights/config')
-                deadline = started + protocol['max_seconds'] - 60
                 for sid, seed, arm in todo:
                     if time.monotonic() >= deadline: raise TimeoutError('Budget exhausted before the next image')
                     torch.manual_seed(seed); torch.cuda.reset_peak_memory_stats()
                     print(f'Generating {sid} {arm["name"]} seed {seed}...', flush=True)
                     pixels, compute = model.generate(conditions[sid], seed, protocol['negative'], scribble=arm['scribble'],
                         steps=protocol['steps'], mis=protocol['mis'], alpha=protocol['alpha'], deadline=deadline,
-                        fusion=arm['fusion'], **({'silhouette': True} if arm.get('silhouette') else {}))
+                        fusion=arm['fusion'], **({'silhouette': True} if arm.get('silhouette') else {}),
+                        **({'silhouette_layout_only': True} if arm.get('silhouette_layout_only') else {}))
                     torch.cuda.synchronize()
                     compute.update(peak_cuda_bytes=torch.cuda.max_memory_allocated(), seed=seed, method=arm['name'], scene=sid)
                     if compute['unet_sample_calls'] != sampling_work(sizes[sid], protocol['steps'], protocol['mis']):
@@ -225,6 +312,11 @@ def run(cache, out, attempt, setup_returncode=0, version='v1'):
                     state['completed'].append(f'{sid}/{stem}'); atomic_json(directory/'run.json', state)
                     print(f'Completed {len(state["completed"])}/{len(all_jobs)}; '
                           f'peak CUDA {compute["peak_cuda_bytes"]/1024**3:.2f} GiB', flush=True)
+                del model
+            if refine_todo:
+                refine_stage(directory, protocol, scenes, refine_todo, state, signature, cache, deadline, len(all_jobs))
+            if protocol.get('sketch_fidelity'):
+                dev_fidelity(directory, protocol, scenes, cache, state)
             make_review(directory, protocol, scenes)
             state.update(status='complete', gpu_generation_finite=True, quality_validated=False)
             print('All images complete. Review the PNG sheets; this is not a quality PASS.', flush=True)

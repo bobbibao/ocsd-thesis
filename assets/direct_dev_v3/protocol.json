@@ -1,0 +1,83 @@
+{
+  "schema": "ocsd-direct-dev-v3",
+  "stage": "development (stage 4: naturalness of the sketch-silhouette model), not held-out; same 8 dev scenes as stages 1-3",
+  "scenes": "assets/direct_dev_v1/scenes.json",
+  "seeds": [
+    0,
+    1
+  ],
+  "arms": [
+    {
+      "name": "sil_full",
+      "scribble": false,
+      "fusion": "official_mean",
+      "silhouette": true
+    },
+    {
+      "name": "sil_layout",
+      "scribble": false,
+      "fusion": "official_mean",
+      "silhouette": true,
+      "silhouette_layout_only": true
+    },
+    {
+      "name": "sil_full_refine",
+      "scribble": false,
+      "fusion": "official_mean",
+      "silhouette": true,
+      "refine_of": "sil_full"
+    },
+    {
+      "name": "sil_layout_refine",
+      "scribble": false,
+      "fusion": "official_mean",
+      "silhouette": true,
+      "silhouette_layout_only": true,
+      "refine_of": "sil_layout"
+    }
+  ],
+  "silhouette_parser": {
+    "function": "ocsd.direct_instances.sketch_silhouette",
+    "bridge_fraction_of_diagonal": 1.0,
+    "close_radius_fraction_of_diagonal": 0.03,
+    "polygon_points": 256,
+    "note": "Masks are parsed from each instance sketch only (stroke-end bridging, closing, hole fill); no oracle or dataset masks. Polygon sampling follows upstream sample_sparse_points_from_mask, made deterministic."
+  },
+  "layout_only_rule": "Silhouette masks and polygons condition the n+1 MIS layout trajectories (first int(50*0.36)=18 of 50 PLMS steps); after the merge the joint trajectory keeps boxes, centre points and phrases only (UniFusion test_drop_masks). Fixed a priori; not tuned.",
+  "refiner_repo": "stabilityai/stable-diffusion-xl-refiner-1.0",
+  "refiner_strength": 0.35,
+  "refiner_steps": 20,
+  "refiner_note": "Upstream InstanceDiffusion inference.py cascade defaults (fp16 weights, caption prompt, no negative prompt, 512 px). Revision resolved at first download and stored in run.json; held-out v3 pins it. Refined arms refine the SAME base image of the same scene/seed, so the refiner effect is paired.",
+  "sketch_fidelity": true,
+  "steps": 50,
+  "mis": 0.36,
+  "alpha": 0.8,
+  "guidance": 7.5,
+  "negative": "blurry, low quality, distorted, deformed, watermark, text",
+  "max_seconds": 3000,
+  "max_unet_sample_calls": 6912,
+  "precision": "UNet autocast float16, VAE float32; refiner float16 (diffusers upcasts the SDXL VAE for decode)",
+  "model_provenance": {
+    "source_commit": "722900ef03e3579fb693e65a1550333a4a162581",
+    "model_revisions": {
+      "xudongw/InstanceDiffusion": "fc74d76cde4a3dd0c3894e1764c8cf7299c77595",
+      "openai/clip-vit-large-patch14": "32bd64288804d66eefd0ccbe215aa642df71cc41"
+    },
+    "checkpoint_sha256": "b4de3f7877a1860b52837afe3a767ca92a2ef5084056048b503af80027cde1d1",
+    "checkpoint_state": "ema",
+    "phrase_text_weights_complete": true,
+    "base_conv_sha256": "0b6406769828fa6c5360c0187790e93964c167f646de271ce6510105b3a59ae6",
+    "ignored_nonlearned_text_buffers": [],
+    "config_sha256": "0d35e81804aa2fec6176dfa5a1f636159a6f51b94ed8748f63b1c00c191e9399"
+  },
+  "accepted_cpu_run": "20261103T142406Z_013a5f0e",
+  "accepted_cpu_report": "docs/direct_preflight_20261103_pass.json",
+  "decision_rules": [
+    "Unit: 16 scene/seed pairs. Bobby delegated review: the analyst (Claude) reviews the blind sheets BEFORE opening review_key.json, with the held-out criteria (count, colour, shape incl. pose/facing, position; naturalness 0/1/2), and commits the blind review before unblinding.",
+    "Automatic evidence: SAM sketch fidelity (sketch_chamfer per image, pooled facing accuracy over asymmetric instances), same metric code as held-out v2.",
+    "An arm is admissible if: structure failures <= sil_full + 1; mean sketch_chamfer <= sil_full + 0.010; pooled facing accuracy >= sil_full - 0.10. sil_full is always admissible.",
+    "Kept arm = admissible arm with the highest mean naturalness; ties (difference < 0.10) -> fewer structure failures -> earlier arm in the list (simpler).",
+    "The kept arm becomes the frozen OCSD v3 configuration for the new locked held-out v3 comparison against the original OCSD (paper_v2 tuned config), InstanceDiffusion box, ControlNet and GLIGEN. No tuning of the parser, release step or refiner strength on these scenes; no reranking, extra seeds or reruns; failed images stay in the record."
+  ],
+  "locked_note": "Locked before any image with layout-only release or the refiner. sil_full equals the held-out v2 winning arm (direct_silhouette) and is regenerated here so all four arms come from one run."
+}

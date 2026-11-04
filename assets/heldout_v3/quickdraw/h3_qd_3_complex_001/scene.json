@@ -1,0 +1,92 @@
+{
+ "sid": "h3_qd_3_complex_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "complex",
+ "bg": "in a living room",
+ "caption": "two black teddy bears and a yellow chair in a living room",
+ "objects": [
+  {
+   "cls": "teddy bear",
+   "phrase": "black teddy bear",
+   "box": [
+    393.0,
+    194.0,
+    510.0,
+    349.0
+   ],
+   "qd_key": "4895639156555776",
+   "recognized": true,
+   "n_strokes": 5
+  },
+  {
+   "cls": "teddy bear",
+   "phrase": "black teddy bear",
+   "box": [
+    255.0,
+    194.0,
+    399.0,
+    347.0
+   ],
+   "qd_key": "4637484942098432",
+   "recognized": true,
+   "n_strokes": 3
+  },
+  {
+   "cls": "chair",
+   "phrase": "yellow chair",
+   "box": [
+    26.0,
+    129.0,
+    122.0,
+    298.0
+   ],
+   "qd_key": "5268762385186816",
+   "recognized": true,
+   "n_strokes": 3
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "right_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.023389130933272186,
+ "heldout_set": "heldout_v3",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261108,
+  "per_cell": 2,
+  "original_sid": "qd_3_complex_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "heldout_v2",
+   "direct_dev_v1"
+  ]
+ }
+}

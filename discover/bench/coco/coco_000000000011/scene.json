@@ -1,0 +1,25 @@
+{
+ "sid": "coco_000000000011",
+ "split": "coco",
+ "sketch_extractor": "canny",
+ "n_obj": 1,
+ "count_bin": "1",
+ "complexity": "real",
+ "bg": "on the green grass",
+ "caption": "A dog and a cat sitting on the green grass.",
+ "objects": [
+  {
+   "cls": "cat",
+   "phrase": "cat",
+   "box": [
+    436.0,
+    400.0,
+    512.0,
+    474.0
+   ],
+   "coco_ann": 37
+  }
+ ],
+ "relations": [],
+ "coco_image_id": 11
+}

@@ -204,7 +204,7 @@ class ExperimentConfig:
     detr_thr: float = 0.5
 
     def __post_init__(self):
-        if self.tier in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen") and self.backbone != "sd15":
+        if self.tier in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen", "heldout_final") and self.backbone != "sd15":
             raise ValueError("The screen tier compares GLIGEN and requires backbone=sd15")
         if self.seeds is None:
             self.seeds = list(TIERS[self.tier]["seeds"])
@@ -242,6 +242,12 @@ TIERS = {
     "heldout_screen": dict(qd_per_cell=2, trained_n=0, coco_n=0, coco_trained_n=0, ablation_n=0, alpha_n=0,
                    seeds=[0, 1], seeds_all=2, tune=False,
                    cfg=dict(steps=30, obj_steps=20, K=2, S1=0, S2=0, R=1, bo_n=5)),
+    # Final locked comparison (docs/HELDOUT3_PROTOCOL.md): 18 committed scenes x seeds 0/1. The legacy methods (original
+    # OCSD with identity learning, GLIGEN, Collage, ControlNet) run with the PAPER settings and the paper_v2 tuned values
+    # (frozen copy, never re-tuned); OCSD v3 and InstanceDiffusion box come from a separate child run.
+    "heldout_final": dict(qd_per_cell=2, trained_n=0, coco_n=0, coco_trained_n=0, ablation_n=0, alpha_n=0,
+                   seeds=[0, 1], seeds_all=2, tune=False, frozen_tuned="assets/heldout_v3/tuned_paper_v2.json",
+                   cfg=dict(steps=30, obj_steps=20, K=2, S1=100, S2=100)),
     # Quy mô thực nghiệm, thiết kế cho Google Colab Pro (~100 compute unit/tháng: T4 ~1,8 unit/giờ, L4 ~4,8 unit/giờ).
     # qd_per_cell: số cảnh / ô của QuickDraw-Scenes (12 ô); trained_n: số cảnh chạy phương pháp cần học định danh
     # (OCSD, Zhang et al.) - ablation và alpha lấy trong chính các cảnh này để dùng lại M2/M3 đã học.

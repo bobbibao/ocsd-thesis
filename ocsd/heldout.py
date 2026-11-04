@@ -32,11 +32,19 @@ LOG = 'direct_heldout.log'
 VERSIONS = {
     'v1': dict(assets='assets/heldout_v1', direct=(('direct_box', False, False), ('direct_scribble', True, False)),
                methods=('direct_box', 'direct_scribble', 'controlnet', 'instance_repair_count_matte_soft'),
-               salt='ocsd-heldout-v1', prefix='heldout_', fidelity=False),
+               salt='ocsd-heldout-v1', prefix='heldout_', fidelity=False, tier='heldout_screen', tag='heldout', primary=None),
     # Stage 4: silhouette confirmation (docs/HELDOUT2_PROTOCOL.md).
     'v2': dict(assets='assets/heldout_v2', direct=(('direct_box', False, False), ('direct_silhouette', False, True)),
                methods=('direct_silhouette', 'direct_box', 'controlnet', 'instance_repair_count_matte_soft'),
-               salt='ocsd-heldout-v2', prefix='heldout2_', fidelity=True),
+               salt='ocsd-heldout-v2', prefix='heldout2_', fidelity=True, tier='heldout_screen', tag='heldout2',
+               primary=('direct_silhouette', 'direct_box', (('facing_acc', 1), ('sketch_chamfer', -1)))),
+    # Stage 5: final comparison of the complete OCSD v3 against the original OCSD and the strongest baselines
+    # (docs/HELDOUT3_PROTOCOL.md). Legacy methods use the paper settings + frozen paper_v2 tuning (tier heldout_final).
+    'v3': dict(assets='assets/heldout_v3', direct=(('direct_box', False, False), ('ocsd_v3', False, True)),
+               methods=('ocsd_v3', 'direct_box', 'ocsd', 'gligen', 'collage', 'controlnet'),
+               salt='ocsd-heldout-v3', prefix='heldout3_', fidelity=True, tier='heldout_final', tag='heldout3',
+               primary=('ocsd_v3', 'ocsd', (('opr', 1), ('miou', 1), ('sketch_chamfer', -1))),
+               key_secondary=(('ocsd_v3', 'gligen'), ('ocsd_v3', 'collage'))),
 }
 
 
@@ -127,8 +135,11 @@ def identity(protocol, gpu):
              'ocsd/provenance.py', 'ocsd/runlog.py', 'tools/run_direct_heldout.py', 'requirements-direct-preflight.txt',
              VERSIONS[VERSION]['assets']+'/protocol.json', VERSIONS[VERSION]['assets']+'/manifest.json',
              protocol['accepted_cpu_report']]
+    refine = any(a.get('refine') for a in protocol['direct_arms'])
+    if refine: files += ['requirements-direct-refiner.txt']
     versions = {}
-    for name in ('torch', 'torchvision', 'transformers', 'huggingface_hub', 'timm', 'einops', 'numpy', 'pillow', 'omegaconf'):
+    for name in ('torch', 'torchvision', 'transformers', 'huggingface_hub', 'timm', 'einops', 'numpy', 'pillow', 'omegaconf',
+                 *(('diffusers',) if refine else ())):
         try: versions[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError: versions[name] = None
     return dict(protocol=protocol, source={f: file_hash(ROOT/f) for f in files}, python=platform.python_version(),
@@ -187,6 +198,7 @@ def run_direct(cache, out, attempt, setup_returncode=0):
             signature = digest(contract); rid = VERSIONS[VERSION]['prefix']+signature[:20]
             directory = Path(out).resolve()/'runs'/rid; directory.mkdir(parents=True, exist_ok=True)
             jobs = [(s, seed, name, scribble, sil) for s in scenes for seed in SEEDS for name, scribble, sil in DIRECT_ARMS]
+            options = {a['name']: a for a in protocol['direct_arms']}; refiner = None
             state = dict(run_id=rid, status='running', contract=contract, quality_validated=False,
                          ocsd_commit=subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip(),
                          completed=[], total_images=len(jobs), planned_unet_sample_calls=protocol['direct_max_unet_sample_calls'])
@@ -215,9 +227,21 @@ def run_direct(cache, out, attempt, setup_returncode=0):
                     torch.manual_seed(seed); torch.cuda.reset_peak_memory_stats()
                     print(f'Generating {s.sid} {name} seed {seed}...', flush=True)
                     (directory/s.sid).mkdir(exist_ok=True)
+                    opt = options[name]
                     pixels, compute = model.generate(conditions[s.sid], seed, protocol['negative'], scribble=scribble,
                         steps=protocol['steps'], mis=protocol['mis'], alpha=protocol['alpha'], deadline=deadline,
-                        **({'silhouette': True} if sil else {}))
+                        **({'silhouette': True} if sil else {}),
+                        **({'silhouette_layout_only': True} if opt.get('silhouette_layout_only') else {}))
+                    if opt.get('refine'):
+                        # Upstream SDXL-Refiner cascade on this image; the unrefined base is kept for the audit.
+                        from .direct_instances import load_refiner, refine
+                        if refiner is None:
+                            refiner, revision = load_refiner(cache, protocol['refiner_revision'])
+                            if revision != protocol['refiner_revision']: raise ValueError('Refiner revision differs from the lock')
+                        save_job(directory/s.sid, f'{name}_base_s{seed}', signature, pixels, dict(compute))
+                        pixels, rlog = refine(refiner, pixels, conditions[s.sid]['caption'], seed,
+                                              protocol['refiner_strength'], protocol['refiner_steps'])
+                        compute.update(rlog, refiner_revision=protocol['refiner_revision'])
                     torch.cuda.synchronize()
                     compute.update(peak_cuda_bytes=torch.cuda.max_memory_allocated(), seed=seed, method=name, scene=s.sid)
                     if compute['unet_sample_calls'] != sampling_work(s.n, protocol['steps'], protocol['mis']):
@@ -283,7 +307,7 @@ def import_direct(P):
 # ---------------------------------------------------------------------------------------------- report
 def review_order(sid, seed):
     order = list(METHODS); random.Random(f"{sid}:{seed}:{VERSIONS[VERSION]['salt']}").shuffle(order)
-    return dict(zip('ABCD', order))
+    return dict(zip('ABCDEFGH', order))
 
 
 def make_review(P, out):
@@ -299,7 +323,7 @@ def make_review(P, out):
         for seed in SEEDS:
             mapping = review_order(sid, seed); key[f'{sid}_s{seed}'] = mapping
             name = f'{n:02d}_{sid}_seed{seed}'
-            sheet = Image.new('RGB', (2560, 690), 'white'); draw = ImageDraw.Draw(sheet)
+            sheet = Image.new('RGB', (512*(len(mapping)+1), 690), 'white'); draw = ImageDraw.Draw(sheet)
             listed = ', '.join(o.phrase for o in scene.objects)
             draw.text((12, 8), plain(f'Sheet {name} | {scene.n} objects'), fill='black', font=font)
             for line, text in enumerate(textwrap.wrap(plain('Caption: ' + scene.caption + ' | Objects: ' + listed), width=190)):
@@ -311,12 +335,12 @@ def make_review(P, out):
                 draw.text((i*512+12, 126), label, fill='black', font=font)
                 sheet.paste(Image.open(os.path.join(P.outputs, 'quickdraw', m, f'{sid}_s{seed}.png')).convert('RGB'), (i*512, 160))
                 template.append(f'{label}: count=   colour=   shape=   position/relation=   natural(0/1/2)=   note=')
-            template += ['Most natural image that still has the right structure (A/B/C/D/tie/none): ', '']
+            template += [f'Most natural image that still has the right structure ({"/".join(mapping)}/tie/none): ', '']
             sheet.save(review/f'{name}.png')
     atomic_json(out/'review_key.json', key)
     (review/'REVIEW_TEMPLATE.txt').write_text('\n'.join(template)+'\n', encoding='utf-8')
     (review/'HOW_TO_REVIEW.txt').write_text(
-        'Open the 36 PNG files with a normal image viewer. Each PNG: input sketch, then images A, B, C, D.\n'
+        f'Open the 36 PNG files with a normal image viewer. Each PNG: input sketch, then images {", ".join("ABCDEFGH"[:len(METHODS)])}.\n'
         'The order changes per sheet; compare only within one PNG. Check each image against caption and sketch:\n'
         '  count: every listed object present, no missing or extra copies (for 8+ objects, count carefully or write unclear).\n'
         '  colour: each object has its own attribute from the caption (e.g. "a white truck").\n'
@@ -368,6 +392,33 @@ def sign_test(diffs):
     return wins, losses, len(diffs)-n, p
 
 
+def _sign_row(df, a, b, k, better):
+    t = _scene_means(df, k).dropna(subset=[a, b])
+    w, l, ties, p = sign_test(list(better*(t[a]-t[b])))
+    mu, lo, hi = _boot((t[a]-t[b]).to_numpy())
+    return dict(a=a, b=b, metric=k, scenes=len(t), wins=w, losses=l, ties=ties, p=p, diff=mu, lo=lo, hi=hi)
+
+
+def holm(rows):
+    order = sorted(range(len(rows)), key=lambda i: rows[i]['p']); running = 0.
+    for rank, i in enumerate(order):
+        running = max(running, min(1., (len(rows)-rank)*rows[i]['p'])); rows[i]['p_holm'] = running
+    return rows
+
+
+def v3_header(primary, key_secondary):
+    def table(rows):
+        return ['| a | b | metric | scenes | wins / losses / ties | diff a-b [95% CI] | p | p (Holm) |',
+                '|---|---|---|---|---|---|---|---|'] + [
+                f"| {r['a']} | {r['b']} | {r['metric']} | {r['scenes']} | {r['wins']} / {r['losses']} / {r['ties']} | "
+                f"{r['diff']:.3f} [{r['lo']:.3f}, {r['hi']:.3f}] | {r['p']:.4f} | {r['p_holm']:.4f} |" for r in rows]
+    return (['# Held-out v3: complete OCSD v3 vs original OCSD and baselines', '',
+             'Locked protocol: docs/HELDOUT3_PROTOCOL.md. Per-scene means (seeds averaged); exact sign test; a win = a better.', '',
+             '## Primary: OCSD v3 vs original OCSD (Holm over three metrics)', ''] + table(primary) +
+            ['', '## Key secondary: OCSD v3 vs GLIGEN and Collage (Holm over six)', ''] + table(key_secondary) +
+            ['', 'opr, miou: higher is better; sketch_chamfer: lower is better.', ''])
+
+
 def _scene_means(df, metric):
     return df.groupby(['method', 'sid'])[metric].mean().unstack('method')
 
@@ -403,19 +454,17 @@ def report(P, E):
                     for k in ('unet_sample_calls', 'controlnet_sample_calls', 'gligen_unet_sample_calls'))
         work.append(dict(method=m, sid=sid, seed=s, sampling_work=units, time_s=meta.get('scene_time')))
     df = df.drop(columns=[c for c in ('time_s',) if c in df]).merge(pd.DataFrame(work), on=['method', 'sid', 'seed'], validate='one_to_one')
-    primary = []
-    if VERSIONS[VERSION]['fidelity']:
+    cfg = VERSIONS[VERSION]; primary, key_secondary = [], []
+    if cfg['fidelity']:
         fid = fidelity(P)[['method', 'sid', 'seed', 'sketch_chamfer', 'facing_acc', 'found_rate']]
         df = df.merge(fid, on=['method', 'sid', 'seed'], validate='one_to_one')
-        # Locked primary tests (docs/HELDOUT2_PROTOCOL.md): direct_silhouette vs direct_box, Holm over two.
-        for k, better in (('facing_acc', 1), ('sketch_chamfer', -1)):
-            t = _scene_means(df, k).dropna(subset=['direct_silhouette', 'direct_box'])
-            w, l, ties, p = sign_test(list(better*(t['direct_silhouette']-t['direct_box'])))
-            mu, lo, hi = _boot((t['direct_silhouette']-t['direct_box']).to_numpy())
-            primary.append(dict(metric=k, scenes=len(t), wins=w, losses=l, ties=ties, p=p, diff=mu, lo=lo, hi=hi))
-        order = sorted(range(len(primary)), key=lambda i: primary[i]['p']); running = 0.
-        for rank, i in enumerate(order):
-            running = max(running, min(1., (len(primary)-rank)*primary[i]['p'])); primary[i]['p_holm'] = running
+    if cfg['primary']:
+        # Locked primary family (protocol): one comparison, sign test per metric over scenes, Holm within the family.
+        a, b, tests = cfg['primary']
+        primary = holm([_sign_row(df, a, b, k, better) for k, better in tests])
+        # Key secondary family (v3): the same metrics against the strongest baselines, Holm within this family.
+        key_secondary = holm([_sign_row(df, a2, b2, k, better) for a2, b2 in cfg.get('key_secondary', ())
+                              for k, better in tests])
     metrics = ['sketch_chamfer', 'facing_acc', 'found_rate', 'count_acc', 'opr', 'oce_c', 'miou', 'ra',
                'joint_layout_success', 'clip', 'obj_clip', 'time_s', 'sampling_work']
     metrics = [m for m in metrics if m in df]
@@ -427,7 +476,9 @@ def report(P, E):
             r[k], r[k+'_lo'], r[k+'_hi'] = mu, lo, hi
         rows.append(r)
     summary = pd.DataFrame(rows)
-    if VERSION == 'v1':
+    if VERSION == 'v3':
+        pairs = [('ocsd_v3', m) for m in METHODS if m != 'ocsd_v3'] + [('direct_box', 'ocsd'), ('direct_box', 'gligen')]
+    elif VERSION == 'v1':
         pairs = [('direct_box', 'controlnet'), ('direct_box', 'instance_repair_count_matte_soft'),
                  ('direct_scribble', 'controlnet'), ('direct_scribble', 'instance_repair_count_matte_soft'),
                  ('direct_scribble', 'direct_box')]
@@ -449,7 +500,7 @@ def report(P, E):
     by_bin.to_csv(tables/'heldout_by_count_bin.csv', index=False)
     make_review(P, out)
     def fmt(r, k): return f"{r[k]:.3f} [{r[k+'_lo']:.3f}, {r[k+'_hi']:.3f}]"
-    lines = ['# Held-out comparison (automatic metrics; human review pending)', ''] if VERSION == 'v1' else [
+    lines = ['# Held-out comparison (automatic metrics; human review pending)', ''] if VERSION == 'v1' else v3_header(primary, key_secondary) if VERSION == 'v3' else [
              '# Held-out v2: silhouette confirmation', '', 'Locked protocol: docs/HELDOUT2_PROTOCOL.md.', '',
              '## Primary (direct_silhouette - direct_box, per scene; exact sign test, Holm over two)', '',
              '| metric | scenes | wins / losses / ties | diff [95% CI] | p | p (Holm) |', '|---|---|---|---|---|---|'] + [
@@ -461,8 +512,10 @@ def report(P, E):
              '95% bootstrap CIs over scenes. These OWLv2/CLIP numbers are secondary; the primary endpoint is the blind',
              'human review of review/*.png. direct_scribble was added after stage 1 and is exploratory.', ''] if VERSION == 'v1' else [
              '## All arms', '', '18 scenes x seeds 0/1. Means over scenes (seeds averaged) with 95% bootstrap CIs over scenes.',
-             'Sketch fidelity (SAM outline vs raw sketch ink) is primary for silhouette vs box; OWLv2/CLIP and the review of',
-             'review/*.png are secondary.', '']) + [
+             *(['Sketch fidelity (SAM outline vs raw sketch ink) is primary for silhouette vs box; OWLv2/CLIP and the review of',
+                'review/*.png are secondary.'] if VERSION == 'v2' else
+               ['OPR/mIoU (OWLv2) and sketch chamfer (SAM) vs the original OCSD are primary; other metrics, other pairs and the',
+                'blind review of review/*.png are secondary.']), '']) + [
              '| method | ' + ' | '.join(metrics) + ' |', '|---|' + '---|'*len(metrics)]
     for _, r in summary.iterrows():
         lines.append(f"| {r['method']} | " + ' | '.join(fmt(r, k) for k in metrics) + ' |')
@@ -470,9 +523,10 @@ def report(P, E):
     for r in paired.itertuples():
         lines.append(f'| {r.a} | {r.b} | {r.metric} | {r.diff:.3f} [{r.lo:.3f}, {r.hi:.3f}] | {r.role} |')
     (out/'summary.md').write_text('\n'.join(lines)+'\n')
-    atomic_json(out/'summary.json', dict(tier='heldout_screen', heldout_set=VERSION, research_claim='unproven until human review',
-                                         primary=primary, summary=summary.to_dict('records'), paired=paired.to_dict('records')))
-    tag = 'heldout' if VERSION == 'v1' else 'heldout2'
+    atomic_json(out/'summary.json', dict(tier=cfg['tier'], heldout_set=VERSION, research_claim='unproven until review',
+                                         primary=primary, key_secondary=key_secondary,
+                                         summary=summary.to_dict('records'), paired=paired.to_dict('records')))
+    tag = cfg['tag']
     bundle = out/f'ocsd_{tag}_results.zip'; review_zip = out/f'REVIEW_{tag}.zip'
     with ZipFile(bundle, 'w', ZIP_DEFLATED) as z:
         for path in sorted(out.rglob('*')):

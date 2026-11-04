@@ -1,0 +1,387 @@
+{
+ "sid": "h3_qd_8p_simple_001",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 8,
+ "count_bin": "8+",
+ "complexity": "simple",
+ "bg": "in a forest",
+ "caption": "four big horses, a big bird, a small rabbit, a gray rabbit and a leafy tree in a forest",
+ "objects": [
+  {
+   "cls": "horse",
+   "phrase": "big horse",
+   "box": [
+    388.0,
+    188.0,
+    499.0,
+    278.0
+   ],
+   "qd_key": "6268510315479040",
+   "recognized": true,
+   "n_strokes": 12
+  },
+  {
+   "cls": "horse",
+   "phrase": "big horse",
+   "box": [
+    38.0,
+    322.0,
+    142.0,
+    405.0
+   ],
+   "qd_key": "5331196420554752",
+   "recognized": true,
+   "n_strokes": 10
+  },
+  {
+   "cls": "bird",
+   "phrase": "big bird",
+   "box": [
+    216.0,
+    160.0,
+    299.0,
+    213.0
+   ],
+   "qd_key": "6582606407663616",
+   "recognized": true,
+   "n_strokes": 12
+  },
+  {
+   "cls": "horse",
+   "phrase": "big horse",
+   "box": [
+    70.0,
+    157.0,
+    173.0,
+    246.0
+   ],
+   "qd_key": "5747751063126016",
+   "recognized": true,
+   "n_strokes": 21
+  },
+  {
+   "cls": "rabbit",
+   "phrase": "small rabbit",
+   "box": [
+    179.0,
+    257.0,
+    272.0,
+    328.0
+   ],
+   "qd_key": "5614294253174784",
+   "recognized": true,
+   "n_strokes": 11
+  },
+  {
+   "cls": "horse",
+   "phrase": "big horse",
+   "box": [
+    298.0,
+    330.0,
+    439.0,
+    452.0
+   ],
+   "qd_key": "6177599782912000",
+   "recognized": true,
+   "n_strokes": 11
+  },
+  {
+   "cls": "rabbit",
+   "phrase": "gray rabbit",
+   "box": [
+    184.0,
+    361.0,
+    293.0,
+    426.0
+   ],
+   "qd_key": "6467359025922048",
+   "recognized": true,
+   "n_strokes": 14
+  },
+  {
+   "cls": "tree",
+   "phrase": "leafy tree",
+   "box": [
+    308.0,
+    108.0,
+    386.0,
+    204.0
+   ],
+   "qd_key": "5943791187918848",
+   "recognized": true,
+   "n_strokes": 4
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "right_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   2,
+   "right_of"
+  ],
+  [
+   0,
+   2,
+   "below"
+  ],
+  [
+   0,
+   3,
+   "right_of"
+  ],
+  [
+   0,
+   3,
+   "below"
+  ],
+  [
+   0,
+   4,
+   "right_of"
+  ],
+  [
+   0,
+   4,
+   "above"
+  ],
+  [
+   0,
+   5,
+   "right_of"
+  ],
+  [
+   0,
+   5,
+   "above"
+  ],
+  [
+   0,
+   6,
+   "right_of"
+  ],
+  [
+   0,
+   6,
+   "above"
+  ],
+  [
+   0,
+   7,
+   "right_of"
+  ],
+  [
+   0,
+   7,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ],
+  [
+   1,
+   3,
+   "left_of"
+  ],
+  [
+   1,
+   3,
+   "below"
+  ],
+  [
+   1,
+   4,
+   "left_of"
+  ],
+  [
+   1,
+   4,
+   "below"
+  ],
+  [
+   1,
+   5,
+   "left_of"
+  ],
+  [
+   1,
+   5,
+   "above"
+  ],
+  [
+   1,
+   6,
+   "left_of"
+  ],
+  [
+   1,
+   6,
+   "above"
+  ],
+  [
+   1,
+   7,
+   "left_of"
+  ],
+  [
+   1,
+   7,
+   "below"
+  ],
+  [
+   2,
+   3,
+   "right_of"
+  ],
+  [
+   2,
+   4,
+   "right_of"
+  ],
+  [
+   2,
+   4,
+   "above"
+  ],
+  [
+   2,
+   5,
+   "left_of"
+  ],
+  [
+   2,
+   5,
+   "above"
+  ],
+  [
+   2,
+   6,
+   "above"
+  ],
+  [
+   2,
+   7,
+   "left_of"
+  ],
+  [
+   2,
+   7,
+   "below"
+  ],
+  [
+   3,
+   4,
+   "left_of"
+  ],
+  [
+   3,
+   4,
+   "above"
+  ],
+  [
+   3,
+   5,
+   "left_of"
+  ],
+  [
+   3,
+   5,
+   "above"
+  ],
+  [
+   3,
+   6,
+   "left_of"
+  ],
+  [
+   3,
+   6,
+   "above"
+  ],
+  [
+   3,
+   7,
+   "left_of"
+  ],
+  [
+   3,
+   7,
+   "below"
+  ],
+  [
+   4,
+   5,
+   "left_of"
+  ],
+  [
+   4,
+   5,
+   "above"
+  ],
+  [
+   4,
+   6,
+   "above"
+  ],
+  [
+   4,
+   7,
+   "left_of"
+  ],
+  [
+   4,
+   7,
+   "below"
+  ],
+  [
+   5,
+   6,
+   "right_of"
+  ],
+  [
+   5,
+   7,
+   "below"
+  ],
+  [
+   6,
+   7,
+   "left_of"
+  ],
+  [
+   6,
+   7,
+   "below"
+  ]
+ ],
+ "overlap_max": 0.0,
+ "heldout_set": "heldout_v3",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261107,
+  "per_cell": 2,
+  "original_sid": "qd_8p_simple_001",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "heldout_v2",
+   "direct_dev_v1"
+  ]
+ }
+}

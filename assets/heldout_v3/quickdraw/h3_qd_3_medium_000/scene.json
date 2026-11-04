@@ -1,0 +1,102 @@
+{
+ "sid": "h3_qd_3_medium_000",
+ "split": "quickdraw",
+ "generator_version": "qd-v2",
+ "n_obj": 3,
+ "count_bin": "3",
+ "complexity": "medium",
+ "bg": "on a farm",
+ "caption": "two golden dogs and a small cat on a farm",
+ "objects": [
+  {
+   "cls": "dog",
+   "phrase": "golden dog",
+   "box": [
+    128.0,
+    133.0,
+    277.0,
+    265.0
+   ],
+   "qd_key": "4908825071058944",
+   "recognized": true,
+   "n_strokes": 7
+  },
+  {
+   "cls": "dog",
+   "phrase": "golden dog",
+   "box": [
+    173.0,
+    233.0,
+    324.0,
+    410.0
+   ],
+   "qd_key": "5143579607433216",
+   "recognized": true,
+   "n_strokes": 6
+  },
+  {
+   "cls": "cat",
+   "phrase": "small cat",
+   "box": [
+    273.0,
+    123.0,
+    409.0,
+    268.0
+   ],
+   "qd_key": "5069798780174336",
+   "recognized": true,
+   "n_strokes": 12
+  }
+ ],
+ "relations": [
+  [
+   0,
+   1,
+   "left_of"
+  ],
+  [
+   0,
+   1,
+   "above"
+  ],
+  [
+   0,
+   1,
+   "behind"
+  ],
+  [
+   0,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "left_of"
+  ],
+  [
+   1,
+   2,
+   "below"
+  ],
+  [
+   1,
+   2,
+   "in_front_of"
+  ]
+ ],
+ "overlap_max": 0.07727494369238629,
+ "heldout_set": "heldout_v3",
+ "source_build": {
+  "generator": "ocsd.data.build_quickdraw_scenes",
+  "seed": 20261107,
+  "per_cell": 2,
+  "original_sid": "qd_3_medium_000",
+  "quickdraw_pool": "first 3000 records per class (same pool as the paper benchmark, new seed)",
+  "disjoint_from": [
+   "heldout_v1",
+   "heldout_v2",
+   "direct_dev_v1"
+  ]
+ }
+}
