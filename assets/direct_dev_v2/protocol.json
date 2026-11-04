@@ -1,0 +1,67 @@
+{
+  "schema": "ocsd-direct-dev-v2",
+  "stage": "development (stage 3: sketch-silhouette conditioning), not held-out; same 8 dev scenes as stage 1",
+  "scenes": "assets/direct_dev_v1/scenes.json",
+  "seeds": [
+    0,
+    1
+  ],
+  "arms": [
+    {
+      "name": "direct_box",
+      "scribble": false,
+      "fusion": "official_mean"
+    },
+    {
+      "name": "direct_silhouette",
+      "scribble": false,
+      "fusion": "official_mean",
+      "silhouette": true
+    },
+    {
+      "name": "direct_silhouette_scribble",
+      "scribble": true,
+      "fusion": "official_mean",
+      "silhouette": true
+    }
+  ],
+  "silhouette_parser": {
+    "function": "ocsd.direct_instances.sketch_silhouette",
+    "bridge_fraction_of_diagonal": 1.0,
+    "close_radius_fraction_of_diagonal": 0.03,
+    "polygon_points": 256,
+    "note": "Masks are parsed from each instance sketch only (stroke-end bridging, closing, hole fill); no oracle or dataset masks. Polygon sampling follows upstream sample_sparse_points_from_mask, made deterministic."
+  },
+  "steps": 50,
+  "mis": 0.36,
+  "alpha": 0.8,
+  "guidance": 7.5,
+  "negative": "blurry, low quality, distorted, deformed, watermark, text",
+  "max_seconds": 2400,
+  "max_unet_sample_calls": 10368,
+  "precision": "UNet autocast float16, VAE float32",
+  "model_provenance": {
+    "source_commit": "722900ef03e3579fb693e65a1550333a4a162581",
+    "model_revisions": {
+      "xudongw/InstanceDiffusion": "fc74d76cde4a3dd0c3894e1764c8cf7299c77595",
+      "openai/clip-vit-large-patch14": "32bd64288804d66eefd0ccbe215aa642df71cc41"
+    },
+    "checkpoint_sha256": "b4de3f7877a1860b52837afe3a767ca92a2ef5084056048b503af80027cde1d1",
+    "checkpoint_state": "ema",
+    "phrase_text_weights_complete": true,
+    "base_conv_sha256": "0b6406769828fa6c5360c0187790e93964c167f646de271ce6510105b3a59ae6",
+    "ignored_nonlearned_text_buffers": [],
+    "config_sha256": "0d35e81804aa2fec6176dfa5a1f636159a6f51b94ed8748f63b1c00c191e9399"
+  },
+  "accepted_cpu_run": "20261103T142406Z_013a5f0e",
+  "accepted_cpu_report": "docs/direct_preflight_20261103_pass.json",
+  "decision_rules": [
+    "Unit: 16 scene/seed pairs. Primary evidence: the user's blind review sheets (same criteria as the held-out review, shape includes pose/facing direction); OWLv2/CLIP secondary only.",
+    "Structure failure = count, colour or shape marked fail for an image.",
+    "Silhouette arm kept for the next stage = the silhouette arm with fewer structure failures; tie -> more 'most natural with right structure' picks; tie -> direct_silhouette (upstream test_mask setting).",
+    "The kept silhouette arm goes to a NEW locked held-out comparison (new scenes; vs direct_box, ControlNet, OCSD soft-matte) only if it has at least 3 fewer structure failures than direct_box, or at least 3 more picks with no more structure failures than direct_box.",
+    "Otherwise the silhouette line stops and is reported as a negative result; direct_box remains the reference.",
+    "No tuning of the parser, reranking, extra seeds or reruns on these scenes to change the outcome; failed images stay in the record."
+  ],
+  "locked_note": "Locked before any generated image with silhouette conditioning. The parser was designed while looking only at input sketches (dev scenes and the already-used held-out v1 inputs), never at generated images with masks. Stage-1 images are not reused: direct_box is regenerated inside this run for a clean blind comparison."
+}

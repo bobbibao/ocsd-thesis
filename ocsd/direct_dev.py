@@ -25,25 +25,31 @@ from .runlog import _Tee
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / 'assets/direct_dev_v1/protocol.json'
 ARMS = ('direct_box', 'direct_scribble', 'direct_scribble_region')
+# Stage 3 (dev v2): sketch-silhouette masks parsed by OCSD from the instance sketch.
+PROTOCOL_V2 = ROOT / 'assets/direct_dev_v2/protocol.json'
+ARMS_V2 = ('direct_box', 'direct_silhouette', 'direct_silhouette_scribble')
+VERSIONS = {'v1': (PROTOCOL, ARMS, 'ocsd-dev-v1'), 'v2': (PROTOCOL_V2, ARMS_V2, 'ocsd-dev-v2')}
 LOG = 'direct_dev.log'
 
 
-def read_protocol():
+def read_protocol(version='v1'):
     from .direct_instances import SOURCE_COMMIT, sampling_work, FUSIONS
-    protocol = json.loads(PROTOCOL.read_text())
+    path, arms, _ = VERSIONS[version]
+    protocol = json.loads(path.read_text())
     accepted = json.loads((ROOT/protocol['accepted_cpu_report']).read_text())
     if (accepted['status'] != 'pass' or accepted['run_id'] != protocol['accepted_cpu_run']
             or accepted['model_provenance'] != protocol['model_provenance']
             or protocol['model_provenance']['source_commit'] != SOURCE_COMMIT):
         raise ValueError('Development run must use the accepted CPU checkpoint/provenance')
     scenes = json.loads((ROOT/protocol['scenes']).read_text())['scenes']
-    if (len(scenes) != 8 or protocol['seeds'] != [0, 1] or tuple(a['name'] for a in protocol['arms']) != ARMS
+    if (len(scenes) != 8 or protocol['seeds'] != [0, 1] or tuple(a['name'] for a in protocol['arms']) != arms
             or any(a['fusion'] not in FUSIONS for a in protocol['arms'])):
         raise ValueError('Development study is fixed to 8 scenes, seeds 0/1 and three arms')
-    expected = sum(len(protocol['seeds'])*len(ARMS)*sampling_work(len(s['objects']), protocol['steps'], protocol['mis'])
+    expected = sum(len(protocol['seeds'])*len(arms)*sampling_work(len(s['objects']), protocol['steps'], protocol['mis'])
                    for s in scenes)
     if expected != protocol['max_unet_sample_calls'] or protocol['max_seconds'] != 2400:
         raise ValueError('Development budget does not match its frozen plan')
+    if version != 'v1': protocol['_version'] = version  # v1 contract (and run ID) unchanged
     return protocol, scenes
 
 
@@ -55,7 +61,8 @@ def jobs(protocol, scenes):
 def identity(protocol, gpu):
     files = ['ocsd/direct_dev.py', 'ocsd/direct_canary.py', 'ocsd/direct_instances.py', 'ocsd/provenance.py',
              'ocsd/runlog.py', 'tools/run_direct_dev.py', 'requirements-direct-preflight.txt',
-             str(PROTOCOL.relative_to(ROOT)), protocol['scenes'], protocol['accepted_cpu_report']]
+             str(VERSIONS[protocol.get('_version', 'v1')][0].relative_to(ROOT)), protocol['scenes'],
+             protocol['accepted_cpu_report']]
     versions = {}
     for name in ('torch', 'torchvision', 'transformers', 'huggingface_hub', 'timm', 'einops', 'numpy', 'pillow', 'omegaconf'):
         try: versions[name] = importlib.metadata.version(name)
@@ -64,9 +71,10 @@ def identity(protocol, gpu):
                 libraries=versions, gpu=gpu)
 
 
-def review_order(sid, seed):
+def review_order(sid, seed, version='v1'):
     """Fixed, seeded label order per sheet; the key is stored separately."""
-    order = list(ARMS); random.Random(f'{sid}:{seed}:ocsd-dev-v1').shuffle(order)
+    _, arms, salt = VERSIONS[version]
+    order = list(arms); random.Random(f'{sid}:{seed}:{salt}').shuffle(order)
     return dict(zip('ABC', order))
 
 
@@ -78,7 +86,7 @@ def make_review(directory, protocol, scenes):
     key, template = {}, ['Read HOW_TO_REVIEW.txt first. Write pass / fail / unclear; naturalness 0 / 1 / 2 / unclear.', '']
     for n, spec in enumerate(scenes, 1):
         for seed in protocol['seeds']:
-            sid = spec['sid']; mapping = review_order(sid, seed); key[f'{sid}_s{seed}'] = mapping
+            sid = spec['sid']; mapping = review_order(sid, seed, protocol.get('_version', 'v1')); key[f'{sid}_s{seed}'] = mapping
             name = f'{n:02d}_{sid}_seed{seed}'
             sheet = Image.new('RGB', (2048, 690), 'white'); draw = ImageDraw.Draw(sheet)
             draw.text((12, 8), plain(f'Sheet {name} | objects: ' + ', '.join(o['phrase'] for o in spec['objects'])),
@@ -152,7 +160,7 @@ def finalize(attempt, interrupted=False):
     return result
 
 
-def run(cache, out, attempt, setup_returncode=0):
+def run(cache, out, attempt, setup_returncode=0, version='v1'):
     started = time.monotonic(); attempt = Path(attempt); attempt.mkdir(parents=True, exist_ok=True)
     state = None; directory = None
     with (attempt/LOG).open('w') as log, redirect_stdout(_Tee(sys.stdout, log)), redirect_stderr(_Tee(sys.stderr, log)):
@@ -168,8 +176,8 @@ def run(cache, out, attempt, setup_returncode=0):
             if prop.total_memory < 20*1024**3: raise RuntimeError('Requires at least 20 GiB VRAM; use L4/A100')
             gpu = dict(name=prop.name, total_memory=prop.total_memory, cuda=torch.version.cuda,
                        cudnn=torch.backends.cudnn.version())
-            protocol, scenes = read_protocol(); contract = identity(protocol, gpu)
-            signature = digest(contract); rid = 'dev_'+signature[:20]
+            protocol, scenes = read_protocol(version); contract = identity(protocol, gpu)
+            signature = digest(contract); rid = ('dev_' if version == 'v1' else f'dev{version[1:]}_')+signature[:20]
             directory = Path(out).resolve()/'runs'/rid; directory.mkdir(parents=True, exist_ok=True)
             all_jobs = jobs(protocol, scenes)
             state = dict(run_id=rid, status='running', contract=contract, quality_validated=False,
@@ -180,7 +188,8 @@ def run(cache, out, attempt, setup_returncode=0):
             conditions, sizes = {}, {}
             for spec in scenes:
                 scene = render_scene(spec); sdir = directory/spec['sid']; sdir.mkdir(exist_ok=True)
-                conditions[spec['sid']] = scene_condition(scene); sizes[spec['sid']] = scene.n
+                conditions[spec['sid']] = scene_condition(scene, silhouettes=any(a.get('silhouette') for a in protocol['arms']))
+                sizes[spec['sid']] = scene.n
                 atomic_json(sdir/'condition.json', conditions[spec['sid']])
                 Image.fromarray(scene.sketch).save(sdir/'sketch.png')
             todo = []
@@ -207,7 +216,7 @@ def run(cache, out, attempt, setup_returncode=0):
                     print(f'Generating {sid} {arm["name"]} seed {seed}...', flush=True)
                     pixels, compute = model.generate(conditions[sid], seed, protocol['negative'], scribble=arm['scribble'],
                         steps=protocol['steps'], mis=protocol['mis'], alpha=protocol['alpha'], deadline=deadline,
-                        fusion=arm['fusion'])
+                        fusion=arm['fusion'], **({'silhouette': True} if arm.get('silhouette') else {}))
                     torch.cuda.synchronize()
                     compute.update(peak_cuda_bytes=torch.cuda.max_memory_allocated(), seed=seed, method=arm['name'], scene=sid)
                     if compute['unet_sample_calls'] != sampling_work(sizes[sid], protocol['steps'], protocol['mis']):
