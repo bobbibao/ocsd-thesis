@@ -151,16 +151,125 @@ def sampling_work(n_objects, steps=50, mis=.36):
     return 2 * (steps + (n_objects * split + n_objects + 1 if split else 1))
 
 
+FUSIONS = ('official_mean', 'region')
+REGION_FEATHER = 2  # latent pixels (16 image pixels); fixed before any GPU output
+
+
+def fusion_weights(boxes, masks, size, fusion='official_mean', feather=REGION_FEATHER):
+    """Per-trajectory weights for the MIS merge, shape (n+1, 1, 1, size, size).
+
+    official_mean: every trajectory has weight 1 everywhere, i.e. the upstream
+    torch.mean over the global and single-instance latents.
+    region: the global trajectory keeps weight 1 everywhere; instance i only
+    contributes inside its own box (soft edge of `feather` latent pixels). So the
+    background comes from the full-caption trajectory instead of an average of
+    n+1 independently composed backgrounds, and an instance's own trajectory
+    gets 1/2 instead of 1/(n+1) of its box. This is our variant, not upstream.
+    """
+    if fusion not in FUSIONS:
+        raise ValueError('Unknown MIS fusion: ' + str(fusion))
+    n = int(masks.sum().item())
+    ones = torch.ones(n+1, 1, 1, size, size, dtype=torch.float32)
+    if fusion == 'official_mean':
+        return ones
+    grid = (torch.arange(size, dtype=torch.float32)+.5)/size
+    for i in range(n):
+        x0, y0, x1, y1 = [float(v) for v in boxes[0, i]]
+        def ramp(lo, hi):
+            if feather <= 0:
+                return ((grid >= lo) & (grid < hi)).float()
+            width = feather/size
+            return ((grid-lo)/width+.5).clamp(0, 1) * ((hi-grid)/width+.5).clamp(0, 1)
+        ones[i+1, 0, 0] = ramp(y0, y1)[:, None] * ramp(x0, x1)[None, :]
+    return ones
+
+
+def mis_sampler_class(fusion='official_mean', diagnostics=None):
+    """Official PLMSSamplerInst with only the latent merge made pluggable.
+
+    With official_mean the loop is the upstream code path and must reproduce
+    upstream latents exactly (tested against the pinned source).
+    """
+    from ldm.models.diffusion.plms_instance import PLMSSamplerInst
+
+    class FusionPLMSSamplerInst(PLMSSamplerInst):
+        @torch.no_grad()
+        def plms_sampling(self, shape, input_all, uc=None, guidance_scale=1, mask=None, x0=None):
+            b = shape[0]; latent_size = shape[2]
+            img = input_all[0]['x']
+            if img is None:
+                img = torch.randn(shape, device=self.device)
+                for item in input_all: item['x'] = img
+            time_range = np.flip(self.ddim_timesteps); total_steps = self.ddim_timesteps.shape[0]
+            if self.alpha_generator_func is not None:
+                alphas = self.alpha_generator_func(len(time_range))
+            mis_step = int(total_steps * self.mis)
+            old_eps_dic = {}
+            for input_idx, item in enumerate(input_all):
+                old_eps_dic[str(input_idx)] = []
+                for i, step in enumerate(time_range[:mis_step]):
+                    if self.alpha_generator_func is not None:
+                        self.set_alpha_scale(self.model, alphas[i])
+                        if alphas[i] == 0: self.model.restore_first_conv_from_SD()
+                    index = total_steps - i - 1
+                    ts = torch.full((b,), step, device=self.device, dtype=torch.long)
+                    ts_next = torch.full((b,), time_range[min(i + 1, len(time_range) - 1)], device=self.device, dtype=torch.long)
+                    img, _, e_t = self.p_sample_plms(item, ts, index=index, uc=uc, guidance_scale=guidance_scale,
+                                                     old_eps=old_eps_dic[str(input_idx)], t_next=ts_next)
+                    item['x'] = img
+                    old_eps_dic[str(input_idx)].append(e_t)
+                    if len(old_eps_dic[str(input_idx)]) >= 4: old_eps_dic[str(input_idx)].pop(0)
+            item = input_all[0]; old_eps = old_eps_dic['0']
+            stack = torch.stack([x['x'] for x in input_all[:]])
+            if fusion == 'official_mean':
+                fused = torch.mean(stack, dim=0)
+            else:
+                g = input_all[0]['grounding_input']
+                w = fusion_weights(g['boxes'].float().cpu(), g['masks'].float().cpu(), latent_size, fusion)
+                w = w.to(device=stack.device, dtype=torch.float32)
+                fused = ((stack.float()*w).sum(0)/w.sum(0)).to(stack.dtype)
+            if diagnostics is not None:
+                # Free diagnostics: how much the n+1 trajectories disagree on the
+                # background (outside every box) at the merge step.
+                g = input_all[0]['grounding_input']
+                inside = fusion_weights(g['boxes'].float().cpu(), g['masks'].float().cpu(), latent_size,
+                                        'region', feather=0)[1:].amax(0)[0, 0].to(stack.device) > 0
+                outside = ~inside; s32 = stack.float()
+                gap = [float((s32[k]-s32[0]).abs()[..., outside].mean()) if outside.any() else None
+                       for k in range(1, len(s32))]
+                diagnostics.update(fusion=fusion, merge_step=mis_step,
+                                   trajectory_std=[float(x.std()) for x in s32], fused_std=float(fused.float().std()),
+                                   background_fraction=float(outside.float().mean()),
+                                   background_gap_to_global=gap)
+            item['x'] = fused
+            for i, step in enumerate(time_range):
+                if i < mis_step: continue
+                if self.alpha_generator_func is not None:
+                    self.set_alpha_scale(self.model, alphas[i])
+                    if alphas[i] == 0: self.model.restore_first_conv_from_SD()
+                index = total_steps - i - 1
+                ts = torch.full((b,), step, device=self.device, dtype=torch.long)
+                ts_next = torch.full((b,), time_range[min(i + 1, len(time_range) - 1)], device=self.device, dtype=torch.long)
+                img, pred_x0, e_t = self.p_sample_plms(item, ts, index=index, uc=uc, guidance_scale=guidance_scale,
+                                                       old_eps=old_eps, t_next=ts_next)
+                item['x'] = img
+                old_eps.append(e_t)
+                if len(old_eps) >= 4: old_eps.pop(0)
+            return img
+
+    return FusionPLMSSamplerInst
+
+
 @torch.no_grad()
 def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv,
-                   steps=50, alpha=.8, mis=.36, guidance=7.5, cache=True, deadline=None):
+                   steps=50, alpha=.8, mis=.36, guidance=7.5, cache=True, deadline=None,
+                   fusion='official_mean'):
     """Official PLMS/MIS with fixed input RNG and reversible per-image state.
 
     This preserves the official late SD input-convolution restoration and
     restores learned weights before the next image. It does not rerank outputs.
     """
     from ldm.models.diffusion.plms import PLMSSampler
-    from ldm.models.diffusion.plms_instance import PLMSSamplerInst
     from ldm.modules.attention import GatedSelfAttentionDense
     n = int(batch['masks'].sum().item())
     expected = sampling_work(n, steps, mis)
@@ -199,8 +308,13 @@ def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv
             single = {k: torch.zeros_like(v) for k, v in batch.items()}
             for k in single: single[k][:, 0] = batch[k][:, i]
             inputs.append(dict(x=noise.clone(), context=contexts[i+1], grounding_input=single, timesteps=None))
-    sampler = (PLMSSamplerInst(diffusion, model, alpha_generator_func=schedule, set_alpha_scale=scale, mis=mis)
-               if mis else PLMSSampler(diffusion, model, alpha_generator_func=schedule, set_alpha_scale=scale))
+    if fusion not in FUSIONS: raise ValueError('Unknown MIS fusion: ' + str(fusion))
+    merge = {}
+    if mis:
+        # Upstream loop with a pluggable merge; official_mean is bit-identical to PLMSSamplerInst (tested).
+        sampler = mis_sampler_class(fusion, merge)(diffusion, model, alpha_generator_func=schedule, set_alpha_scale=scale, mis=mis)
+    else:
+        sampler = PLMSSampler(diffusion, model, alpha_generator_func=schedule, set_alpha_scale=scale)
     hook = model.register_forward_pre_hook(count)
     finite_hook = model.register_forward_hook(finite)
     try:
@@ -212,7 +326,9 @@ def sample_latents(model, diffusion, batch, contexts, negative, noise, base_conv
         if calls['unet_sample_calls'] != expected:
             raise RuntimeError('Official sampler work differs from the planned budget')
         if not torch.isfinite(latent).all(): raise RuntimeError('Nonfinite direct-generation latent')
-        return latent, dict(**calls, conditioning_cache=cache_stats, base_conv_restorations=restorations)
+        extra = dict(mis_fusion=fusion if mis else 'none')
+        if merge: extra['mis_merge'] = merge
+        return latent, dict(**calls, conditioning_cache=cache_stats, base_conv_restorations=restorations, **extra)
     except Exception as exc:
         exc.ocsd_compute = dict(**calls, base_conv_restorations=restorations,
                                 note='Forward attempts before failure; an OOM call may be incomplete')
@@ -329,7 +445,8 @@ class DirectModel:
         return features, [x[None] for x in embeddings[:-1]], embeddings[-1:]
 
     @torch.no_grad()
-    def generate(self, condition, seed, negative, scribble=True, device='cuda', steps=50, mis=.36, alpha=.8, deadline=None):
+    def generate(self, condition, seed, negative, scribble=True, device='cuda', steps=50, mis=.36, alpha=.8, deadline=None,
+                 fusion='official_mean'):
         start = time.perf_counter()
         features, contexts, uncond = self.encode(condition, negative)
         batch = conditioning_batch(condition, features, device=device)
@@ -341,7 +458,7 @@ class DirectModel:
         autocast = torch.autocast(device_type='cuda', dtype=torch.float16) if str(device).startswith('cuda') else nullcontext()
         with autocast:
             latent, log = sample_latents(self.model, self.diffusion, batch, contexts, uncond, noise, self.base_conv,
-                                        steps=steps, mis=mis, alpha=alpha, deadline=deadline)
+                                        steps=steps, mis=mis, alpha=alpha, deadline=deadline, fusion=fusion)
         if deadline is not None and time.monotonic() >= deadline:
             raise TimeoutError('Direct-generation time budget exhausted before VAE decode')
         # Fixed for both arms: decode in FP32 to avoid VAE FP16 overflow.

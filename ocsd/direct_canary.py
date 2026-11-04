@@ -102,22 +102,65 @@ def save_job(directory, stem, signature, pixels, log):
     return record
 
 
+FONT_CANDIDATES = (
+    'DejaVuSans.ttf',
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+    '/usr/share/fonts/truetype/freefont/FreeSans.ttf',
+    '/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf',
+)
+
+
+def _covers_vietnamese(font):
+    """True when Vietnamese letters do not render as the missing-glyph box.
+
+    Colab's Pillow fell back to its built-in font, which has no Vietnamese
+    glyphs, so the 2026-11-03 canary sheets showed boxes instead of text.
+    """
+    from PIL import Image, ImageDraw
+    def pixels(char):
+        image = Image.new('L', (64, 64), 0)
+        ImageDraw.Draw(image).text((8, 8), char, fill=255, font=font)
+        return image.tobytes()
+    missing = pixels('\U0010fffd')
+    return all(pixels(c) != missing for c in 'ạảđếờựỹ')
+
+
+def review_font(size, candidates=None):
+    """Return (font, text_filter). Falls back to accent-free text, never boxes."""
+    from PIL import ImageFont
+    import unicodedata
+    paths = list(FONT_CANDIDATES if candidates is None else candidates)
+    try:
+        import matplotlib
+        paths.append(str(Path(matplotlib.get_data_path())/'fonts/ttf/DejaVuSans.ttf'))
+    except Exception:
+        pass
+    for path in paths:
+        try: font = ImageFont.truetype(path, size)
+        except OSError: continue
+        if _covers_vietnamese(font): return font, (lambda text: text)
+    def plain(text):
+        text = text.replace('đ', 'd').replace('Đ', 'D')
+        return ''.join(c for c in unicodedata.normalize('NFD', text) if not unicodedata.combining(c))
+    return ImageFont.load_default(size=size), plain
+
+
 def make_review(directory, protocol, spec, condition):
     """PNG originals and a plain-text response form; no JavaScript/HTML dependency."""
     from PIL import Image, ImageDraw, ImageFont
     import textwrap
-    try: font = ImageFont.truetype('DejaVuSans.ttf', 21)
-    except OSError: font = ImageFont.load_default(size=21)
+    font, plain = review_font(21)
     key, template = {}, ['Đọc HUONG_DAN.txt. Điền đạt/chưa đạt/không rõ; tự nhiên: 0/1/2/không rõ.', '']
     for seed in protocol['seeds']:
         order = protocol['methods'] if seed == 0 else list(reversed(protocol['methods']))
         mapping = dict(zip('AB', order)); key[str(seed)] = mapping
         sheet = Image.new('RGB', (1536, 670), 'white'); draw = ImageDraw.Draw(sheet)
-        draw.text((12, 8), f'Seed {seed} | Phác thảo + mô tả: tổng 2 xe đạp và 1 ghế băng', fill='black', font=font)
-        for line, text in enumerate(textwrap.wrap(spec['caption_vi'], width=115)):
+        draw.text((12, 8), plain(f'Seed {seed} | Phác thảo + mô tả: tổng 2 xe đạp và 1 ghế băng'), fill='black', font=font)
+        for line, text in enumerate(textwrap.wrap(plain(spec['caption_vi']), width=115)):
             draw.text((12, 38+line*27), text, fill='black', font=font)
         sheet.paste(Image.open(directory/'sketch.png').convert('RGB'), (0, 150))
-        draw.text((12, 116), 'Phác thảo đầu vào', fill='black', font=font)
+        draw.text((12, 116), plain('Phác thảo đầu vào'), fill='black', font=font)
         for i, (label, method) in enumerate(mapping.items(), 1):
             draw.text((i*512+12, 116), label, fill='black', font=font)
             sheet.paste(Image.open(directory/f'{method}_s{seed}.png').convert('RGB'), (i*512, 150))
