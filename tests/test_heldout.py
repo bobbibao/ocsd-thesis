@@ -207,6 +207,57 @@ class HeldoutV3(Heldout):
         with Image.open(next((Path(P.results)/'review').glob('*.png'))) as sheet: self.assertEqual(sheet.size, (3584, 690))
 
 
+class PaperV3(unittest.TestCase):
+    """Paper-benchmark confirmation: scenes imported from the paper benchmark, checked against paper_v2."""
+    def setUp(self):
+        import shutil
+        self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup); root = Path(self.tmp.name)
+        H.use('v4'); self.addCleanup(H.use, 'v1')
+        assets = root/'assets'; assets.mkdir()
+        for name in ('expected_scenes.json', 'protocol.json'): shutil.copyfile(H.ASSETS/name, assets/name)
+        patcher = patch.multiple(H, ASSETS=assets, PROTOCOL=assets/'protocol.json'); patcher.start(); self.addCleanup(patcher.stop)
+        self.src = root/'drive'/'quickdraw'; self.expected = H.expected_scenes()
+        for sid, e in self.expected.items():
+            d = self.src/sid; d.mkdir(parents=True)
+            objects = [dict(cls='dog', phrase='dog', box=[10*i, 10, 10*i+40, 60]) for i in range(e['n_obj'])]
+            (d/'scene.json').write_text(json.dumps(dict(sid=sid, split='quickdraw', n_obj=e['n_obj'], count_bin=e['count_bin'],
+                complexity=e['complexity'], bg='in a park', caption='dogs in a park', objects=objects, relations=[])))
+            Image.new('L', (512, 512), 255).save(d/'sketch.png')
+            np.savez_compressed(d/'masks.npz', masks=np.zeros((e['n_obj'], 512, 512), bool))
+            for i in range(e['n_obj']): Image.new('L', (512, 512), 255).save(d/f'obj_{i:02d}.png')
+        (self.src/'qd_3_simple_000').mkdir()   # tuning-split scene in the same folder: never copied
+
+    def test_import_checks_scenes_and_matches_budget(self):
+        files = H.import_paper_scenes(self.src)
+        self.assertEqual(len(H.scene_ids()), 72); self.assertEqual(H.verify_assets(), files)
+        self.assertNotIn('qd_3_simple_000', H.scene_ids())
+        bins = [e['count_bin'] for e in self.expected.values()]
+        self.assertEqual({b: bins.count(b) for b in set(bins)}, {'1': 18, '3': 18, '5': 18, '8+': 18})
+        protocol = json.loads(H.PROTOCOL.read_text())
+        self.assertEqual(sum(4*sampling_work(e['n_obj']) for e in self.expected.values()), protocol['direct_max_unet_sample_calls'])
+        self.assertEqual(len(load_scene(str(H.ASSETS/'quickdraw'/'qd_8p_complex_003')).objects), 9)
+        manifest = (H.ASSETS/'manifest.json').read_text()
+        H.import_paper_scenes(self.src); self.assertEqual((H.ASSETS/'manifest.json').read_text(), manifest)  # resumable
+        P = Paths(str(Path(self.tmp.name)/'exp')); P.makedirs(); H.install_scenes(P)
+        self.assertEqual(len(H.plan(P, ExperimentConfig(tier='heldout_final'))[0]['scenes']), 72)
+
+    def test_rejects_a_different_scene(self):
+        meta = json.loads((self.src/'qd_8p_complex_003'/'scene.json').read_text()); meta['n_obj'] = 10
+        (self.src/'qd_8p_complex_003'/'scene.json').write_text(json.dumps(meta))
+        with self.assertRaisesRegex(ValueError, 'differs from the paper_v2'): H.import_paper_scenes(self.src)
+
+    def test_frozen_ocsd_v3_and_same_analysis_as_heldout_v3(self):
+        from ocsd import ocsd_v3
+        p = json.loads(H.PROTOCOL.read_text()); v3 = json.loads((H.ROOT/'assets/heldout_v3/protocol.json').read_text())
+        self.assertEqual(p['direct_arms'], v3['direct_arms'])
+        for k in ('refiner_revision', 'refiner_strength', 'refiner_steps', 'steps', 'mis', 'alpha', 'model_provenance', 'primary_tests'):
+            self.assertEqual(p[k], v3[k])
+        self.assertEqual(p['refiner_revision'], ocsd_v3.FROZEN.refiner_revision)
+        self.assertEqual(json.loads((H.ROOT/'assets/paper_v3/tuned_paper_v2.json').read_text()),
+                         json.loads((H.ROOT/'assets/heldout_v3/tuned_paper_v2.json').read_text()))
+        self.assertEqual(H.VERSIONS['v4']['primary'], H.VERSIONS['v3']['primary'])
+
+
 class Fidelity(unittest.TestCase):
     def test_mirror_and_missing_object(self):
         from ocsd.sketch_fidelity import instance_fidelity

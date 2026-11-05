@@ -162,3 +162,7 @@ Run 20261105T015848Z_8ed9c617 (code 9ded82b, L4), 216/216 images. The locked cla
 * Chamfer −0.005, n.s.; no primary metric is worse.
 
 Analyst blind review (sha 4ddff261…): structure 12 vs 9 of 36; naturalness 1.42 vs 0.36 (16/0 scenes). OCSD v3 vs the baselines: it beats GLIGEN on sketch chamfer (Holm p = 0.0009) and is level with Collage on OPR, mIoU and chamfer. Most of the OPR/mIoU gain comes from the InstanceDiffusion generator; the parser adds chamfer and facing over direct_box. See docs/HELDOUT3_20261105_RESULTS.md.
+
+## Paper benchmark v3 locked — 2026-11-05
+
+Confirmation of the frozen OCSD v3 on the 72 paper_v2 evaluation scenes (×2 seeds, 6 arms, 864 images). Arms, analysis and claim rule are the same as held-out v3. The scenes are imported from the Drive paper benchmark and checked against `assets/paper_v3/expected_scenes.json`. RUN_ALL defaults to `RUN_MODE="paper3"`. See docs/PAPER3_PROTOCOL.md.

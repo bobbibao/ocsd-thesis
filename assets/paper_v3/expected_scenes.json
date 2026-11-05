@@ -1,0 +1,446 @@
+{
+ "source": "Drive MyDrive/KLTN_OCSD/data/benchmarks/quickdraw (paper benchmark built 2026-09-29, seed 2026; used by results/paper_v2)",
+ "selection": "the 72 evaluation scenes of results/paper_v2 (QuickDraw cells x scene numbers 003-008; 000-002 were the tuning split)",
+ "derived_from": "results/paper_v2/per_image/quickdraw/per_image_gligen.csv (sid, n_obj, count_bin, complexity); checked against collage and controlnet",
+ "spot_check": {
+  "qd_8p_complex_003": {
+   "n_obj": 9,
+   "caption": "three black dogs, a dog, two houses, a bear, a small tree and a small bear in a forest",
+   "note": "read from Drive scene.json (file id 1oFlbS6suGQgRVdwWI5rS39r0Ry1vgH6U, modified 2026-09-29T02:16:57Z) on 2026-11-05"
+  }
+ },
+ "scenes": {
+  "qd_1_complex_003": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_1_complex_004": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_1_complex_005": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_1_complex_006": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_1_complex_007": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_1_complex_008": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_1_medium_003": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_1_medium_004": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_1_medium_005": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_1_medium_006": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_1_medium_007": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_1_medium_008": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_1_simple_003": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_1_simple_004": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_1_simple_005": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_1_simple_006": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_1_simple_007": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_1_simple_008": {
+   "n_obj": 1,
+   "count_bin": "1",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_3_complex_003": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_3_complex_004": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_3_complex_005": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_3_complex_006": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_3_complex_007": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_3_complex_008": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_3_medium_003": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_3_medium_004": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_3_medium_005": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_3_medium_006": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_3_medium_007": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_3_medium_008": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_3_simple_003": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_3_simple_004": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_3_simple_005": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_3_simple_006": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_3_simple_007": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_3_simple_008": {
+   "n_obj": 3,
+   "count_bin": "3",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_5_complex_003": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_5_complex_004": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_5_complex_005": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_5_complex_006": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_5_complex_007": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_5_complex_008": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_5_medium_003": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_5_medium_004": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_5_medium_005": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_5_medium_006": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_5_medium_007": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_5_medium_008": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_5_simple_003": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_5_simple_004": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_5_simple_005": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_5_simple_006": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_5_simple_007": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_5_simple_008": {
+   "n_obj": 5,
+   "count_bin": "5",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_8p_complex_003": {
+   "n_obj": 9,
+   "count_bin": "8+",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_8p_complex_004": {
+   "n_obj": 10,
+   "count_bin": "8+",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_8p_complex_005": {
+   "n_obj": 10,
+   "count_bin": "8+",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_8p_complex_006": {
+   "n_obj": 8,
+   "count_bin": "8+",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_8p_complex_007": {
+   "n_obj": 10,
+   "count_bin": "8+",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_8p_complex_008": {
+   "n_obj": 9,
+   "count_bin": "8+",
+   "complexity": "complex",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_8p_medium_003": {
+   "n_obj": 9,
+   "count_bin": "8+",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_8p_medium_004": {
+   "n_obj": 9,
+   "count_bin": "8+",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_8p_medium_005": {
+   "n_obj": 8,
+   "count_bin": "8+",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_8p_medium_006": {
+   "n_obj": 8,
+   "count_bin": "8+",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_8p_medium_007": {
+   "n_obj": 10,
+   "count_bin": "8+",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_8p_medium_008": {
+   "n_obj": 9,
+   "count_bin": "8+",
+   "complexity": "medium",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_8p_simple_003": {
+   "n_obj": 9,
+   "count_bin": "8+",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_8p_simple_004": {
+   "n_obj": 8,
+   "count_bin": "8+",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_8p_simple_005": {
+   "n_obj": 9,
+   "count_bin": "8+",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_8p_simple_006": {
+   "n_obj": 10,
+   "count_bin": "8+",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  },
+  "qd_8p_simple_007": {
+   "n_obj": 9,
+   "count_bin": "8+",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": true
+  },
+  "qd_8p_simple_008": {
+   "n_obj": 8,
+   "count_bin": "8+",
+   "complexity": "simple",
+   "paper_v2_ocsd_subset": false
+  }
+ }
+}
