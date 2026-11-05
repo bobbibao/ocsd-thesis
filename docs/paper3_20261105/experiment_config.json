@@ -1,0 +1,16 @@
+{
+  "backbone": "sd15",
+  "seeds": [
+    0,
+    1
+  ],
+  "tier": "heldout_final",
+  "eval_detector": "owlv2",
+  "det_thr": 0.3,
+  "match_iou": 0.1,
+  "rel_delta": 0.05,
+  "fp16": true,
+  "skip_jobs": "",
+  "extra_detectors": [],
+  "detr_thr": 0.5
+}

@@ -166,3 +166,13 @@ Analyst blind review (sha 4ddff261…): structure 12 vs 9 of 36; naturalness 1.4
 ## Paper benchmark v3 locked — 2026-11-05
 
 Confirmation of the frozen OCSD v3 on the 72 paper_v2 evaluation scenes (×2 seeds, 6 arms, 864 images). Arms, analysis and claim rule are the same as held-out v3. The scenes are imported from the Drive paper benchmark and checked against `assets/paper_v3/expected_scenes.json`. RUN_ALL defaults to `RUN_MODE="paper3"`. See docs/PAPER3_PROTOCOL.md.
+
+## Paper benchmark v3 results — 2026-11-05 (OCSD v3 confirmed)
+
+Run 20261105T085721Z_c08740c2 (code afaadee, L4), 864/864 images, with the paper_v2 baselines reproduced to within one point. OCSD v3 vs the original OCSD on 72 scenes:
+
+* OPR +0.100, Holm p = 0.013.
+* mIoU +0.152, Holm p < 0.0001.
+* Chamfer: no significant difference.
+
+vs GLIGEN: mIoU and chamfer are significantly better. vs Collage: level, with mIoU better as a trend. In the analyst review, naturalness was 1.63 vs 0.25 for the original OCSD. See docs/PAPER3_20261105_RESULTS.md.

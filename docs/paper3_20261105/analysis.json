@@ -1,0 +1,117 @@
+{
+ "collage": {
+  "images": 24,
+  "structure_pass": 7,
+  "natural_mean": 0.458,
+  "natural_given_pass": 1.429,
+  "picks": 2
+ },
+ "controlnet": {
+  "images": 24,
+  "structure_pass": 3,
+  "natural_mean": 0.625,
+  "natural_given_pass": 2.0,
+  "picks": 0
+ },
+ "direct_box": {
+  "images": 24,
+  "structure_pass": 13,
+  "natural_mean": 1.667,
+  "natural_given_pass": 1.692,
+  "picks": 5
+ },
+ "gligen": {
+  "images": 24,
+  "structure_pass": 4,
+  "natural_mean": 1.208,
+  "natural_given_pass": 1.75,
+  "picks": 1
+ },
+ "ocsd": {
+  "images": 24,
+  "structure_pass": 5,
+  "natural_mean": 0.25,
+  "natural_given_pass": 1.0,
+  "picks": 0
+ },
+ "ocsd_v3": {
+  "images": 24,
+  "structure_pass": 10,
+  "natural_mean": 1.625,
+  "natural_given_pass": 1.7,
+  "picks": 3
+ },
+ "none_picks": 13,
+ "sign_tests": {
+  "ocsd_v3 vs collage": {
+   "structure": {
+    "wins": 3,
+    "losses": 1,
+    "ties": 8,
+    "p": 0.625
+   },
+   "naturalness": {
+    "wins": 9,
+    "losses": 1,
+    "ties": 2,
+    "p": 0.0215
+   }
+  },
+  "ocsd_v3 vs controlnet": {
+   "structure": {
+    "wins": 5,
+    "losses": 1,
+    "ties": 6,
+    "p": 0.2188
+   },
+   "naturalness": {
+    "wins": 10,
+    "losses": 0,
+    "ties": 2,
+    "p": 0.002
+   }
+  },
+  "ocsd_v3 vs direct_box": {
+   "structure": {
+    "wins": 1,
+    "losses": 2,
+    "ties": 9,
+    "p": 1
+   },
+   "naturalness": {
+    "wins": 1,
+    "losses": 1,
+    "ties": 10,
+    "p": 1
+   }
+  },
+  "ocsd_v3 vs gligen": {
+   "structure": {
+    "wins": 5,
+    "losses": 1,
+    "ties": 6,
+    "p": 0.2188
+   },
+   "naturalness": {
+    "wins": 7,
+    "losses": 3,
+    "ties": 2,
+    "p": 0.3438
+   }
+  },
+  "ocsd_v3 vs ocsd": {
+   "structure": {
+    "wins": 4,
+    "losses": 1,
+    "ties": 7,
+    "p": 0.375
+   },
+   "naturalness": {
+    "wins": 11,
+    "losses": 0,
+    "ties": 1,
+    "p": 0.001
+   }
+  }
+ }
+}
