@@ -185,23 +185,34 @@ write('heldout2', ['Method', 'Facing ↑', 'Chamfer ↓', 'Count acc. ↑', 'OPR
 H3 = os.environ.get('OCSD_HELDOUT3', '/mnt/project-files/results/heldout_v3/heldout3_20261105')
 ARM3 = {'ocsd_v3': 'OCSD v3 (ours)', 'direct_box': 'Same generator, boxes only', 'ocsd': 'Original OCSD',
         'gligen': 'GLIGEN', 'collage': 'Collage', 'controlnet': 'SD + ControlNet'}
-an3 = json.load(open(os.path.join(H3, 'analysis.json')))
-sm = summary(H3)
-order = ['ocsd_v3', 'direct_box', 'ocsd', 'gligen', 'collage', 'controlnet']
-rows = []
-for a in order:
-    m = sm[a]; f = lambda k, d=2: ('%.' + str(d) + 'f') % float(m[k])
-    rows.append([ARM3[a], f('opr'), f('miou'), f('ra'), f('count_acc'), f('sketch_chamfer', 3), f('facing_acc'), f('clip', 1),
-                 '%d/36' % an3[a]['structure_pass'], '%.2f' % an3[a]['natural_mean'], str(an3[a]['picks']), '%.1f' % float(m['time_s'])])
-for j, hi in ((1, True), (2, True), (3, True), (4, True), (5, False), (6, True), (7, True), (9, True)):
-    bold_best(rows, j, hi)
-best = max(an3[a]['structure_pass'] for a in order)
-for r, a in zip(rows, order):
-    if an3[a]['structure_pass'] == best: r[8] = '**' + r[8] + '**'
-bp = max(an3[a]['picks'] for a in order)
-for r, a in zip(rows, order):
-    if an3[a]['picks'] == bp: r[10] = '**' + r[10] + '**'
-write('heldout3', ['Method', 'OPR ↑', 'mIoU ↑', 'RA ↑', 'Count acc. ↑', 'Chamfer ↓', 'Facing ↑', 'CLIP ↑',
-                   'Struct. pass ↑', 'Natural. ↑', 'Picks ↑', 's/img'], rows)
+
+def v3_table(path, name, n_review):
+    an = json.load(open(os.path.join(path, 'analysis.json')))
+    sm = summary(path)
+    order = ['ocsd_v3', 'direct_box', 'ocsd', 'gligen', 'collage', 'controlnet']
+    rows = []
+    for a in order:
+        m = sm[a]; f = lambda k, d=2: ('%.' + str(d) + 'f') % float(m[k])
+        rows.append([ARM3[a], f('opr'), f('miou'), f('ra'), f('count_acc'), f('sketch_chamfer', 3), f('facing_acc'), f('clip', 1),
+                     '%d/%d' % (an[a]['structure_pass'], n_review), '%.2f' % (an[a]['natural_mean'] + 1e-9), '%.1f' % float(m['time_s'])])
+    for j, hi in ((1, True), (2, True), (3, True), (4, True), (5, False), (6, True), (7, True), (9, True)):
+        bold_best(rows, j, hi)
+    best = max(an[a]['structure_pass'] for a in order)
+    for r, a in zip(rows, order):
+        if an[a]['structure_pass'] == best: r[8] = '**' + r[8] + '**'
+    write(name, ['Method', 'OPR ↑', 'mIoU ↑', 'RA ↑', 'Count acc. ↑', 'Chamfer ↓', 'Facing ↑', 'CLIP ↑',
+                 'Struct. pass ↑', 'Natural. ↑', 's/img'], rows)
+    # by object count: OPR / mIoU / count accuracy
+    with open(os.path.join(path, 'heldout_by_count_bin.csv'), encoding='utf-8') as f:
+        bins = {}
+        for r in csv.DictReader(f): bins.setdefault(r['method'], {})[r['count_bin']] = r
+    names = [b for b in ('1', '3', '5', '8+') if b in bins['ocsd_v3']]
+    rows = [[ARM3[a]] + ['%.2f / %.2f / %.2f' % (float(bins[a][b]['opr']), float(bins[a][b]['miou']), float(bins[a][b]['count_acc']))
+                         for b in names] for a in order]
+    write(name + '_bins', ['Method'] + [b + ' obj.' for b in names], rows)
+
+v3_table(H3, 'heldout3', 36)
+P3 = os.environ.get('OCSD_PAPER3', '/mnt/project-files/results/paper_v3/paper3_20261105')
+v3_table(P3, 'paper3', 24)
 
 print('tables from', RESULTS, '->', sorted(os.listdir(OUT)))
