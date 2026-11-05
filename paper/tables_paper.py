@@ -124,4 +124,84 @@ best = [max(c[j] for c in cols) for j in range(len(cols[0]))]
 for m, c in zip(MAIN, cols):
     lines.append('| %s | %s |' % (m, ' | '.join(('**%.1f**' if v == best[j] else '%.1f') % v for j, v in enumerate(c))))
 open(os.path.join(OUT, 'E1E2.md'), 'w', encoding='utf-8').write('\n'.join(lines) + '\n')
+
+
+# ---------------------------------------------------------------- held-out studies (Section 6)
+import json
+H1 = os.environ.get('OCSD_HELDOUT1', '/mnt/project-files/results/heldout_v1/heldout_20261104')
+H2 = os.environ.get('OCSD_HELDOUT2', '/mnt/project-files/results/heldout_v2/heldout2_20261104')
+ARM = {'direct_silhouette': 'Silhouettes (OCSD parser)', 'direct_box': 'InstanceDiffusion, boxes',
+       'direct_scribble': 'InstanceDiffusion, boxes + 20 ink points', 'controlnet': 'SD + ControlNet scribble',
+       'instance_repair_count_matte_soft': 'OCSD soft-matte'}
+
+def summary(path):
+    with open(os.path.join(path, 'heldout_summary.csv'), encoding='utf-8') as f:
+        return {r['method']: r for r in csv.DictReader(f)}
+
+def bold_best(rows, j, hi=True):
+    vals = [float(r[j].strip('*')) for r in rows if r[j] not in ('–',)]
+    best = (max if hi else min)(vals)
+    for r in rows:
+        if r[j] != '–' and float(r[j]) == best: r[j] = '**' + r[j] + '**'
+
+def write(name, head, rows):
+    lines = ['| ' + ' | '.join(head) + ' |', '|:--' + '|:--:' * (len(head) - 1) + '|']
+    lines += ['| ' + ' | '.join(r) + ' |' for r in rows]
+    open(os.path.join(OUT, name + '.md'), 'w', encoding='utf-8').write('\n'.join(lines) + '\n')
+
+# held-out v1: blind human review (primary) + OWLv2 (secondary)
+hr = json.load(open(os.path.join(H1, 'human_review_analysis.json')))['per_arm']
+sm = summary(H1)
+order = ['direct_box', 'direct_scribble', 'controlnet', 'instance_repair_count_matte_soft']
+rows = []
+for a in order:
+    h, m = hr[a], sm[a]
+    rows.append([ARM[a].replace(' (ours: parser)', ''), '%d/36' % h['success'], str(h['fails']['shape']), str(h['fails']['count']),
+                 str(h['fails']['colour']), '%.2f' % h['nat_mean'], '%.2f' % float(m['opr']), '%.2f' % float(m['miou']),
+                 '%.2f' % float(m['count_acc'])])
+write('heldout1', ['Method', 'Structure success (human) ↑', 'Shape fails ↓', 'Count fails ↓', 'Colour fails ↓',
+                   'Naturalness (0–2) ↑', 'OPR ↑', 'mIoU ↑', 'Count acc. ↑'], rows)
+
+# held-out v2: sketch fidelity (primary), OWLv2 (secondary), analyst review, cost
+an = json.load(open(os.path.join(H2, 'analyst_review.json')))['per_arm']
+sm = summary(H2)
+order = ['direct_silhouette', 'direct_box', 'controlnet', 'instance_repair_count_matte_soft']
+rows = []
+for a in order:
+    m = sm[a]; f = lambda k, d=2: ('%.' + str(d) + 'f') % float(m[k])
+    rows.append([ARM[a], f('facing_acc'), f('sketch_chamfer', 3), f('count_acc'), f('opr'), f('miou'), f('ra'), f('clip', 1),
+                 '%d/36' % an[a]['success'], '%.2f' % an[a]['nat'], '%.1f' % float(m['time_s'])])
+for j, hi in ((1, True), (2, False), (3, True), (4, True), (5, True), (6, True), (7, True), (9, True)):
+    bold_best(rows, j, hi)
+for r in rows:   # structure success: bold the largest count
+    pass
+best = max(an[a]['success'] for a in order)
+for r, a in zip(rows, order):
+    if an[a]['success'] == best: r[8] = '**' + r[8] + '**'
+write('heldout2', ['Method', 'Facing ↑', 'Chamfer ↓', 'Count acc. ↑', 'OPR ↑', 'mIoU ↑', 'RA ↑', 'CLIP ↑',
+                   'Struct. success ↑', 'Natural. ↑', 's/img'], rows)
+
+# held-out v3: complete OCSD v3 vs the original OCSD and the strongest paper_v2 baselines
+H3 = os.environ.get('OCSD_HELDOUT3', '/mnt/project-files/results/heldout_v3/heldout3_20261105')
+ARM3 = {'ocsd_v3': 'OCSD v3 (ours)', 'direct_box': 'Same generator, boxes only', 'ocsd': 'Original OCSD',
+        'gligen': 'GLIGEN', 'collage': 'Collage', 'controlnet': 'SD + ControlNet'}
+an3 = json.load(open(os.path.join(H3, 'analysis.json')))
+sm = summary(H3)
+order = ['ocsd_v3', 'direct_box', 'ocsd', 'gligen', 'collage', 'controlnet']
+rows = []
+for a in order:
+    m = sm[a]; f = lambda k, d=2: ('%.' + str(d) + 'f') % float(m[k])
+    rows.append([ARM3[a], f('opr'), f('miou'), f('ra'), f('count_acc'), f('sketch_chamfer', 3), f('facing_acc'), f('clip', 1),
+                 '%d/36' % an3[a]['structure_pass'], '%.2f' % an3[a]['natural_mean'], str(an3[a]['picks']), '%.1f' % float(m['time_s'])])
+for j, hi in ((1, True), (2, True), (3, True), (4, True), (5, False), (6, True), (7, True), (9, True)):
+    bold_best(rows, j, hi)
+best = max(an3[a]['structure_pass'] for a in order)
+for r, a in zip(rows, order):
+    if an3[a]['structure_pass'] == best: r[8] = '**' + r[8] + '**'
+bp = max(an3[a]['picks'] for a in order)
+for r, a in zip(rows, order):
+    if an3[a]['picks'] == bp: r[10] = '**' + r[10] + '**'
+write('heldout3', ['Method', 'OPR ↑', 'mIoU ↑', 'RA ↑', 'Count acc. ↑', 'Chamfer ↓', 'Facing ↑', 'CLIP ↑',
+                   'Struct. pass ↑', 'Natural. ↑', 'Picks ↑', 's/img'], rows)
+
 print('tables from', RESULTS, '->', sorted(os.listdir(OUT)))

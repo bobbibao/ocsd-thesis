@@ -13,6 +13,9 @@ from refs import REFS
 REF = {r['key']: r['text'] for r in REFS}
 REF['zhang2025sketchscene'] = ('Tianyu Zhang, Xiaoxuan Xie, Xusheng Du, Haoran Xie (2025), "Sketch-Guided Scene Image Generation '
                                'with Diffusion Model", *Computers & Graphics* 129, Article 104226 (preprint: arXiv:2407.06469, 2024).')
+REF['wang2024instancediffusion'] = ('Xudong Wang, Trevor Darrell, Sai Saketh Rambhatla, Rohit Girdhar, Ishan Misra (2024), '
+                                   '"InstanceDiffusion: Instance-level Control for Image Generation", *Proceedings of the IEEE/CVF '
+                                   'Conference on Computer Vision and Pattern Recognition (CVPR)*.')
 REF['mitsouras2024usketch'] = REF['mitsouras2024usketch'].replace('mã nguồn', 'code')
 
 import subprocess
@@ -142,7 +145,7 @@ for t in doc.tables:
                 for r in p.runs:
                     r.font.size = fsize; r.font.name = FONT
                     if i == 0: r.font.bold = True
-doc.core_properties.title = 'Keeping Every Object: A Controlled Study of Sketch-and-Text Guided Scene Generation with Diffusion Models'
+doc.core_properties.title = 'Keeping Every Object in Shape: Sketch-Silhouette Conditioning for Object-Consistent Scene Generation'
 doc.core_properties.author = 'Le Hoang Bao, Thai Ba Cuong, Nguyen Thanh Chuyen'
 doc.save(out)
 print('saved', out, len(order), 'references')

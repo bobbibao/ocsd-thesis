@@ -1,25 +1,23 @@
 # Research paper (English)
 
-- `OCSD_paper.docx` / `OCSD_paper.pdf`: "Keeping Every Object: A Controlled Study of Sketch-and-Text Guided Scene
-  Generation with Diffusion Models". 17 pages, 9 tables, 5 figures, 58 references.
-- Numbers: improved run of 2026-10-04 (../results/paper_v2/, code e590c1a), all final incl. FID/KID. Updated 2026-10-05.
-- Framing: (1) evaluation protocol, (2) object-first composition (M2 + Collage) is what helps, (3) negative results
-  (OCSD/OCSD-v2 do not beat tuned GLIGEN/Collage; M5(a)/(b) and identity learning do not help). No claim that OCSD wins.
-- The previous version (OCSD best on OPR, results/paper/) is in git history.
+- `OCSD_paper.docx` / `OCSD_paper.pdf`: "Keeping Every Object in Shape: Sketch-Silhouette Conditioning for
+  Object-Consistent Scene Generation, and a Controlled Study of What Does Not Help". 23 pages, 12 tables, 7 figures,
+  60 references. Updated 2026-11-05.
+- Proposed model: OCSD v3 = OCSD instance parser + sketch-silhouette parser + InstanceDiffusion (Wang et al., CVPR 2024,
+  external, credited) with silhouettes released after the layout steps + SDXL refiner (Section 3.9).
+- Section 5 = the October controlled study of the original OCSD (results/paper_v2/, unchanged).
+  Section 6 = locked held-out studies v1, v2, v3 (results/heldout_v1, heldout_v2, heldout_v3).
+- Claims kept to the evidence: v3 vs original OCSD mIoU +0.195 (Holm p 0.023), OPR +0.128 trend (Holm p 0.070),
+  naturalness 1.42 vs 0.36; parser vs boxes on the same generator better chamfer/facing; level with Collage; no SOTA;
+  8+ object counting unsolved; 18-scene held-out sets, full-benchmark confirmation pending.
 
-## Swapping in another run
-All result tables are generated from the run's CSVs (`src/tables_paper.py`) and figures 3-5 read the same CSVs
-(`src/figs_paper.py`). To use another run: `OCSD_RESULTS=/mnt/project-files/results/<run> python3 src/figs_paper.py;
-OCSD_RESULTS=... python3 src/build_paper.py`. The prose numbers in `src/paper.md` (abstract, Sections 5-7) still need
-a manual pass; the extra object-first tests in Section 5.3 come from `src/extra_stats.py` (output in `extra_stats.txt`).
-
-Build: both scripts expect to sit in a `paper/` folder inside the unpacked thesis sources
-(thesis/src/thesis_build_src.tar.gz) because they reuse `figs.py` and `refs.py`. Needs pypandoc_binary, python-docx,
-matplotlib; extra_stats.py needs pandas and scipy; LibreOffice Writer for the PDF.
+## Rebuild
+Scripts expect to sit in a `paper/` folder inside the unpacked thesis sources (thesis/src/thesis_build_src.tar.gz),
+because they reuse `figs.py` and `refs.py`. Needs pypandoc_binary, python-docx, matplotlib, pymupdf (pandas, scipy for
+extra_stats.py), and LibreOffice Writer **plus libreoffice-math** for the PDF (without it, equations vanish).
+`python3 figs_paper.py; python3 build_paper.py`. Tables come from the result files (`tables_paper.py`); result folders
+can be overridden with OCSD_RESULTS, OCSD_HELDOUT1/2/3. Prose numbers in `paper.md` need a manual pass after a new run.
 
 ## Still open
-1. Pre-register (with an external timestamp: OSF, AsPredicted or a dated e-mail to the advisor) and run the
-   combined method: M2 objects as the initial image + GLIGEN grounding (beta 1) + v2 region repair, against GLIGEN
-   best-of-N and Collage best-of-3 at matched compute. If it wins, it becomes the paper's method; if not, keep this framing.
-2. A larger tuning split (16 scenes cannot rank close configurations, Section 5.6) and more evaluation scenes.
-3. FS-COCO (human scene sketches), a user study, and the venue's LaTeX template.
+1. Run OCSD v3 on the full benchmark (72 QuickDraw-Scenes + 32 COCO-Sketch) and add it to Section 5's tables.
+2. Counting in 8+ object scenes; a multi-rater review; FS-COCO human scene sketches; the venue's LaTeX template.

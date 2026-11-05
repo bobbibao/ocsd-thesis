@@ -162,6 +162,48 @@ def qualitative():
     im.save(os.path.join(OUT, 'fig5_qual.jpg'), quality=85)
 
 
+HELDOUT2 = os.environ.get('OCSD_HELDOUT2', '/mnt/project-files/results/heldout_v2/heldout2_20261104')
+H2_ROWS = ['01_s0', '06_s0', '12_s1', '16_s0', '11_s1']   # last row: a silhouette cut-out failure, kept on purpose
+H2_COLS = [('direct_silhouette', 'Silhouette (OCSD parser)'), ('direct_box', 'Boxes only'),
+           ('controlnet', 'ControlNet scribble'), ('instance_repair_count_matte_soft', 'OCSD soft-matte')]
+
+
+def heldout_qual():
+    """Held-out v2 examples cropped from the blind review composites, columns put back in a fixed arm order."""
+    import json
+    from PIL import Image, ImageDraw, ImageFont
+    key = json.load(open(os.path.join(HELDOUT2, 'review_key.json')))
+    sheets = list(key)
+    cell, gap, top = 295, 6, 34
+    font = ImageFont.truetype('/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf', 22)
+    out = Image.new('RGB', (cell * 5 + gap * 4, top + len(H2_ROWS) * (cell + gap)), 'white')
+    d = ImageDraw.Draw(out)
+    for j, name in enumerate(['Sketch'] + [c[1] for c in H2_COLS]):
+        w = d.textlength(name, font=font)
+        d.text((j * (cell + gap) + (cell - w) / 2, 4), name, fill='black', font=font)
+    for r, sid in enumerate(H2_ROWS):
+        idx = 2 * (int(sid[:2]) - 1) + int(sid[-1])
+        comp = Image.open(os.path.join(HELDOUT2, f'review_composite_{idx // 6}.jpg')).convert('RGB')
+        y0 = 18 + 330 * (idx % 6)
+        letter = {v: k for k, v in key[sheets[idx]].items()}
+        crops = [comp.crop((0, y0, 295, y0 + 295))]
+        for arm, _ in H2_COLS:
+            x0 = 300 + 300 * 'ABCD'.index(letter[arm])
+            crops.append(comp.crop((x0, y0, x0 + 295, y0 + 295)))
+        for j, c in enumerate(crops):
+            out.paste(c.resize((cell, cell)), (j * (cell + gap), top + r * (cell + gap)))
+    out.save(os.path.join(OUT, 'fig6_heldout.jpg'), quality=88)
+
+
+PARSER_PREVIEW = os.environ.get('OCSD_PARSER_PREVIEW', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'silhouette_parser_preview.png'))
+
+
+def parser_figure():
+    """Silhouette parser on dev drawings (docs/direct_dev2/silhouette_parser_preview.png in the code repo)."""
+    from PIL import Image
+    Image.open(PARSER_PREVIEW).convert('RGB').save(os.path.join(OUT, 'fig7_parser.png'))
+
+
 if __name__ == '__main__':
-    arch(); e1_curves(); ablation(); alpha(); qualitative()
+    arch(); e1_curves(); ablation(); alpha(); qualitative(); heldout_qual(); parser_figure()
     print(sorted(os.listdir(OUT)))
