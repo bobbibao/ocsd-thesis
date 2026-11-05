@@ -152,3 +152,13 @@ Dev v2 (analyst review): structure failures box 5 / silhouette 1 / silhouette+sc
 ## Held-out v2 results — 2026-11-04 (final for the advisor report)
 
 Silhouette vs box, sketch fidelity: facing accuracy 1.00 vs 0.43 (14/0/2 scenes, Holm p = 0.0001), chamfer 0.041 vs 0.060 (18/0/0, Holm p < 0.0001). Count accuracy not worse, OPR/mIoU/relations better. Analyst structure success 16/13/3/1 of 36 (silhouette/box/ControlNet/OCSD soft-matte); naturalness lower with silhouettes (1.28 vs 1.53). See docs/HELDOUT2_20261104_RESULTS.md.
+
+## Held-out v3 results — 2026-11-05 (complete OCSD v3 vs original OCSD)
+
+Run 20261105T015848Z_8ed9c617 (code 9ded82b, L4), 216/216 images. The locked claim rule is met. OCSD v3 vs the original OCSD:
+
+* mIoU +0.195, 15/3 scenes, Holm p = 0.023.
+* OPR +0.128, 12/3 scenes, Holm p = 0.070.
+* Chamfer −0.005, n.s.; no primary metric is worse.
+
+Analyst blind review (sha 4ddff261…): structure 12 vs 9 of 36; naturalness 1.42 vs 0.36 (16/0 scenes). OCSD v3 vs the baselines: it beats GLIGEN on sketch chamfer (Holm p = 0.0009) and is level with Collage on OPR, mIoU and chamfer. Most of the OPR/mIoU gain comes from the InstanceDiffusion generator; the parser adds chamfer and facing over direct_box. See docs/HELDOUT3_20261105_RESULTS.md.

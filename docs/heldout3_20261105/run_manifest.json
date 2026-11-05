@@ -1,0 +1,217 @@
+{
+  "run_id": "20261105T015848Z_8ed9c617",
+  "started_at": 1793843928.5330641,
+  "status": "running",
+  "contract": {
+    "code": {
+      "ocsd/vision.py": "4d5aebe4c23a16d25c3ffa7bfac432d1910224504997a01a58c1db2c1f5e7e31",
+      "ocsd/foreground.py": "e75a83122442593bbb91788bdd938ff13230d09110dc325e0c2f35b34b612be1",
+      "ocsd/engine.py": "e39ae2cef93b20eb0b5be7c1283dfee2a1affc9ed74c4dd7d702b34676265d0a",
+      "ocsd/provenance.py": "666dcc4715375371500de092389736b4751f884b62a5cb81aa35c837035487ac",
+      "ocsd/attention.py": "2cb3853a333f143796a2e35fea4d75412de9e95075f9ef3dbccfdb6c1be7ff8f",
+      "ocsd/app.py": "efecefa84c17571e46ece75d7a995b5df00205ac0e4af6ebaf4d6a15da5a4a2f",
+      "ocsd/sketch_fidelity.py": "2029198c9a8d6a775c8a2ee8fd47c4531e133f5e39304da3b24a5c746f78902d",
+      "ocsd/direct_canary.py": "0766b3eb78a07d11c3e7eeb1bf57f2d00548b2696e2661186c867b7f846f5e3d",
+      "ocsd/sync.py": "84ac7b1edad5e1f229f40757a66485298b261f5d9e32a5ddc04c490c969b3714",
+      "ocsd/direct_dev.py": "005f2cb1141084e81abd234c28290426de71c8d3b1cffe9953d071038ee0400f",
+      "ocsd/heldout.py": "cd489133d31f6eb073fc68840382fb05ced9c74ea6b9ba9ccc0694181dc625ce",
+      "ocsd/hfcache.py": "0bfafe7b30a5be27b3f64e4e86d32c3d9ac9e923d3983eb9034df1229212dacb",
+      "ocsd/semantic.py": "f548efe90c7c1dbf08b42ab0ba85daef75683a71b324d82f0e6f8da1e32c50a2",
+      "ocsd/data.py": "c412781a5741f7f8edb62114753ae71d54e0793aa62f33e136c315caf7aa780c",
+      "ocsd/config.py": "a3e5921355b7b207b061f7cdacdea09cf7839abc666a12bc1e812a58baa209a7",
+      "ocsd/method.py": "2b01f9d2a8ad1927cae8671f9dec0ba403e697cda468fd1fda043ec6ba8b96fc",
+      "ocsd/__init__.py": "5fea75d8c9982d25fda2abc8a22ff947f59a55c66cd91e3b5b0e0f9c823b4154",
+      "ocsd/report.py": "c197f7c26c928fc75dc125973c0ae0c9a83e48527d7999d53bc1b63617c0e1cf",
+      "ocsd/ocsd_v3.py": "1db22abd93cfb9882d155789d079b7f2575c92a97ab82258ebe3791493624d27",
+      "ocsd/direct_instances.py": "52cd31cd96122c3cd2c03596200f3b00d761bf64a8f252d4d668e0eae58cc1cb",
+      "ocsd/runlog.py": "a5e2ba4681d5926e696ae8e2627565ed9a34269be49d2fbd6dad4785612ad38b",
+      "ocsd/stages.py": "2df5a2d7052e72fd20fc90ed743305e6dd3dd8894f19f5308e1e7c2928dff785",
+      "ocsd/sketch.py": "a83b3578e259adba4498b938a70fb36f6c50f29a9e00fdd664952b9f4c57d2a7",
+      "ocsd/instance_repair.py": "b2af260c81b95db9c4ed8d10875f5aed67c6a6c8261dca202f70e969817f0323",
+      "ocsd/methods.py": "10b42cc801bbc04a1d1c573de1be18a4c4876c62dee8ba73851e633815c149da",
+      "ocsd/semantic_report.py": "6e6710fda6c979951631b78798f455ae092468a51567881cb0f9f8e4fb929f16",
+      "ocsd/runner.py": "290e3498633070128d2c9711b04316357a14978dbc610904fcc8a971360fde19",
+      "ocsd/matching.py": "86b6097d14f666801bb5cf9db7090f2f3e93be19415e65e792f633b914f15039",
+      "ocsd/metrics.py": "3ec40c02c20058f8a40fa04cdb8856dac30931e2861b9a1aad83106d27ba3675",
+      "ocsd/count_repair.py": "a85418a9a5bc5b9cc36e57bae84b5877758d9a260d46ede629efa8a964a9d657",
+      "ocsd/screening.py": "fda86f00149a580bbf736bfffc742ddbd70c5549ad45b4c8568c16bf127b16e1",
+      "ocsd/clean_repair.py": "8fed6753af8d6cd458ef88437e9cedc7b8d47093442941f128342462ab36f3b4",
+      "requirements-colab.txt": "e79899b7dd082ac51a48e4b54a77c2dffff8f5adfc3dde43e1d2d5a92e537161",
+      "tools/make_notebooks.py": "198a9b4b33bb87c6635a2c909f75b070c826d84fbda9ef70573e06ae4c92621a"
+    },
+    "notebook": "notebooks/RUN_ALL.ipynb",
+    "notebook_sha256": "fb7ecec4fd5461c1f0ec9bc557fc8f42a781227496713a86147f5c43ffbac817",
+    "experiment": {
+      "backbone": "sd15",
+      "seeds": [
+        0,
+        1
+      ],
+      "tier": "heldout_final",
+      "eval_detector": "owlv2",
+      "det_thr": 0.3,
+      "match_iou": 0.1,
+      "rel_delta": 0.05,
+      "fp16": true,
+      "skip_jobs": "",
+      "extra_detectors": [],
+      "detr_thr": 0.5
+    },
+    "tier": {
+      "qd_per_cell": 2,
+      "trained_n": 0,
+      "coco_n": 0,
+      "coco_trained_n": 0,
+      "ablation_n": 0,
+      "alpha_n": 0,
+      "seeds": [
+        0,
+        1
+      ],
+      "seeds_all": 2,
+      "tune": false,
+      "frozen_tuned": "assets/heldout_v3/tuned_paper_v2.json",
+      "cfg": {
+        "steps": 30,
+        "obj_steps": 20,
+        "K": 2,
+        "S1": 100,
+        "S2": 100
+      }
+    },
+    "libraries": {
+      "torch": "2.11.0+cu130",
+      "torchvision": "0.26.0+cu130",
+      "diffusers": "0.40.0",
+      "transformers": "5.17.0",
+      "peft": "0.21.0",
+      "accelerate": "1.15.0",
+      "huggingface_hub": "1.33.0",
+      "torchmetrics": "1.9.0",
+      "controlnet_aux": "0.0.10",
+      "numpy": "2.4.6",
+      "pandas": "2.2.3",
+      "scipy": "1.16.3",
+      "torch-fidelity": "0.4.0",
+      "timm": "1.0.30",
+      "scikit-image": "0.25.2",
+      "opencv-python-headless": "5.0.0.93",
+      "pillow": "11.3.0",
+      "einops": "0.8.2",
+      "pycocotools": "2.0.11",
+      "matplotlib": "3.10.0",
+      "tokenizers": "0.23.3",
+      "safetensors": "0.8.0",
+      "onnxruntime": "1.23.2"
+    }
+  },
+  "contract_id": "368a5175b04e8427b74bb4a04d7b622b95a7b30f1e73a12c3ebbdbdbe37ab1bd",
+  "dataset_id": "e8686267d86c5aa672bf520c27c09c9057ee074c47021018808b53afc314f0a4",
+  "stages": {
+    "A_data": {
+      "status": "complete",
+      "started_at": 1793843934.6025386,
+      "ended_at": 1793843935.9441402
+    },
+    "T_tune": {
+      "status": "complete",
+      "started_at": 1793843935.9618485,
+      "ended_at": 1793843935.9896688
+    },
+    "B_generate": {
+      "status": "complete",
+      "started_at": 1793843936.0554802,
+      "ended_at": 1793846723.0080817
+    },
+    "C_evaluate": {
+      "status": "complete",
+      "started_at": 1793846723.5040624,
+      "ended_at": 1793846840.1759045
+    },
+    "D_report": {
+      "status": "running",
+      "started_at": 1793846840.192798
+    }
+  },
+  "jobs": {
+    "heldout_quickdraw": {
+      "total": 216,
+      "todo": 0
+    }
+  },
+  "model_revisions": {
+    "IDEA-Research/grounding-dino-base": "12bdfa3120f3e7ec7b434d90674b3396eccf88eb",
+    "TencentARC/t2iadapter_sketch_sd15v2": "a73a564e35b0956deffd164e1ee463f967c3f952",
+    "facebook/detr-resnet-50": "1d5f47bd3bdd2c4bbfa585418ffe6da5028b4c0b",
+    "facebook/dinov2-base": "f9e44c814b77203eaa57a6bdbbd535f21ede1415",
+    "facebook/sam-vit-huge": "87aecf0df4ce6b30cd7de76e87673c49644bdf67",
+    "google/owlv2-base-patch16-ensemble": "cfd3195ba4ea9592eec887ded089f4c08eff231d",
+    "lllyasviel/Annotators": "982e7edaec38759d914a963c48c4726685de7d96",
+    "lllyasviel/control_v11p_sd15_scribble": "3564ec7b87dd706d5fc760d21c9e90bb160d1e9f",
+    "masterful/gligen-1-4-generation-text-box": "d2820dc1e9ba6ca082051ce79cfd3eb468ae2c83",
+    "openai/clip-vit-large-patch14": "32bd64288804d66eefd0ccbe215aa642df71cc41",
+    "stable-diffusion-v1-5/stable-diffusion-v1-5": "451f4fe16113bff5a5d2269ed5ad43b0592e9a14"
+  },
+  "runtime": {
+    "time": "2026-11-05 01:58:51",
+    "python": "3.13.16",
+    "torch": "2.11.0+cu130",
+    "torchvision": "0.26.0+cu130",
+    "diffusers": "0.40.0",
+    "transformers": "5.17.0",
+    "peft": "0.21.0",
+    "accelerate": "1.15.0",
+    "huggingface_hub": "1.33.0",
+    "torchmetrics": "1.9.0",
+    "controlnet_aux": "0.0.10",
+    "numpy": "2.4.6",
+    "onnxruntime": "1.23.2",
+    "gpu": "NVIDIA L4",
+    "vram_gb": 22.0,
+    "git": "9ded82b Dev v3 results: freeze OCSD v3 (layout-only silhouettes + refiner); lock held-out v3"
+  },
+  "git": {
+    "commit": "9ded82b7046775b36f002cd34ec3891f2ea4978c",
+    "status": ""
+  },
+  "notebook_file_sha256": "21c74df803d9c0b24c70d344f2ec8c455eb1aee328457a992232f47b275d1304",
+  "resumed_at": 1793843933.698932,
+  "planned_jobs": [
+    {
+      "name": "heldout_quickdraw",
+      "split": "quickdraw",
+      "methods": [
+        "ocsd_v3",
+        "direct_box",
+        "ocsd",
+        "gligen",
+        "collage",
+        "controlnet"
+      ],
+      "seeds": [
+        0,
+        1
+      ],
+      "scenes": [
+        "h3_qd_3_complex_000",
+        "h3_qd_3_complex_001",
+        "h3_qd_3_medium_000",
+        "h3_qd_3_medium_001",
+        "h3_qd_3_simple_000",
+        "h3_qd_3_simple_001",
+        "h3_qd_5_complex_000",
+        "h3_qd_5_complex_001",
+        "h3_qd_5_medium_000",
+        "h3_qd_5_medium_001",
+        "h3_qd_5_simple_000",
+        "h3_qd_5_simple_001",
+        "h3_qd_8p_complex_000",
+        "h3_qd_8p_complex_001",
+        "h3_qd_8p_medium_000",
+        "h3_qd_8p_medium_001",
+        "h3_qd_8p_simple_000",
+        "h3_qd_8p_simple_001"
+      ]
+    }
+  ]
+}
