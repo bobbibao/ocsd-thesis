@@ -1,0 +1,291 @@
+Analyst blind review (Claude), held-out v3, written before opening review_key.json or summary files.
+Format per image: structure (count/colour/shape/position; fail reason) and natural 0/1/2. Strict: extra copies of a listed class = count fail.
+=== 01_h3_qd_3_complex_000_seed0 ===
+A: fail(photo panels, collage) natural=0
+B: fail(extra houses at top) natural=1
+C: pass natural=1 note=pasted look
+D: fail(extra house at top) natural=1
+E: fail(many extra houses) natural=2
+F: fail(extra large house) natural=1
+pick: C
+=== 01_h3_qd_3_complex_000_seed1 ===
+A: fail(extra house in background next to top house) natural=2
+B: pass natural=1 note=pasted cut-outs on striped grass
+C: pass natural=1 note=pasted
+D: pass natural=2
+E: pass natural=1 note=pasted
+F: pass natural=2 note=tiny far houses in background
+pick: D
+=== 02_h3_qd_3_complex_001_seed0 ===
+A: fail(second bear yellow) natural=2
+B: fail(second bear grey/yellow) natural=2
+C: fail(black chair, yellow bear) natural=2
+D: fail(no chair, brown bear) natural=1
+E: fail(beige bear, chair unclear) natural=1
+F: fail(brown bear, chair unclear) natural=1
+pick: none
+=== 02_h3_qd_3_complex_001_seed1 ===
+A: fail(no yellow chair, only a yellow cushion) natural=1
+B: fail(second bear yellow) natural=2
+C: pass natural=2
+D: pass natural=1 note=bears wrapped in odd white cloth
+E: fail(brown bear, no chair) natural=1
+F: pass natural=2
+pick: F
+=== 03_h3_qd_3_medium_000_seed0 ===
+A: fail(no cat, black dogs) natural=1
+B: pass natural=1 note=heads stacked, slightly pasted
+C: fail(three dogs, no cat) natural=2
+D: pass natural=0 note=floating heads
+E: fail(three dogs, no cat) natural=1
+F: fail(three dogs, no cat) natural=2
+pick: B
+=== 03_h3_qd_3_medium_000_seed1 ===
+A: fail(black dogs, no cat) natural=2
+B: fail(three dogs, no cat) natural=2
+C: fail(three dogs, no cat) natural=2
+D: fail(four dogs, no cat) natural=2
+E: pass natural=0 note=floating heads
+F: pass natural=0 note=floating heads, stray tractor
+pick: none
+=== 04_h3_qd_3_medium_001_seed0 ===
+A: pass natural=2
+B: fail(no car, a rack instead) natural=1
+C: pass natural=2
+D: pass natural=2
+E: fail(car melted into a dark blob) natural=1
+F: fail(car melted into a dark blob) natural=1
+pick: A
+=== 04_h3_qd_3_medium_001_seed1 ===
+A: fail(no car) natural=1
+B: pass natural=2
+C: fail(car merged with motorcycle) natural=1
+D: pass natural=2
+E: fail(car melted) natural=1
+F: fail(extra truck = second car) natural=2
+pick: B
+=== 05_h3_qd_3_simple_000_seed0 ===
+A: pass natural=2 note=not a forest
+B: fail(trees are pasted leaf blobs) natural=0
+C: fail(top-down bushes, no trunks) natural=1
+D: pass natural=1 note=mushroom-like trees
+E: fail(bottom tree is a palm leaf) natural=1
+F: pass natural=2
+pick: F
+=== 05_h3_qd_3_simple_000_seed1 ===
+A: fail(pasted leaf blobs) natural=0
+B: pass natural=1 note=frame border
+C: fail(bottom tree is a leafy seedling) natural=1
+D: pass natural=2
+E: pass natural=2
+F: pass natural=2
+pick: E
+=== 06_h3_qd_3_simple_001_seed0 ===
+(sketch: top-left horse faces left, top-right faces right, bottom faces left)
+A: fail(ghost/melted top horses) natural=0
+B: fail(photo panels, four horses) natural=0
+C: fail(extra small white horse top right) natural=1
+D: fail(top-right white horse melted) natural=1
+E: fail(bottom horse faces right) natural=2
+F: fail(bottom horse faces right) natural=2
+pick: none
+=== 06_h3_qd_3_simple_001_seed1 ===
+A: fail(ghost horse, tractor with people) natural=0
+B: fail(top-right horse faces left) natural=2
+C: fail(top-left horse faces right) natural=1
+D: fail(photo panels) natural=0
+E: fail(top-left horse faces right) natural=2
+F: fail(extra horse behind top-right) natural=1
+pick: none
+=== 07_h3_qd_5_complex_000_seed0 ===
+A: fail(top bus white, not red) natural=1 note=toy-like top view on red stripes
+B: pass natural=1 note=floating red bus inside a hall
+C: pass natural=1 note=striped red background, toy-like
+D: fail(no airplanes, extra buses) natural=2
+E: pass natural=2
+F: pass natural=2
+pick: F
+=== 07_h3_qd_5_complex_000_seed1 ===
+A: fail(no airplanes) natural=2
+B: pass natural=1 note=cluttered
+C: fail(no blue bus) natural=2
+D: pass natural=2
+E: fail(three airplanes) natural=2
+F: pass natural=1 note=plane merged with bus
+pick: D
+=== 08_h3_qd_5_complex_001_seed0 ===
+A: fail(pasted cow head and photo patch, leaf instead of tree) natural=0
+B: fail(pasted cow head and photo patch) natural=0
+C: fail(extra trees and small animals) natural=2
+D: fail(cow standing on a branch, extra trees) natural=1
+E: pass natural=1 note=sparse, slightly pasted trees
+F: fail(five topiary trees) natural=1
+pick: E
+=== 08_h3_qd_5_complex_001_seed1 ===
+A: fail(pasted cow head and patches) natural=0
+B: fail(extra trees) natural=2
+C: fail(cow standing on a pillar) natural=0
+D: pass natural=1 note=bush-like trees on bare ground
+E: fail(pasted patches) natural=0
+F: fail(animal looks like a horse/deer, not a cow) natural=2
+pick: D
+=== 09_h3_qd_5_medium_000_seed0 ===
+A: fail(ghost dog, pasted dog head, no tree) natural=0
+B: pass natural=1
+C: fail(pasted black-white dog head) natural=0
+D: fail(no sailboat, green blob) natural=1
+E: fail(green table instead of top-left dog) natural=1
+F: pass natural=2
+pick: F
+=== 09_h3_qd_5_medium_000_seed1 ===
+A: pass natural=2
+B: fail(green table instead of top-left dog, pasted dog) natural=0
+C: fail(dogs black/brown, no sailboat) natural=1
+D: pass natural=1 note=white pillar
+E: fail(pasted dog head) natural=0
+F: fail(pasted dog head, ghost dog) natural=0
+pick: A
+=== 10_h3_qd_5_medium_001_seed0 ===
+A: pass natural=1 note=top car floats in a hall
+B: fail(top car white) natural=1
+C: fail(bottom-middle car silver, extra red cars) natural=1
+D: fail(bottom-middle car dark, extra cars) natural=1
+E: pass natural=1 note=toy top view on striped ground
+F: fail(no green cars) natural=2
+pick: A
+=== 10_h3_qd_5_medium_001_seed1 ===
+A: fail(top car dark) natural=2
+B: fail(bottom cars merged) natural=1
+C: pass natural=0 note=ghost bus, floating car
+D: pass natural=2
+E: fail(top car white) natural=1
+F: fail(top car dark) natural=2
+pick: D
+=== 11_h3_qd_5_simple_000_seed0 ===
+A: fail(paper collage, houses brown) natural=0
+B: fail(extra birds flying in sky) natural=2
+C: fail(paper collage, houses brown) natural=0
+D: fail(extra red barn, pasted panel) natural=0
+E: pass natural=1 note=odd white wall
+F: pass natural=2
+pick: F
+=== 11_h3_qd_5_simple_000_seed1 ===
+A: pass natural=1 note=toy-like houses
+B: fail(extra small bird at top) natural=2
+C: fail(houses white/smeared) natural=0
+D: pass natural=1 note=frame border
+E: fail(paper collage, extra houses) natural=0
+F: fail(paper collage, extra houses) natural=0
+pick: A
+=== 12_h3_qd_5_simple_001_seed0 ===
+A: pass natural=0 note=floating pasted cat heads
+B: fail(paper collage panels) natural=0
+C: fail(no cats, broken bicycle parts) natural=0
+D: pass natural=2 note=background is a building, little meadow
+E: fail(extra car, no meadow) natural=1
+F: pass natural=0 note=floating pasted cat heads
+pick: D
+=== 12_h3_qd_5_simple_001_seed1 ===
+A: fail(5 cats, ornaments on wall) natural=1
+B: fail(extra bride, pasted heads) natural=0
+C: pass natural=1 note=golden statues on pavement
+D: fail(cats not golden) natural=2
+E: fail(extra small cat, broken bicycle) natural=0
+F: fail(extra small cat, pasted heads) natural=0
+pick: C
+=== 13_h3_qd_8p_complex_000_seed0 ===
+A: fail(umbrellas blue/white, no tree, no gray cat) natural=1
+B: fail(no dog, cats instead of rabbits) natural=1
+C: fail(no black dog, toy look) natural=1
+D: fail(black silhouettes, no rabbits) natural=1
+E: fail(toy figures, objects unclear) natural=0
+F: fail(no dog, umbrellas missing) natural=1
+pick: none
+=== 13_h3_qd_8p_complex_000_seed1 ===
+A: fail(pasted collage, missing dog) natural=0
+B: fail(rabbits missing, melted figures) natural=0
+C: fail(silhouettes, no rabbits) natural=1
+D: fail(no dog, umbrellas missing) natural=1
+E: fail(extra crowd, no dog) natural=1
+F: fail(extra crowd, no dog) natural=1
+pick: none
+=== 14_h3_qd_8p_complex_001_seed0 ===
+A: fail(no cow/sheep, extra bench) natural=1
+B: fail(pasted panels) natural=0
+C: fail(no rabbit, black cow) natural=2
+D: fail(no clear cow, building not meadow) natural=1
+E: fail(pasted collage, melted) natural=0
+F: fail(goat-like cow, no sheep) natural=1
+pick: none
+=== 14_h3_qd_8p_complex_001_seed1 ===
+A: fail(no rabbit, no cow, black sheep) natural=2
+B: fail(pasted panels) natural=0
+C: fail(no sheep) natural=2
+D: fail(no cow, objects tiny) natural=1
+E: fail(sheep unclear, dark animal by tree) natural=2
+F: fail(melted collage) natural=0
+pick: none (closest C/E)
+=== 15_h3_qd_8p_medium_000_seed0 ===
+A: fail(birdhouses on a wall, one bird) natural=0
+B: fail(one bird, pasted panel) natural=0
+C: fail(three yellow birds, not a beach) natural=1
+D: pass natural=1 note=flat cut-outs on grey, not sandy
+E: pass natural=2 note=miniature houses on sand
+F: fail(pasted panel, extra bird) natural=1
+pick: E
+=== 15_h3_qd_8p_medium_000_seed1 ===
+A: fail(no birds) natural=1
+B: pass natural=1 note=toy houses on a dune
+C: fail(one bird only) natural=1
+D: fail(pasted panel, melted) natural=0
+E: pass natural=1 note=two birds overlap
+F: fail(one bird only) natural=2
+pick: B
+=== 16_h3_qd_8p_medium_001_seed0 ===
+A: fail(pasted cat heads, chairs missing) natural=0
+B: fail(chairs small/merged, no teddy, no umbrella) natural=1
+C: fail(pasted cat heads, melted chairs) natural=0
+D: fail(outdoor patio, no cats) natural=2
+E: fail(outdoor, cats unclear) natural=1
+F: fail(objects scattered on asphalt, flat) natural=0
+pick: none
+=== 16_h3_qd_8p_medium_001_seed1 ===
+A: fail(pasted cat heads, chairs missing) natural=0
+B: fail(teddy is orange toy, black cat missing) natural=1
+C: fail(no yellow chair) natural=2
+D: fail(pasted heads, chairs missing) natural=1
+E: fail(chairs as toy blocks, no teddy) natural=0
+F: fail(outdoor, black cat missing) natural=2
+pick: none (closest C)
+=== 17_h3_qd_8p_simple_000_seed0 ===
+A: fail(toy pieces on grid, birds missing) natural=0
+B: fail(birds/planes as toys, no car/truck) natural=1
+C: fail(grid collage) natural=0
+D: fail(pasted objects in terminal) natural=1
+E: fail(car not yellow-only, extra planes) natural=1
+F: fail(no car/truck, flat toys) natural=0
+pick: none
+=== 17_h3_qd_8p_simple_000_seed1 ===
+A: fail(crowd extra, objects missing) natural=1
+B: fail(extra birds, truck red) natural=2
+C: fail(extra birds, truck red) natural=2
+D: fail(no airplanes, extra birds) natural=2
+E: fail(top-down collage) natural=0
+F: fail(top-down collage) natural=0
+pick: none
+=== 18_h3_qd_8p_simple_001_seed0 ===
+A: fail(no bird, extra horse-like animals) natural=2
+B: fail(pasted panels) natural=0
+C: fail(pasted fragments, no rabbits) natural=0
+D: fail(pasted panels) natural=0
+E: pass natural=2 note=open meadow not forest
+F: fail(white cut-outs on a board) natural=0
+pick: E
+=== 18_h3_qd_8p_simple_001_seed1 ===
+A: fail(pasted panels) natural=0
+B: fail(pasted panels, snow) natural=0
+C: fail(pasted fragments) natural=0
+D: fail(no rabbits, no leafy tree) natural=1
+E: fail(white cut-outs on a board) natural=0
+F: fail(extra animals, no leafy tree) natural=1
+pick: none
