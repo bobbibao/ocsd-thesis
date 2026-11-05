@@ -45,7 +45,19 @@ VERSIONS = {
                salt='ocsd-heldout-v3', prefix='heldout3_', fidelity=True, tier='heldout_final', tag='heldout3',
                primary=('ocsd_v3', 'ocsd', (('opr', 1), ('miou', 1), ('sketch_chamfer', -1))),
                key_secondary=(('ocsd_v3', 'gligen'), ('ocsd_v3', 'collage'))),
+    # Stage 6: confirmation of the frozen OCSD v3 on the 72 paper_v2 evaluation scenes (docs/PAPER3_PROTOCOL.md).
+    # The scenes are not committed: they are copied from the paper benchmark on Drive at run time and checked
+    # against assets/paper_v3/expected_scenes.json; their hashes become the run's manifest.
+    'v4': dict(assets='assets/paper_v3', direct=(('direct_box', False, False), ('ocsd_v3', False, True)),
+               methods=('ocsd_v3', 'direct_box', 'ocsd', 'gligen', 'collage', 'controlnet'),
+               salt='ocsd-paper-v3', prefix='paper3_', fidelity=True, tier='heldout_final', tag='paper3',
+               primary=('ocsd_v3', 'ocsd', (('opr', 1), ('miou', 1), ('sketch_chamfer', -1))),
+               key_secondary=(('ocsd_v3', 'gligen'), ('ocsd_v3', 'collage')), imported=True,
+               title='Paper benchmark v3: frozen OCSD v3 vs original OCSD and baselines (72 paper_v2 scenes)',
+               protocol_doc='docs/PAPER3_PROTOCOL.md'),
 }
+# Versions with the v3 analysis (primary family + key secondary family).
+FINAL = ('v3', 'v4')
 
 
 def use(version):
@@ -78,6 +90,38 @@ def scene_ids():
     return sorted({rel.split('/')[1] for rel in manifest()})
 
 
+def expected_scenes():
+    return json.loads((ASSETS/'expected_scenes.json').read_text())['scenes']
+
+
+def import_paper_scenes(source):
+    """v4: copy the 72 paper_v2 evaluation scenes from the paper benchmark (Drive) and write their manifest.
+
+    Every scene must exist with the expected object count, count bin and complexity; no other scene is copied.
+    Re-running on the same source gives the same manifest, so the direct run resumes."""
+    if not VERSIONS[VERSION].get('imported'): raise ValueError('Only the paper benchmark set is imported')
+    source = Path(source); expected = expected_scenes(); files = {}
+    missing = [sid for sid in expected if not (source/sid/'scene.json').exists()]
+    if missing: raise FileNotFoundError(f'Paper benchmark scenes not found under {source}: ' + ', '.join(missing[:5]))
+    for sid, want in sorted(expected.items()):
+        meta = json.loads((source/sid/'scene.json').read_text())
+        got = dict(n_obj=meta['n_obj'], count_bin=meta['count_bin'], complexity=meta['complexity'])
+        if meta['sid'] != sid or got != {k: want[k] for k in got} or len(meta['objects']) != meta['n_obj']:
+            raise ValueError(f'Scene {sid} differs from the paper_v2 evaluation scene: {got} vs {want}')
+        names = ['scene.json', 'sketch.png', 'masks.npz'] + [f'obj_{i:02d}.png' for i in range(meta['n_obj'])]
+        dst = ASSETS/'quickdraw'/sid; dst.mkdir(parents=True, exist_ok=True)
+        for name in names:
+            if not (source/sid/name).exists(): raise FileNotFoundError(f'{sid}/{name} missing in the paper benchmark')
+            if not (dst/name).exists() or file_hash(dst/name) != file_hash(source/sid/name):
+                shutil.copyfile(source/sid/name, dst/name)
+            files[f'quickdraw/{sid}/{name}'] = file_hash(dst/name)
+    extra = sorted(p.name for p in (ASSETS/'quickdraw').iterdir() if p.is_dir() and p.name not in expected)
+    if extra: raise ValueError('Unexpected scenes in ' + str(ASSETS/'quickdraw') + ': ' + ', '.join(extra))
+    (ASSETS/'manifest.json').write_text(json.dumps(files, indent=1, sort_keys=True) + '\n')
+    print(f'Imported {len(expected)} paper benchmark scenes from {source}; manifest {file_hash(ASSETS/"manifest.json")[:12]}', flush=True)
+    return files
+
+
 def install_scenes(P):
     """Copy the locked scenes into this data root; never regenerate or download them."""
     files = verify_assets()
@@ -102,8 +146,9 @@ def plan(P, E):
     if list(E.seeds) != list(SEEDS):
         raise ValueError('Held-out protocol fixes seeds 0 and 1')
     scenes = [os.path.join(P.benchmarks, 'quickdraw', sid) for sid in scene_ids()]
-    if len(scenes) != 18 or not all(os.path.exists(os.path.join(d, 'scene.json')) for d in scenes):
-        raise RuntimeError('Install the 18 locked held-out scenes first (stage A)')
+    n = len(expected_scenes()) if VERSIONS[VERSION].get('imported') else 18
+    if len(scenes) != n or not all(os.path.exists(os.path.join(d, 'scene.json')) for d in scenes):
+        raise RuntimeError(f'Install the {n} locked scenes first (stage A)')
     return [dict(name='heldout_quickdraw', split='quickdraw', scenes=scenes, methods=list(METHODS),
                  seeds=list(SEEDS), priority=0)]
 
@@ -340,7 +385,7 @@ def make_review(P, out):
     atomic_json(out/'review_key.json', key)
     (review/'REVIEW_TEMPLATE.txt').write_text('\n'.join(template)+'\n', encoding='utf-8')
     (review/'HOW_TO_REVIEW.txt').write_text(
-        f'Open the 36 PNG files with a normal image viewer. Each PNG: input sketch, then images {", ".join("ABCDEFGH"[:len(METHODS)])}.\n'
+        f'Open the {2*len(scene_ids())} PNG files with a normal image viewer. Each PNG: input sketch, then images {", ".join("ABCDEFGH"[:len(METHODS)])}.\n'
         'The order changes per sheet; compare only within one PNG. Check each image against caption and sketch:\n'
         '  count: every listed object present, no missing or extra copies (for 8+ objects, count carefully or write unclear).\n'
         '  colour: each object has its own attribute from the caption (e.g. "a white truck").\n'
@@ -406,14 +451,15 @@ def holm(rows):
     return rows
 
 
-def v3_header(primary, key_secondary):
+def v3_header(primary, key_secondary, title='Held-out v3: complete OCSD v3 vs original OCSD and baselines',
+              protocol_doc='docs/HELDOUT3_PROTOCOL.md'):
     def table(rows):
         return ['| a | b | metric | scenes | wins / losses / ties | diff a-b [95% CI] | p | p (Holm) |',
                 '|---|---|---|---|---|---|---|---|'] + [
                 f"| {r['a']} | {r['b']} | {r['metric']} | {r['scenes']} | {r['wins']} / {r['losses']} / {r['ties']} | "
                 f"{r['diff']:.3f} [{r['lo']:.3f}, {r['hi']:.3f}] | {r['p']:.4f} | {r['p_holm']:.4f} |" for r in rows]
-    return (['# Held-out v3: complete OCSD v3 vs original OCSD and baselines', '',
-             'Locked protocol: docs/HELDOUT3_PROTOCOL.md. Per-scene means (seeds averaged); exact sign test; a win = a better.', '',
+    return ([f'# {title}', '',
+             f'Locked protocol: {protocol_doc}. Per-scene means (seeds averaged); exact sign test; a win = a better.', '',
              '## Primary: OCSD v3 vs original OCSD (Holm over three metrics)', ''] + table(primary) +
             ['', '## Key secondary: OCSD v3 vs GLIGEN and Collage (Holm over six)', ''] + table(key_secondary) +
             ['', 'opr, miou: higher is better; sketch_chamfer: lower is better.', ''])
@@ -476,7 +522,7 @@ def report(P, E):
             r[k], r[k+'_lo'], r[k+'_hi'] = mu, lo, hi
         rows.append(r)
     summary = pd.DataFrame(rows)
-    if VERSION == 'v3':
+    if VERSION in FINAL:
         pairs = [('ocsd_v3', m) for m in METHODS if m != 'ocsd_v3'] + [('direct_box', 'ocsd'), ('direct_box', 'gligen')]
     elif VERSION == 'v1':
         pairs = [('direct_box', 'controlnet'), ('direct_box', 'instance_repair_count_matte_soft'),
@@ -500,7 +546,7 @@ def report(P, E):
     by_bin.to_csv(tables/'heldout_by_count_bin.csv', index=False)
     make_review(P, out)
     def fmt(r, k): return f"{r[k]:.3f} [{r[k+'_lo']:.3f}, {r[k+'_hi']:.3f}]"
-    lines = ['# Held-out comparison (automatic metrics; human review pending)', ''] if VERSION == 'v1' else v3_header(primary, key_secondary) if VERSION == 'v3' else [
+    lines = ['# Held-out comparison (automatic metrics; human review pending)', ''] if VERSION == 'v1' else v3_header(primary, key_secondary, *([cfg['title'], cfg['protocol_doc']] if 'title' in cfg else [])) if VERSION in FINAL else [
              '# Held-out v2: silhouette confirmation', '', 'Locked protocol: docs/HELDOUT2_PROTOCOL.md.', '',
              '## Primary (direct_silhouette - direct_box, per scene; exact sign test, Holm over two)', '',
              '| metric | scenes | wins / losses / ties | diff [95% CI] | p | p (Holm) |', '|---|---|---|---|---|---|'] + [
@@ -511,7 +557,7 @@ def report(P, E):
              'Locked protocol: docs/HELDOUT_PROTOCOL.md. 18 scenes x seeds 0/1. Means over scenes (seeds averaged) with',
              '95% bootstrap CIs over scenes. These OWLv2/CLIP numbers are secondary; the primary endpoint is the blind',
              'human review of review/*.png. direct_scribble was added after stage 1 and is exploratory.', ''] if VERSION == 'v1' else [
-             '## All arms', '', '18 scenes x seeds 0/1. Means over scenes (seeds averaged) with 95% bootstrap CIs over scenes.',
+             '## All arms', '', f'{len(scene_ids())} scenes x seeds 0/1. Means over scenes (seeds averaged) with 95% bootstrap CIs over scenes.',
              *(['Sketch fidelity (SAM outline vs raw sketch ink) is primary for silhouette vs box; OWLv2/CLIP and the review of',
                 'review/*.png are secondary.'] if VERSION == 'v2' else
                ['OPR/mIoU (OWLv2) and sketch chamfer (SAM) vs the original OCSD are primary; other metrics, other pairs and the',

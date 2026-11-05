@@ -68,14 +68,14 @@ hfcache.repair(os.environ["HF_HOME"])   # delete broken model files so they down
 from ocsd import runlog
 from ocsd.config import Paths, ExperimentConfig, TIERS
 EXP_ROOT = DRIVE_ROOT
-if globals().get("RUN_MODE") in ("heldout", "heldout2", "heldout3"):
+if globals().get("RUN_MODE") in ("heldout", "heldout2", "heldout3", "paper3"):
     # Locked held-out comparison: own data root, fixed tier and generation budget
     # (docs/HELDOUT_PROTOCOL.md, HELDOUT2_PROTOCOL.md, HELDOUT3_PROTOCOL.md)
-    HELDOUT_SET = {"heldout": "v1", "heldout2": "v2", "heldout3": "v3"}[RUN_MODE]
+    HELDOUT_SET = {"heldout": "v1", "heldout2": "v2", "heldout3": "v3", "paper3": "v4"}[RUN_MODE]
     os.environ["OCSD_HELDOUT"] = HELDOUT_SET
     from ocsd import heldout as _heldout; _cfg = _heldout.use(HELDOUT_SET)
-    EXP_ROOT, TIER = os.path.join(DRIVE_ROOT, "heldout_" + HELDOUT_SET), _cfg["tier"]
-    MAX_MINUTES = 300 if HELDOUT_SET == "v3" else 180
+    EXP_ROOT, TIER = os.path.join(DRIVE_ROOT, "paper_v3" if HELDOUT_SET == "v4" else "heldout_" + HELDOUT_SET), _cfg["tier"]
+    MAX_MINUTES = {"v3": 300, "v4": 360}.get(HELDOUT_SET, 180)
 P = Paths(EXP_ROOT); P.makedirs()
 E = ExperimentConfig(backbone=BACKBONE, tier=TIER, skip_jobs=SKIP_JOBS,
                      extra_detectors=() if TIER in ("screen", "repair_screen", "semantic_screen", "instance_screen", "count_screen", "clean_screen", "foreground_screen", "heldout_screen", "heldout_final") else ("owlv2", "owlv2d", "detr"))
@@ -95,7 +95,7 @@ DIRECT_MOUNT = MOUNT.replace(
     'gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True)\n'
     'if gpu.returncode:\n    raise RuntimeError("Select a GPU runtime before Run all")\nprint(gpu.stdout)',
     '''import shutil
-if RUN_MODE not in ("direct_preflight", "direct_canary", "direct_dev", "silhouette_dev", "naturalness_dev", "heldout", "heldout2", "heldout3", "experiment"):
+if RUN_MODE not in ("direct_preflight", "direct_canary", "direct_dev", "silhouette_dev", "naturalness_dev", "heldout", "heldout2", "heldout3", "paper3", "experiment"):
     raise ValueError("Unknown RUN_MODE")
 gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True) if shutil.which("nvidia-smi") else None
 if RUN_MODE == "direct_preflight":
@@ -250,18 +250,23 @@ else:
     print("Skipping the development study in this mode.")'''
 
 
-DIRECT_HELDOUT = r'''#@title 3d. Held-out comparison, part 1: InstanceDiffusion-core arms (72 images), then the other methods below
-if RUN_MODE in ("heldout", "heldout2", "heldout3"):
+DIRECT_HELDOUT = r'''#@title 3d. Held-out / paper comparison, part 1: InstanceDiffusion-core arms, then the other methods below
+if RUN_MODE in ("heldout", "heldout2", "heldout3", "paper3"):
     import json, uuid
     from pathlib import Path
-    HELDOUT_SET = {"heldout": "v1", "heldout2": "v2", "heldout3": "v3"}[RUN_MODE]
+    HELDOUT_SET = {"heldout": "v1", "heldout2": "v2", "heldout3": "v3", "paper3": "v4"}[RUN_MODE]
     os.environ["OCSD_HELDOUT"] = HELDOUT_SET
-    HELDOUT_DIRECT = Path(DRIVE_ROOT) / ("heldout_" + HELDOUT_SET) / "direct"
+    HELDOUT_DIRECT = Path(DRIVE_ROOT) / ("paper_v3" if HELDOUT_SET == "v4" else "heldout_" + HELDOUT_SET) / "direct"
+    if HELDOUT_SET == "v4":
+        # The 72 paper_v2 evaluation scenes come from the paper benchmark on Drive (checked, then hashed).
+        from ocsd import heldout as _h; _h.use("v4")
+        _h.import_paper_scenes(os.path.join(DRIVE_ROOT, "data", "benchmarks", "quickdraw"))
     attempt = HELDOUT_DIRECT / ("attempt_" + uuid.uuid4().hex[:12]); attempt.mkdir(parents=True)
-    arms = {"v1": "(box, scribble)", "v2": "(box, silhouette)", "v3": "(InstanceDiffusion box, OCSD v3)"}[HELDOUT_SET]
-    print(f"Locked held-out {HELDOUT_SET}: 18 scenes x 2 seeds x {arms} = 72 images, at most 3600 s. Completed images are reused.", flush=True)
+    arms = {"v1": "(box, scribble)", "v2": "(box, silhouette)", "v3": "(InstanceDiffusion box, OCSD v3)", "v4": "(InstanceDiffusion box, OCSD v3)"}[HELDOUT_SET]
+    n_sc, limit = (72, 14400) if HELDOUT_SET == "v4" else (18, 3600)
+    print(f"Locked set {HELDOUT_SET}: {n_sc} scenes x 2 seeds x {arms} = {4*n_sc} images, at most {limit} s. Completed images are reused.", flush=True)
     reqs = ["-r", os.path.join(CODE, "requirements-direct-preflight.txt")]
-    if HELDOUT_SET == "v3": reqs += ["-r", os.path.join(CODE, "requirements-direct-refiner.txt")]
+    if HELDOUT_SET in ("v3", "v4"): reqs += ["-r", os.path.join(CODE, "requirements-direct-refiner.txt")]
     installed = subprocess.run([sys.executable, "-m", "pip", "install", "-q", *reqs], capture_output=True, text=True)
     (attempt / "setup.log").write_text(installed.stdout + "\n" + installed.stderr)
     script = os.path.join(CODE, "tools", "run_direct_heldout.py")
@@ -269,7 +274,7 @@ if RUN_MODE in ("heldout", "heldout2", "heldout3"):
     try:
         subprocess.run([sys.executable, script, "--cache", "/content/ocsd-direct-cache", "--out", str(HELDOUT_DIRECT),
             "--attempt", str(attempt), "--setup-returncode", str(installed.returncode)],
-            env=dict(os.environ, PYTHONUNBUFFERED="1"), timeout=3600)
+            env=dict(os.environ, PYTHONUNBUFFERED="1"), timeout=limit)
         interrupted = not (attempt / "result.json").exists()
     except subprocess.TimeoutExpired:
         interrupted = True
@@ -305,7 +310,7 @@ def nb(cells, name):
                 experiment = True
             if experiment and not c.startswith("MD:"):
                 title, body = c.split('\n', 1)
-                c = title + '\nif RUN_MODE in ("experiment", "heldout", "heldout2", "heldout3"):\n' + '\n'.join('    ' + line for line in body.splitlines())
+                c = title + '\nif RUN_MODE in ("experiment", "heldout", "heldout2", "heldout3", "paper3"):\n' + '\n'.join('    ' + line for line in body.splitlines())
             guarded.append(c)
         cells = guarded
     cells = [c.replace("start_run(P, E, run_id=RUN_ID)", f'start_run(P, E, run_id=RUN_ID, notebook="notebooks/{name}")') for c in cells]
@@ -337,18 +342,20 @@ nb([
     "([held-out v2 results](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/HELDOUT2_20261104_RESULTS.md)).\n\n"
     "The naturalness dev study (dev v3) is done; do not rerun it "
     "([dev v3 results](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/DIRECT_DEV3_20261104_RESULTS.md)).\n\n"
-    "**Next step:** Runtime → Change runtime type → **GPU L4 or A100** (High-RAM) → keep `RUN_MODE=\"heldout3\"`, `RUN_ID=\"\"` → **Run all**. "
-    "This is the final locked comparison on 18 new scenes × 2 seeds × 6 methods: **OCSD v3** (complete model), InstanceDiffusion box, "
-    "the **original OCSD** (paper settings, frozen paper_v2 tuning), GLIGEN, Collage and ControlNet = 216 images, then OWLv2/CLIP/SAM metrics "
-    "and 36 review sheets. Expect about 2–2.5 GPU hours; every part resumes if stopped (Run all again with `RUN_ID` empty). "
-    "If the browser download fails, the ZIPs stay on Drive in `heldout_v3/results/...`; no review needed from you. "
-    "[Protocol](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/HELDOUT3_PROTOCOL.md).\n\n"
+    "Held-out v3 is done: OCSD v3 beats the original OCSD; do not rerun it "
+    "([held-out v3 results](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/HELDOUT3_20261105_RESULTS.md)).\n\n"
+    "**Next step:** Runtime → Change runtime type → **GPU L4 or A100** (High-RAM) → keep `RUN_MODE=\"paper3\"`, `RUN_ID=\"\"` → **Run all**. "
+    "This confirms the frozen OCSD v3 on the 72 paper_v2 evaluation scenes (read from Drive `data/benchmarks`) × 2 seeds × 6 methods "
+    "= 864 images, then OWLv2/CLIP/SAM metrics and review sheets. Expect about 5–6 GPU hours on an L4; if Colab stops, "
+    "just Run all again (`RUN_ID` empty): finished images are kept. "
+    "If the browser download fails, the ZIPs stay on Drive in `paper_v3/results/...`; no review needed from you. "
+    "[Protocol](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/PAPER3_PROTOCOL.md).\n\n"
     "Chỉ khi chủ động tái lập thí nghiệm cũ: chọn `RUN_MODE=\"experiment\"` và GPU L4/A100. "
     "Luồng này chạy 4 giai đoạn: (A) dựng bộ dữ liệu, (B) sinh ảnh cho E1–E4 và khảo sát α, (C) đánh giá, "
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
     "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
-    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "heldout3"  #@param ["heldout3", "naturalness_dev", "heldout2", "silhouette_dev", "heldout", "direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'),
+    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "paper3"  #@param ["paper3", "heldout3", "naturalness_dev", "heldout2", "silhouette_dev", "heldout", "direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'),
     DIRECT_MOUNT, DIRECT_PREFLIGHT, DIRECT_CANARY, DIRECT_DEV, DIRECT_HELDOUT, INSTALL,
     "MD:## Các ô dưới chỉ chạy khi RUN_MODE=experiment\nPhép thử cũ `foreground_screen`: 1 cảnh xe đạp × 4 đối chứng "
     "= 4 ảnh cuối. So sánh clean cũ, anchor có nền cảnh, mask học được dạng cứng và dạng mềm. "
@@ -416,7 +423,7 @@ if PUSH_RESULTS:
 else:
     print("Results retained on Drive:", P.results)''',
     r'''#@title G. Held-out mode: download the results ZIP and the blind review ZIP
-if RUN_MODE in ("heldout", "heldout2", "heldout3"):
+if RUN_MODE in ("heldout", "heldout2", "heldout3", "paper3"):
     from google.colab import files
     tag = RUN_MODE
     for name in (f"ocsd_{tag}_results.zip", f"REVIEW_{tag}.zip"):
