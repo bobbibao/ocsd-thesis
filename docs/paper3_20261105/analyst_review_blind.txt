@@ -1,0 +1,194 @@
+Analyst blind review (Claude), paper3, pre-registered sheets *_003 (24), written before opening review_key.json or summary files.
+Format per image: structure pass/fail(reason) and natural 0/1/2. Strict: extra copies of a listed class = count fail.
+=== 01_qd_1_complex_003_seed0 ===
+A: pass natural=2
+B: pass natural=2
+C: pass natural=2
+D: pass natural=1 note=greyscale, not a park
+E: pass natural=2
+F: pass natural=1 note=bird looks pasted
+pick: tie
+=== 01_qd_1_complex_003_seed1 ===
+A: pass natural=2
+B: pass natural=2
+C: pass natural=2
+D: pass natural=2
+E: pass natural=2
+F: pass natural=1 note=bird looks pasted
+pick: tie
+=== 07_qd_1_medium_003_seed0 ===
+A: fail(black cow) natural=2
+B: fail(transparent panels on cow) natural=0
+C: fail(no cow, raft) natural=0
+D: pass natural=2 note=no lake visible
+E: fail(transparent panels on cow) natural=0
+F: pass natural=2 note=no lake visible
+pick: D
+=== 07_qd_1_medium_003_seed1 ===
+A: fail(panel seams on cow) natural=0
+B: fail(panel legs) natural=0
+C: fail(brown cow) natural=2
+D: pass natural=2
+E: fail(panel legs) natural=0
+F: pass natural=2 note=no lake
+pick: D
+=== 13_qd_1_simple_003_seed0 ===
+A: fail(faces right, sketch faces left; toy, no beach) natural=1
+B: fail(paper collage) natural=0
+C: pass natural=1 note=toy look, not a beach
+D: fail(paper collage) natural=0
+E: pass natural=2
+F: fail(blurred smear) natural=0
+pick: E
+=== 13_qd_1_simple_003_seed1 ===
+A: fail(faces right) natural=2
+B: fail(blurred smear) natural=0
+C: pass natural=2
+D: pass natural=2
+E: fail(two birds merged) natural=0
+F: pass natural=2
+pick: D
+=== 19_qd_3_complex_003_seed0 ===
+A: pass natural=1 note=bird pasted
+B: fail(brown bird) natural=1
+C: pass natural=1 note=bird pasted
+D: pass natural=1 note=bird statue, not savanna
+E: pass natural=1 note=bird statue, not savanna
+F: fail(red car, grey bird) natural=2
+pick: A
+=== 19_qd_3_complex_003_seed1 ===
+A: pass natural=1 note=tree on a stand
+B: fail(red car, brown bird) natural=2
+C: pass natural=1 note=bird pasted
+D: pass natural=1 note=bird statue
+E: pass natural=1
+F: fail(no car) natural=0
+pick: D
+=== 25_qd_3_medium_003_seed0 ===
+A: pass natural=2
+B: fail(bench purple, not wooden; toys) natural=1
+C: fail(second bus melted) natural=0
+D: fail(collage panels, melted bench) natural=0
+E: fail(collage panels) natural=0
+F: fail(no bench) natural=2
+pick: A
+=== 25_qd_3_medium_003_seed1 ===
+A: fail(no bench, floating bus) natural=0
+B: fail(blue plastic bench) natural=1
+C: pass natural=2
+D: pass natural=2
+E: fail(collage panels) natural=0
+F: fail(collage panels) natural=0
+pick: tie
+=== 31_qd_3_simple_003_seed0 ===
+A: pass natural=1 note=top bird pasted
+B: pass natural=1 note=birds pasted
+C: fail(one bird missing) natural=1
+D: pass natural=2 note=no lake
+E: fail(extra small bird) natural=1
+F: fail(black birds) natural=1
+pick: D
+=== 31_qd_3_simple_003_seed1 ===
+A: pass natural=2
+B: fail(bird body yellow) natural=1
+C: fail(black silhouettes) natural=0
+D: fail(collage) natural=0
+E: pass natural=2 note=dark grey birds
+F: fail(extra partial bird) natural=1
+pick: A
+=== 37_qd_5_complex_003_seed0 ===
+A: fail(collage panels) natural=0
+B: fail(four white cats) natural=2
+C: fail(four white cats) natural=2
+D: fail(pasted cat heads) natural=0
+E: fail(cats black-and-white, not white) natural=1
+F: fail(collage panels) natural=0
+pick: none
+=== 37_qd_5_complex_003_seed1 ===
+A: pass natural=2
+B: fail(pasted cat heads) natural=0
+C: pass natural=2
+D: fail(pasted cat heads) natural=0
+E: fail(orange cats) natural=1
+F: fail(pasted, extra cats) natural=0
+pick: tie
+=== 43_qd_5_medium_003_seed0 ===
+A: fail(pasted heads) natural=0
+B: fail(black cows, house is a box) natural=1
+C: fail(no brown cow, no dog) natural=2
+D: fail(no clear dog, brown cow unclear) natural=1
+E: fail(pasted dog head) natural=1
+F: fail(no dog) natural=2
+pick: none
+=== 43_qd_5_medium_003_seed1 ===
+A: fail(pasted panels) natural=0
+B: fail(extra bride) natural=0
+C: fail(black cows, no dog) natural=1
+D: fail(no dog, extra black cow) natural=2
+E: fail(extra animals, dog unclear) natural=1
+F: fail(no dog, black cow) natural=2
+pick: none
+=== 49_qd_5_simple_003_seed0 ===
+A: fail(birds not golden, pasted) natural=1
+B: fail(one bird orange) natural=1
+C: fail(black birds) natural=2
+D: fail(collage on red panel) natural=0
+E: pass natural=1 note=bird statues
+F: fail(collage, red birds) natural=0
+pick: E
+=== 49_qd_5_simple_003_seed1 ===
+A: fail(multicoloured birds) natural=1
+B: pass natural=1 note=toys on a red board
+C: fail(extra small golden bird) natural=1
+D: fail(pasted, blurred) natural=0
+E: fail(red birds) natural=2
+F: pass natural=1 note=bird statues
+pick: F
+=== 55_qd_8p_complex_003_seed0 ===
+A: fail(missing house/bear, objects unclear) natural=1
+B: fail(dogs look like bears, small bear missing) natural=2
+C: fail(dogs look like bears) natural=2
+D: fail(pasted, extra animals) natural=0
+E: fail(silhouettes) natural=0
+F: fail(pasted heads) natural=0
+pick: none
+=== 55_qd_8p_complex_003_seed1 ===
+A: fail(silhouettes) natural=0
+B: fail(pasted collage) natural=0
+C: fail(pasted collage) natural=0
+D: fail(pasted heads) natural=0
+E: fail(bears instead of dogs, count) natural=2
+F: fail(bears instead of dogs, count) natural=2
+pick: none
+=== 61_qd_8p_medium_003_seed0 ===
+A: fail(pasted heads) natural=0
+B: fail(dogs look like bears, no snow) natural=1
+C: fail(no snow, count unclear) natural=1
+D: fail(car-part collage, no dogs) natural=0
+E: fail(black silhouettes, no cars) natural=0
+F: fail(pasted heads) natural=0
+pick: none
+=== 61_qd_8p_medium_003_seed1 ===
+A: fail(pasted heads) natural=0
+B: fail(toy collage) natural=0
+C: fail(dogs black/brown, count) natural=2
+D: fail(black silhouettes, no cars) natural=0
+E: fail(dogs black/brown, count) natural=1
+F: fail(pasted heads) natural=0
+pick: none
+=== 67_qd_8p_simple_003_seed0 ===
+A: fail(collage) natural=0
+B: fail(no black horse, white sheep) natural=2
+C: fail(sheep missing) natural=1
+D: fail(pasted heads) natural=0
+E: fail(no black horse, extra white sheep) natural=2
+F: fail(black sheep, no cat) natural=1
+pick: none
+=== 67_qd_8p_simple_003_seed1 ===
+A: fail(white sheep, no horse) natural=2
+B: fail(many extra sheep) natural=1
+C: fail(sheep missing) natural=1
+D: fail(many extra sheep) natural=1
+E: fail(collage, extra person) natural=0
+F: fail(pasted cat head) natural=0
+pick: none
