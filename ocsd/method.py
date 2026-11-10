@@ -47,7 +47,7 @@ def _cuda_peak():
 def sample(eng: Engine, prompts: Sequence[str], seeds: Sequence[int], cfg: OCSDConfig, control=None,
            cn_scale: float = 0.0, adapter_states=None, steps: Optional[int] = None,
            neg: Optional[str] = None, region: Optional[dict] = None, energy: Optional[dict] = None,
-           size: Optional[Tuple[int, int]] = None) -> np.ndarray:
+           size: Optional[Tuple[int, int]] = None, cn_end: float = 1.0) -> np.ndarray:
     """Lấy mẫu DDIM + CFG cho một batch. `region`/`energy` cho baseline có điều khiển vùng/năng lượng.
 
     region = dict(masks, tokens, bg_tokens, lambda0, gamma[, min_cell]) ;
@@ -79,7 +79,9 @@ def sample(eng: Engine, prompts: Sequence[str], seeds: Sequence[int], cfg: OCSDC
                                               grad_norm=energy.get("grad_norm", False))
                     zs.append(zb)
                 z = torch.cat(zs)
-            eps = eng.cfg_eps(z, t, emb_c, emb_u, cfg.guidance, control, cn_scale, adapter_states)
+            use_cn = control is not None and j < cn_end * len(ts)
+            eps = eng.cfg_eps(z, t, emb_c, emb_u, cfg.guidance, control if use_cn else None,
+                              cn_scale if (use_cn or control is None) else 0.0, adapter_states)
             z = eng.step(eps, t, z)
     finally:
         eng.ctrl.clear_regions()
@@ -116,7 +118,8 @@ def object_branch(eng: Engine, vis, scene: Scene, cfg: OCSDConfig, seed: int = 0
         prompt = cfg.obj_prompt_tmpl.format(phrase=phrase)
         control = eng.control_tensor(sketch_to_control(sk_crop), cfg.K)
         seeds = [seed * 1000 + 17 * i + k for k in range(cfg.K)]
-        imgs = sample(eng, [prompt] * cfg.K, seeds, cfg, control, cfg.obj_cn_scale, steps=cfg.obj_steps)
+        imgs = sample(eng, [prompt] * cfg.K, seeds, cfg, control, cfg.obj_cn_scale, steps=cfg.obj_steps,
+                      neg=cfg.obj_negative_prompt, cn_end=cfg.obj_cn_end)
         best, best_s = None, -1e9
         for k in range(cfg.K):
             img = imgs[k]
@@ -218,7 +221,7 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
     opt = torch.optim.AdamW(weights, lr=cfg.lr_emb1, weight_decay=0.0)
     sch = eng.scheduler
     T_train = sch.config.num_train_timesteps
-    losses = []
+    losses, skipped = [], 0
     t0 = time.time()
     g = torch.Generator("cpu").manual_seed(seed)
     try:
@@ -258,10 +261,18 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
                 l_att = ((maps - s["m_att"].to(maps.dtype)) ** 2).mean()
                 loss = loss + cfg.lambda_att * l_att
             opt.zero_grad(set_to_none=True)
+            if not torch.isfinite(loss):          # half-precision overflow in the forward pass: skip this step
+                skipped += 1
+                continue
             loss.backward()
             for w, rm in zip(weights, row_masks):
                 if w.grad is not None:
                     w.grad.mul_(rm.to(w.grad.dtype))
+            params = [q for group in opt.param_groups for q in group["params"]]
+            if any(q.grad is not None and not torch.isfinite(q.grad).all() for q in params):
+                skipped += 1                      # a non-finite gradient would turn the weights into NaN for good
+                opt.zero_grad(set_to_none=True)
+                continue
             opt.step()
             with torch.no_grad():   # giữ nguyên các hàng không phải token định danh
                 for w, rm, keep in zip(weights, row_masks, keeps):
@@ -279,6 +290,7 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
         log["m3_loss_first"] = float(np.mean(losses[:20])) if losses else None
         log["m3_loss_last"] = float(np.mean(losses[-20:])) if losses else None
         log["m3_time"] = time.time() - t0
+        log["m3_skipped_steps"] = skipped
     return tokens
 
 
