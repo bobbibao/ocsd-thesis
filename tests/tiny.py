@@ -70,6 +70,44 @@ def make_engine(tok_dir: str, bpe_gz: str, image_size: int = 64):
     return eng
 
 
+def make_engine_xl(tok_dir: str, bpe_gz: str, image_size: int = 128):
+    """Tiny random SDXL-shaped stack: two text encoders (the second with a projection), a U-Net with text_time
+    conditioning and no attention at the first resolution, and a ControlNet built from it."""
+    from diffusers import AutoencoderKL, ControlNetModel, UNet2DConditionModel
+    from transformers import CLIPTextConfig, CLIPTextModel, CLIPTextModelWithProjection
+
+    from ocsd.engine_xl import EngineXL, xl_scheduler
+    torch.manual_seed(0)
+    tok = make_clip_tokenizer(bpe_gz, tok_dir)
+    tok2 = make_clip_tokenizer(bpe_gz, tok_dir)
+    tok2.pad_token = "!"                      # like SDXL's second tokenizer
+    cfg = dict(vocab_size=len(tok), hidden_size=32, intermediate_size=37, num_hidden_layers=3, num_attention_heads=4,
+               max_position_embeddings=77, projection_dim=24)
+    te = CLIPTextModel(CLIPTextConfig(**cfg))
+    te2 = CLIPTextModelWithProjection(CLIPTextConfig(**cfg))
+    unet = UNet2DConditionModel(sample_size=image_size // 2, in_channels=4, out_channels=4, layers_per_block=1,
+                                block_out_channels=(32, 64), norm_num_groups=8, cross_attention_dim=64,
+                                attention_head_dim=(4, 8), use_linear_projection=True,
+                                transformer_layers_per_block=(1, 2),
+                                down_block_types=("DownBlock2D", "CrossAttnDownBlock2D"),
+                                up_block_types=("CrossAttnUpBlock2D", "UpBlock2D"),
+                                addition_embed_type="text_time", addition_time_embed_dim=8,
+                                projection_class_embeddings_input_dim=24 + 6 * 8)
+    vae = AutoencoderKL(in_channels=3, out_channels=3, latent_channels=4, block_out_channels=(32, 64),
+                        down_block_types=("DownEncoderBlock2D",) * 2, up_block_types=("UpDecoderBlock2D",) * 2,
+                        norm_num_groups=8, sample_size=image_size, scaling_factor=0.13025)
+    cn = ControlNetModel.from_unet(unet, conditioning_embedding_out_channels=(16, 32))
+    for prm in cn.parameters():               # from_unet zero-initialises the output convs: make the control act
+        if prm.abs().sum() == 0:
+            torch.nn.init.normal_(prm, std=0.05)
+    for m in (te, te2, unet, vae, cn):
+        m.requires_grad_(False)
+        m.eval()
+    eng = EngineXL(tok, tok2, te, te2, unet, vae, xl_scheduler(), cn, device="cpu", dtype=torch.float32)
+    eng.attn_div = 2   # the tiny U-Net only has cross-attention at latent / 2
+    return eng
+
+
 class _FakeDet:
     """Trả về hộp của đối tượng thật (có nhiễu, đôi khi bỏ sót / nhân bản) - chỉ để kiểm thử luồng."""
 
