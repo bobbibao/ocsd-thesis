@@ -1,21 +1,30 @@
-"""Write assets/xl_dev_v1/protocol.json: the locked OCSD-XL development study. Run once, before any SDXL output.
-python tools/lock_xl_dev.py"""
+"""Write assets/xl_dev_v<N>/protocol.json: a locked OCSD-XL development round. Run once per round, before its images.
+python tools/lock_xl_dev.py        (round 1, 2026-11-12)
+python tools/lock_xl_dev.py v2     (round 2, 2026-11-13: M2 fixed for SDXL, held-out v2 scenes)"""
 import json
 from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ocsd.engine_xl import XL_MODELS
+from ocsd import ocsd_xl
 from ocsd.ocsd_xl import ARMS, SIZE, XL_COMMON, XL_OCSD, arm_config
 from ocsd.xl_study import arm_digest
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT/'assets/xl_dev_v1'
+RND = sys.argv[1] if len(sys.argv) > 1 else 'v1'
+ocsd_xl.use_round(RND)
+OUT = ROOT/f'assets/xl_dev_{RND}'
 # Development scenes: the first scene of every cell of held-out v1 (3 / 5 / 8+ objects x simple / medium / complex).
 # Held-out v1 was already used for the November studies, so it is development data now. Held-out v3 and the 72 paper
 # scenes are not touched here; they stay for the confirmation.
-SCENES = sorted(p.name for p in (ROOT/'assets/heldout_v1/quickdraw').iterdir() if p.name.endswith('_000'))
+# Round 2 uses the first scene of every cell of held-out v2 (also development data since November), as round 1's
+# rule prescribed.
+ASSETS = {'v1': 'assets/heldout_v1', 'v2': 'assets/heldout_v2'}[RND]
+SCENES = sorted(p.name for p in (ROOT/ASSETS/'quickdraw').iterdir() if p.name.endswith('_000'))
 CANDIDATES = ['ocsd_xl', 'ocsd_xl_a02', 'ocsd_xl_a06', 'ocsd_xl_w04', 'ocsd_xl_noenergy', 'ocsd_xl_sep', 'ocsd_xl_id']
+if RND != 'v1':
+    CANDIDATES.append('ocsd_xl_m2b')
 
 
 def main():
@@ -24,12 +33,12 @@ def main():
         schema='ocsd-xl-study-v1',
         title='OCSD-XL development study (M1-M5 on SDXL, 1024 px)',
         stage='development: chooses the OCSD-XL configuration; not a held-out result',
-        drive_root='xl_dev_v1', scene_assets='assets/heldout_v1', scenes=SCENES, seeds=[0, 1], size=SIZE,
+        drive_root=f'xl_dev_{RND}', scene_assets=ASSETS, scenes=SCENES, seeds=[0, 1], size=SIZE,
         arms=arms, arm_config_sha256=arm_digest(arms), models=XL_MODELS,
         arm_settings={a: dict(kind=ARMS[a][0], overrides=ARMS[a][1]) for a in arms},
         common_settings=XL_COMMON, ocsd_xl_settings={k: v for k, v in XL_OCSD.items()},
         centre_config=arm_config('ocsd_xl')[1].to_dict(),
-        reference_arm='xl_controlnet', review_salt='ocsd-xl-dev-v1',
+        reference_arm='xl_controlnet', review_salt=f'ocsd-xl-dev-{RND}',
         evaluation=dict(detector='OWLv2 (independent of the Grounding DINO used inside M2 / M5(d))', det_thr=0.3,
                         match_iou=0.1, image_size=512, sketch_fidelity='SAM outline vs raw sketch ink',
                         quality_proxy='PickScore v1 (secondary; a learned preference model, not a human rating)'),
@@ -47,11 +56,20 @@ def main():
                    '4. Go to confirmation only if the chosen arm has S >= S of xl_controlnet (same backbone and '
                    'ControlNet); otherwise report that M2-M5 add nothing on SDXL.',
                    '5. If no candidate is admissible, nothing is frozen; the next development round uses the '
-                   'held-out v2 scenes.'],
+                   'held-out v2 scenes.' if RND == 'v1' else
+                   '5. If no candidate is admissible, nothing is frozen and the SDXL line is reported as not yet '
+                   'better than its own baseline; a third round needs a new diagnosis first.'],
             note='PickScore, CLIP, count accuracy, relations and facing are reported but do not enter the rule.'),
         confirmation_plan='Frozen OCSD-XL vs original OCSD (v1), OCSD-v2, GLIGEN, Collage, ControlNet (SD 1.5), '
                           'InstanceDiffusion and the SDXL baselines on the 18 held-out v3 scenes and the 72 paper '
                           'scenes; protocol locked in a separate file before that run.')
+    if RND != 'v1':
+        protocol.update(round=RND, m2_variants=ocsd_xl.ROUNDS[RND]['m2'],
+                        arm_m2={a: ocsd_xl.arm_m2(a) for a in arms},
+                        title=f'OCSD-XL development round {RND[1:]} (M1-M5 on SDXL, 1024 px)',
+                        changes_since_previous_round='M2 only: photo-style object prompt on a gray backdrop, negative '
+                        'prompt against drawings (all arms), K=3, softer object ControlNet (two variants), and a '
+                        'non-finite guard in M3 training. M4 and M5 unchanged.')
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT/'protocol.json').write_text(json.dumps(protocol, indent=1) + '\n')
     print('locked', OUT/'protocol.json', protocol['arm_config_sha256'][:12], len(SCENES), 'scenes', len(arms), 'arms')

@@ -32,8 +32,11 @@ LOWER_IS_BETTER = {"sketch_chamfer", "time_s"}
 
 # ---------------------------------------------------------------------------------------------- protocol
 def arm_digest(arms):
-    from .ocsd_xl import arm_config
-    return digest({a: (arm_config(a)[0], arm_config(a)[1].to_dict()) for a in arms})
+    from .ocsd_xl import ROUND, arm_config, arm_m2, m2_config
+    d = {a: (arm_config(a)[0], arm_config(a)[1].to_dict()) for a in arms}
+    if ROUND != "v1":       # round 1 was locked before M2 variants existed; its digest must not change
+        d["__m2__"] = {a: (arm_m2(a), m2_config(arm_m2(a)).to_dict()) for a in arms}
+    return digest(d)
 
 
 def load_protocol(name: str) -> dict:
@@ -41,6 +44,8 @@ def load_protocol(name: str) -> dict:
     from .engine_xl import XL_MODELS
     p = json.loads((ROOT / "assets" / name / "protocol.json").read_text())
     p["name"] = name
+    from . import ocsd_xl
+    ocsd_xl.use_round(p.get("round", "v1"))
     scenes = ROOT / p["scene_assets"] / SPLIT
     manifest = json.loads((ROOT / p["scene_assets"] / "manifest.json").read_text())
     for sid in p["scenes"]:
@@ -111,7 +116,7 @@ def generate(drive_root, p, eng=None, vis=None, max_minutes=None, log=print):
     import cv2
     import torch
     from .data import load_scene
-    from .ocsd_xl import ARMS, compose_preview, make_objects, run_arm, to_eval_size, upscale_scene
+    from .ocsd_xl import ARMS, arm_m2, compose_preview, make_objects, run_arm, to_eval_size, upscale_scene
     dirs = Dirs(drive_root, p)
     arms, seeds = list(p["arms"]), list(p["seeds"])
     jobs = [(sdir, seed) for sdir in scene_dirs(p) for seed in seeds]
@@ -141,20 +146,25 @@ def generate(drive_root, p, eng=None, vis=None, max_minutes=None, log=print):
         sid = scene.sid
         scene_xl = upscale_scene(scene, int(p.get("size", 1024)))
         if hasattr(vis, "set_scene"): vis.set_scene(scene_xl)      # CPU tests only (fake detector)
-        objs, m2_log = None, {}
-        if any(ARMS[a][0] != "controlnet" for a in arms_left):
+        m2_sets = {}
+        for variant in sorted({arm_m2(a) for a in arms_left if ARMS[a][0] != "controlnet"}):
+            m2_log = {}
             try:
                 before = dict(eng.compute)
-                objs = make_objects(eng, vis, scene_xl, seed, m2_log)
+                m2_sets[variant] = (make_objects(eng, vis, scene_xl, seed, m2_log, variant), m2_log)
                 m2_log["compute"] = eng.compute_delta(before)
-                cv2.imwrite(str(dirs.m2 / f"{sid}_s{seed}.jpg"),
-                            cv2.cvtColor(to_eval_size(compose_preview(scene_xl, objs)), cv2.COLOR_RGB2BGR))
+                tag = "" if variant == "a" else f"_m2{variant}"
+                cv2.imwrite(str(dirs.m2 / f"{sid}_s{seed}{tag}.jpg"),
+                            cv2.cvtColor(to_eval_size(compose_preview(scene_xl, m2_sets[variant][0])),
+                                         cv2.COLOR_RGB2BGR))
             except Exception as exc:
-                failures.append(dict(arm="M2", sid=sid, seed=seed, error=repr(exc), traceback=traceback.format_exc()))
-                log(f"[xl] M2 FAILED for {sid} seed {seed}: {exc!r}")
+                failures.append(dict(arm=f"M2-{variant}", sid=sid, seed=seed, error=repr(exc),
+                                     traceback=traceback.format_exc()))
+                log(f"[xl] M2 ({variant}) FAILED for {sid} seed {seed}: {exc!r}")
                 _status(dirs, failures=failures[-20:])
                 if torch.cuda.is_available(): torch.cuda.empty_cache()
         for arm in arms_left:
+            objs, m2_log = m2_sets.get(arm_m2(arm), (None, {}))
             if objs is None and ARMS[arm][0] != "controlnet":
                 continue
             run_log = {}
@@ -182,7 +192,8 @@ def generate(drive_root, p, eng=None, vis=None, max_minutes=None, log=print):
                     f"| elapsed {(time.time() - start) / 60:.0f} min")
             except Exception as exc:
                 streak[arm] = streak.get(arm, 0) + 1
-                failures.append(dict(arm=arm, sid=sid, seed=seed, error=repr(exc), traceback=traceback.format_exc()))
+                failures.append(dict(arm=arm, sid=sid, seed=seed, error=repr(exc), traceback=traceback.format_exc(),
+                                     m3={k: v for k, v in run_log.items() if k.startswith("m3")}))
                 log(f"[xl] FAILED {sid} s{seed} {arm}: {exc!r}")
                 traceback.print_exc()
                 if streak[arm] >= 3:

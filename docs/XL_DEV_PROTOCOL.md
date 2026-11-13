@@ -74,3 +74,21 @@ No number from this development study will be reported as a result. It only sele
 
 Roughly 2 to 3 A100 hours plus a one-time download of about 20 GB of public models. The run is resumable: finished
 images are kept on Drive (`KLTN_OCSD/xl_dev_v1/`).
+
+## Round 2 (added 2026-11-13, before any round-2 image)
+
+Round 1 ended with no admissible configuration (`docs/XL_DEV1_RESULTS.md`): M2 on SDXL returned white cut-out objects.
+Round 2 (`assets/xl_dev_v2/protocol.json`, run mode `xl_dev2`) keeps the design and the decision rule and changes only
+M2 and the prompts:
+
+- object prompt: "a photo of a {phrase}, realistic, detailed texture, natural colors, soft studio lighting, plain gray
+  studio background";
+- negative prompt with a style term (drawing, sketch, line art, illustration, painting, ...) for every arm, baselines
+  included;
+- K = 3 object candidates;
+- object ControlNet: variant a = scale 0.7 on all steps (default), variant b = scale 1.0 on the first half of the
+  steps (arms `ocsd_xl_m2b`, `xl_collage_m2b`);
+- M3 training skips steps with a non-finite loss or gradient.
+
+Scenes: the 9 scenes `*_000` of `assets/heldout_v2`. 13 arms, 234 images. If no candidate is admissible again, the SDXL
+line is reported as not yet better than its own baseline and a third round needs a new diagnosis first.

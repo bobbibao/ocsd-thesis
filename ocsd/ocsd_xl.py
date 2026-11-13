@@ -56,10 +56,57 @@ ARMS: Dict[str, Tuple[str, dict]] = {
 }
 
 
+# ---------------------------------------------------------------------------------------------- round 2 (2026-11-13)
+# Round 1 (xl_dev_v1) showed that M2 on SDXL returns white paper-cutout / line-drawing objects: "simple white
+# background" plus a scribble ControlNet at full strength makes SDXL draw the outline instead of photographing the
+# object, and every arm that anchors to those objects inherits them. Round 2 changes only what feeds M2 and the
+# negative prompt (the same for every arm, baselines included); M4 and M5 are as in round 1.
+NEG_STYLE = "drawing, sketch, line art, outline, illustration, painting, cartoon, clipart, paper cutout, 3d render"
+NEG_SCENE = OCSDConfig().negative_prompt + ", " + NEG_STYLE
+ROUNDS = {
+    "v1": dict(common=dict(XL_COMMON), ocsd=dict(XL_OCSD), arms=dict(ARMS), m2={"a": {}}),
+    "v2": dict(
+        common=dict(XL_COMMON, K=3, negative_prompt=NEG_SCENE,
+                    obj_negative_prompt=NEG_SCENE + ", white silhouette, blank, flat, text",
+                    obj_prompt_tmpl="a photo of a {phrase}, realistic, detailed texture, natural colors, "
+                                    "soft studio lighting, plain gray studio background",
+                    obj_cn_scale=0.7),
+        ocsd=dict(XL_OCSD),
+        # two ways of loosening the sketch control of M2; every other M2 setting is shared
+        m2={"a": {},                                             # scale 0.7 on every step
+            "b": dict(obj_cn_scale=1.0, obj_cn_end=0.5)},        # full scale on the first half of the steps only
+        arms=dict(ARMS, **{
+            "xl_collage_m2b": ("collage", dict(collage_strength=0.3, m2_per_seed=True, m2="b")),
+            "ocsd_xl_m2b": ("ocsd", dict(m2="b")),
+        })),
+}
+ROUND = "v1"
+
+
+def use_round(name: str) -> None:
+    """Switch the module to the settings of one development round (in place, so importers see them)."""
+    global ROUND
+    r = ROUNDS[name]
+    for target, src in ((XL_COMMON, r["common"]), (XL_OCSD, r["ocsd"]), (ARMS, r["arms"])):
+        target.clear()
+        target.update(src)
+    ROUND = name
+
+
+def arm_m2(name: str) -> str:
+    """Which M2 object set an arm uses."""
+    return ARMS[name][1].get("m2", "a")
+
+
 def arm_config(name: str) -> Tuple[str, OCSDConfig]:
     kind, over = ARMS[name]
+    over = {k: v for k, v in over.items() if k != "m2"}
     base = dict(XL_COMMON, **(XL_OCSD if kind == "ocsd" else {}))
     return kind, OCSDConfig().replace(**dict(base, **over))
+
+
+def m2_config(variant: str = "a") -> OCSDConfig:
+    return arm_config("ocsd_xl")[1].replace(**ROUNDS[ROUND]["m2"][variant])
 
 
 # ---------------------------------------------------------------------------------------------- scene scaling
@@ -87,10 +134,10 @@ def to_eval_size(img: np.ndarray, size: int = 512) -> np.ndarray:
 
 
 # ---------------------------------------------------------------------------------------------- generation
-def make_objects(eng, vis, scene_xl: Scene, seed: int, log: Optional[dict] = None):
-    """M2 for one (scene, seed); every arm of that pair shares these objects."""
+def make_objects(eng, vis, scene_xl: Scene, seed: int, log: Optional[dict] = None, variant: str = "a"):
+    """M2 for one (scene, seed); every arm of that pair with the same M2 variant shares these objects."""
     from .method import object_branch
-    _, cfg = arm_config("ocsd_xl")
+    cfg = m2_config(variant)
     t0 = time.time()
     objs = object_branch(eng, vis, scene_xl, cfg, seed, log)
     if log is not None:

@@ -57,6 +57,7 @@ for o, u in zip(scene.objects, up.objects):
 print("upscale OK")
 
 # ---------------------------------------------------------------- every arm end to end at tiny size
+ocsd_xl.use_round("v2")      # the latest round: also exercises the M2 variants
 ocsd_xl.XL_COMMON.update(height=S, width=S, steps=6, obj_steps=4)
 ocsd_xl.XL_OCSD.update(tau=2)
 ocsd_xl.ARMS["ocsd_xl_id"] = ("ocsd", dict(use_identity=True, S1=3, S2=3, lora_scale=0.5, lora_rank=4))
