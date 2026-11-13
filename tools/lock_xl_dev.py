@@ -20,11 +20,20 @@ OUT = ROOT/f'assets/xl_dev_{RND}'
 # scenes are not touched here; they stay for the confirmation.
 # Round 2 uses the first scene of every cell of held-out v2 (also development data since November), as round 1's
 # rule prescribed.
-ASSETS = {'v1': 'assets/heldout_v1', 'v2': 'assets/heldout_v2'}[RND]
-SCENES = sorted(p.name for p in (ROOT/ASSETS/'quickdraw').iterdir() if p.name.endswith('_000'))
+ASSETS = {'v1': 'assets/heldout_v1', 'v2': 'assets/heldout_v2', 'v3': 'assets/heldout_v2'}[RND]
+# Round 3: the second scene of every cell of held-out v2 (not used by rounds 1-2).
+SCENES = sorted(p.name for p in (ROOT/ASSETS/'quickdraw').iterdir() if p.name.endswith('_001' if RND == 'v3' else '_000'))
 CANDIDATES = ['ocsd_xl', 'ocsd_xl_a02', 'ocsd_xl_a06', 'ocsd_xl_w04', 'ocsd_xl_noenergy', 'ocsd_xl_sep', 'ocsd_xl_id']
-if RND != 'v1':
+if RND == 'v2':
     CANDIDATES.append('ocsd_xl_m2b')
+if RND == 'v3':
+    CANDIDATES = [a for a in ARMS if a.startswith('ocsd_xl') and a not in ('ocsd_xl_norepair', 'ocsd_xl_region')]
+CHANGES = {
+    'v2': 'M2 only: photo-style object prompt on a gray backdrop, negative prompt against drawings (all arms), K=3, '
+          'softer object ControlNet (two variants), and a non-finite guard in M3 training. M4 and M5 unchanged.',
+    'v3': 'Centre moved to omega 0.6 and eta 0.02; the energy step is crossed with omega (0.4 / 0.6 / 0.8); the v1 '
+          'sampler and M2 variant b are dropped; text encoders kept in float32 during M3 training. M2 and the '
+          'prompts as in round 2.'}
 
 
 def main():
@@ -67,9 +76,7 @@ def main():
         protocol.update(round=RND, m2_variants=ocsd_xl.ROUNDS[RND]['m2'],
                         arm_m2={a: ocsd_xl.arm_m2(a) for a in arms},
                         title=f'OCSD-XL development round {RND[1:]} (M1-M5 on SDXL, 1024 px)',
-                        changes_since_previous_round='M2 only: photo-style object prompt on a gray backdrop, negative '
-                        'prompt against drawings (all arms), K=3, softer object ControlNet (two variants), and a '
-                        'non-finite guard in M3 training. M4 and M5 unchanged.')
+                        changes_since_previous_round=CHANGES[RND])
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT/'protocol.json').write_text(json.dumps(protocol, indent=1) + '\n')
     print('locked', OUT/'protocol.json', protocol['arm_config_sha256'][:12], len(SCENES), 'scenes', len(arms), 'arms')
