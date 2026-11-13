@@ -95,7 +95,7 @@ DIRECT_MOUNT = MOUNT.replace(
     'gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True)\n'
     'if gpu.returncode:\n    raise RuntimeError("Select a GPU runtime before Run all")\nprint(gpu.stdout)',
     '''import shutil
-if RUN_MODE not in ("xl_dev2", "xl_dev", "direct_preflight", "direct_canary", "direct_dev", "silhouette_dev", "naturalness_dev", "heldout", "heldout2", "heldout3", "paper3", "experiment"):
+if RUN_MODE not in ("xl_dev3", "xl_dev2", "xl_dev", "direct_preflight", "direct_canary", "direct_dev", "silhouette_dev", "naturalness_dev", "heldout", "heldout2", "heldout3", "paper3", "experiment"):
     raise ValueError("Unknown RUN_MODE")
 gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True) if shutil.which("nvidia-smi") else None
 if RUN_MODE == "direct_preflight":
@@ -294,8 +294,8 @@ else:
     print("Skipping the held-out comparison in this mode.")'''
 
 XL_STUDY = r'''#@title 3e. OCSD-XL study (M1-M5 on SDXL, 1024 px): generate, score, package
-if RUN_MODE in ("xl_dev", "xl_dev2"):
-    XL_PROTOCOL = {"xl_dev": "xl_dev_v1", "xl_dev2": "xl_dev_v2"}[RUN_MODE]
+if RUN_MODE in ("xl_dev", "xl_dev2", "xl_dev3"):
+    XL_PROTOCOL = {"xl_dev": "xl_dev_v1", "xl_dev2": "xl_dev_v2", "xl_dev3": "xl_dev_v3"}[RUN_MODE]
     prop = subprocess.run(["nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits"], capture_output=True, text=True).stdout.strip()
     if int(prop.splitlines()[0]) < 30000:
         raise RuntimeError("OCSD-XL needs about 30 GB of GPU memory: Runtime > Change runtime type > A100 GPU, then Run all")
@@ -377,19 +377,19 @@ nb([
     "The paper3 confirmation of OCSD v3 is done; do not rerun it "
     "([results](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/PAPER3_20261105_RESULTS.md)). OCSD v3 replaces M2-M5 "
     "with an external generator, so it is kept only as a comparison.\n\n"
-    "**Next step (2026-11-13): OCSD-XL development round 2.** Round 1 showed that the object step (M2) draws white "
-    "cut-outs on SDXL; round 2 fixes M2 and repeats the study on 9 other development scenes. "
-    "Runtime → Change runtime type → **A100 GPU** (High-RAM) → keep `RUN_MODE=\"xl_dev2\"` → **Run all**. "
+    "**Next step (2026-11-13): OCSD-XL development round 3.** Round 2 fixed the objects but anchored images still "
+    "look pasted; round 3 tests a weaker energy step and scene ControlNet on 9 new development scenes. "
+    "Runtime → Change runtime type → **A100 GPU** (High-RAM) → keep `RUN_MODE=\"xl_dev3\"` → **Run all**. "
     "9 scenes × 2 seeds × 13 arms = 234 images, about 2 A100 hours. If Colab stops, Run all again: finished images "
-    "are kept. Two ZIP files download at the end (also on Drive in `xl_dev_v2/results/`); send `REVIEW_xl_dev_v2.zip` "
-    "to Claude. [Round 1 results](https://github.com/bobbibao/ocsd-thesis/blob/claude/project-thread-ezrky1/docs/XL_DEV1_RESULTS.md), "
+    "are kept. Two ZIP files download at the end (also on Drive in `xl_dev_v3/results/`); send both to Claude. "
+    "[Results so far](https://github.com/bobbibao/ocsd-thesis/blob/claude/project-thread-ezrky1/docs/XL_DEV1_RESULTS.md), "
     "[Protocol](https://github.com/bobbibao/ocsd-thesis/blob/claude/project-thread-ezrky1/docs/XL_DEV_PROTOCOL.md).\n\n"
     "Chỉ khi chủ động tái lập thí nghiệm cũ: chọn `RUN_MODE=\"experiment\"` và GPU L4/A100. "
     "Luồng này chạy 4 giai đoạn: (A) dựng bộ dữ liệu, (B) sinh ảnh cho E1–E4 và khảo sát α, (C) đánh giá, "
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
     "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
-    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "xl_dev2"  #@param ["xl_dev2", "xl_dev", "paper3", "heldout3", "naturalness_dev", "heldout2", "silhouette_dev", "heldout", "direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20').replace('BRANCH     = "main"   ', 'BRANCH     = "claude/project-thread-ezrky1"').replace('RUN_ID     = ""', 'XL_MAX_MINUTES = 330   #@param {type:"number"}\nRUN_ID     = ""'),
+    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "xl_dev3"  #@param ["xl_dev3", "xl_dev2", "xl_dev", "paper3", "heldout3", "naturalness_dev", "heldout2", "silhouette_dev", "heldout", "direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20').replace('BRANCH     = "main"   ', 'BRANCH     = "claude/project-thread-ezrky1"').replace('RUN_ID     = ""', 'XL_MAX_MINUTES = 330   #@param {type:"number"}\nRUN_ID     = ""'),
     DIRECT_MOUNT, DIRECT_PREFLIGHT, DIRECT_CANARY, DIRECT_DEV, DIRECT_HELDOUT, XL_STUDY, INSTALL,
     "MD:## Các ô dưới chỉ chạy khi RUN_MODE=experiment\nPhép thử cũ `foreground_screen`: 1 cảnh xe đạp × 4 đối chứng "
     "= 4 ảnh cuối. So sánh clean cũ, anchor có nền cảnh, mask học được dạng cứng và dạng mềm. "

@@ -72,13 +72,16 @@ class EngineXL(Engine):
 
     def encode_grad(self, prompts: Sequence[str]) -> torch.Tensor:
         hidden, pooled = [], None
-        for tok, te in self.text_stacks():
-            ids = tok(list(prompts), padding="max_length", max_length=self.tokenizer.model_max_length,
-                      truncation=True, return_tensors="pt").input_ids.to(self.device)
-            out = te(ids, output_hidden_states=True)
-            hidden.append(out.hidden_states[-2])
-            if te is self.text_encoder_2:
-                pooled = out.text_embeds
+        # The text encoders are float32 and must stay so: M3 calls this inside eng.autocast(), and the second SDXL
+        # encoder overflows in half precision (rounds 1-2: every M3 training step had a non-finite loss).
+        with torch.autocast(self.device.type, enabled=False):
+            for tok, te in self.text_stacks():
+                ids = tok(list(prompts), padding="max_length", max_length=self.tokenizer.model_max_length,
+                          truncation=True, return_tensors="pt").input_ids.to(self.device)
+                out = te(ids, output_hidden_states=True)
+                hidden.append(out.hidden_states[-2].float())
+                if te is self.text_encoder_2:
+                    pooled = out.text_embeds.float()
         h = torch.cat(hidden, dim=-1)
         row = F.pad(pooled, (0, h.shape[-1] - pooled.shape[-1]))[:, None]
         return torch.cat([h, row], dim=1).to(self.dtype)

@@ -80,6 +80,29 @@ ROUNDS = {
             "ocsd_xl_m2b": ("ocsd", dict(m2="b")),
         })),
 }
+# ---------------------------------------------------------------------------------------------- round 3 (2026-11-13)
+# Round 2 (xl_dev_v2): the M2 objects are photographs now, but the anchored arms still look pasted (blind N 0.22 for
+# the centre). The arms that looked best were the ones with a weaker push on the latents: no energy step (N 0.78),
+# scene ControlNet 0.4 (0.72), no anchoring (0.83). Round 3 therefore moves the centre to omega 0.6 and eta 0.02 and
+# crosses the energy step with omega; M2 (variant a) and the prompts stay as in round 2.
+_R3 = dict(XL_OCSD, omega=0.6, eta=0.02)
+ROUNDS["v3"] = dict(
+    common=dict(ROUNDS["v2"]["common"]), ocsd=_R3, m2={"a": {}},
+    arms={
+        "xl_controlnet": ("controlnet", {}),
+        "xl_collage": ("collage", dict(collage_strength=0.3, m2_per_seed=True)),
+        "ocsd_xl": ("ocsd", {}),
+        "ocsd_xl_noenergy": ("ocsd", dict(use_energy=False)),
+        "ocsd_xl_e05": ("ocsd", dict(eta=0.05)),                      # round-2 energy step at the new omega
+        "ocsd_xl_w04": ("ocsd", dict(omega=0.4)),
+        "ocsd_xl_w04_noenergy": ("ocsd", dict(omega=0.4, use_energy=False)),
+        "ocsd_xl_w08_noenergy": ("ocsd", dict(omega=0.8, use_energy=False)),   # = round 2's ocsd_xl_noenergy
+        "ocsd_xl_a02": ("ocsd", dict(alpha=0.2)),
+        "ocsd_xl_a06": ("ocsd", dict(alpha=0.6)),
+        "ocsd_xl_norepair": ("ocsd", dict(use_verify=False, repair=False)),
+        "ocsd_xl_region": ("ocsd", dict(alpha=1.0)),
+        "ocsd_xl_id": ("ocsd", dict(use_identity=True, S1=100, S2=100, lora_scale=0.5)),
+    })
 ROUND = "v1"
 
 
