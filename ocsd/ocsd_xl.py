@@ -103,6 +103,19 @@ ROUNDS["v3"] = dict(
         "ocsd_xl_region": ("ocsd", dict(alpha=1.0)),
         "ocsd_xl_id": ("ocsd", dict(use_identity=True, S1=100, S2=100, lora_scale=0.5)),
     })
+# ---------------------------------------------------------------------------------------------- confirmation (2026-11-17)
+# Round 3 found no single setting that is both natural and close to the best structure score; it found two ends of one
+# trade-off. Both are frozen here, unchanged from round 3 (`ocsd_xl_w04` and `ocsd_xl_w08_noenergy`), and tested on
+# scenes the SDXL line has never seen (docs/XL_CONFIRM_PROTOCOL.md).
+ROUNDS["c1"] = dict(
+    common=dict(ROUNDS["v3"]["common"]), ocsd=dict(_R3),
+    m2={"a": dict(omega=0.6)},        # M2 is configured exactly as in round 3 (omega is not read by M2)
+    arms={
+        "xl_controlnet": ("controlnet", {}),
+        "xl_collage": ("collage", dict(collage_strength=0.3, m2_per_seed=True)),
+        "ocsd_xl_natural": ("ocsd", dict(omega=0.4)),                          # scene ControlNet 0.4, energy 0.02
+        "ocsd_xl_faithful": ("ocsd", dict(omega=0.8, use_energy=False)),       # scene ControlNet 0.8, no energy step
+    })
 ROUND = "v1"
 
 
@@ -114,6 +127,11 @@ def use_round(name: str) -> None:
         target.clear()
         target.update(src)
     ROUND = name
+
+
+def CENTRE() -> str:
+    """The arm whose configuration defines M2 (object branch) for the round: `ocsd_xl`, or the first OCSD arm."""
+    return "ocsd_xl" if "ocsd_xl" in ARMS else next(a for a, (k, _) in ARMS.items() if k == "ocsd")
 
 
 def arm_m2(name: str) -> str:
@@ -129,7 +147,7 @@ def arm_config(name: str) -> Tuple[str, OCSDConfig]:
 
 
 def m2_config(variant: str = "a") -> OCSDConfig:
-    return arm_config("ocsd_xl")[1].replace(**ROUNDS[ROUND]["m2"][variant])
+    return arm_config(CENTRE())[1].replace(**ROUNDS[ROUND]["m2"][variant])
 
 
 # ---------------------------------------------------------------------------------------------- scene scaling
@@ -201,4 +219,4 @@ def run_arm(name: str, eng, vis, scene_xl: Scene, seed: int, objs, log: Optional
 def compose_preview(scene_xl: Scene, objs) -> np.ndarray:
     """The M2 objects pasted at their sketch positions on a white canvas (what M4 anchors to)."""
     from .method import compose_foreground
-    return compose_foreground(scene_xl, objs, arm_config("ocsd_xl")[1])[0]
+    return compose_foreground(scene_xl, objs, arm_config(CENTRE())[1])[0]
