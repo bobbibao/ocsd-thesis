@@ -58,7 +58,15 @@ def load_protocol(name: str) -> dict:
         raise ValueError("Arm settings in ocsd/ocsd_xl.py differ from the locked protocol")
     if p["models"] != XL_MODELS:
         raise ValueError("Model repositories differ from the locked protocol")
+    if p.get("sd15_config_sha256") and p["sd15_config_sha256"] != sd15_digest(p):
+        raise ValueError("SD 1.5 method settings differ from the locked protocol")
     return p
+
+
+def all_arms(p):
+    """Every arm that is scored and reviewed: the SDXL arms, the SD 1.5 arms generated in this run and the arms whose
+    images are imported from an earlier locked run."""
+    return list(p["arms"]) + list(p.get("sd15_arms", [])) + list(p.get("imported_arms", {}))
 
 
 def scene_dirs(p):
@@ -206,6 +214,84 @@ def generate(drive_root, p, eng=None, vis=None, max_minutes=None, log=print):
     return eng, vis
 
 
+# ---------------------------------------------------------------------------------------------- SD 1.5 arms
+def import_legacy(drive_root, p, log=print):
+    """Copy the images of an earlier locked run on the same scenes and seeds (protocol "imported_arms": arm -> folder
+    under the Drive root) into this study, so that one evaluator scores every arm and the blind sheets show them all.
+    Returns the (arm, sid, seed) triples that are not on Drive."""
+    import shutil
+    dirs = Dirs(drive_root, p)
+    missing, record = [], {}
+    for arm, src in p.get("imported_arms", {}).items():
+        for sid in p["scenes"]:
+            for seed in p["seeds"]:
+                a, b = Path(drive_root) / src / f"{sid}_s{seed}.png", dirs.png(arm, sid, seed)
+                ok = a.exists()
+                if ok and a.with_suffix(".json").exists():      # the earlier run logged each image's checksum
+                    try:
+                        ok = json.loads(a.with_suffix(".json").read_text()).get("sha256", file_hash(a)) == file_hash(a)
+                    except ValueError:
+                        ok = False
+                if not ok:
+                    if not b.exists(): missing.append((arm, sid, seed))
+                    continue
+                if not b.exists() or file_hash(a) != file_hash(b):
+                    b.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(a, b)
+                    if a.with_suffix(".json").exists(): shutil.copy2(a.with_suffix(".json"), b.with_suffix(".json"))
+                record[f"{arm}/{sid}_s{seed}"] = file_hash(b)
+    atomic_json(dirs.results / "imported.json", dict(sources=p.get("imported_arms", {}), sha256=record,
+                                                     missing=[list(m) for m in missing]))
+    if p.get("imported_arms"):
+        log(f"[xl] imported {len(record)} images of {sorted(p['imported_arms'])} from the earlier run; "
+            f"{len(missing)} not found on Drive")
+    return missing
+
+
+def sd15_configs(p):
+    """The SD 1.5 methods with the settings of the earlier locked comparison (tier + frozen paper_v2 tuning)."""
+    from .config import ExperimentConfig
+    from .stages import tier_baselines, tier_variants
+    E = ExperimentConfig(tier=p["sd15_tier"])
+    variants, base = tier_variants(E)
+    return E, variants, base, tier_baselines(E)
+
+
+def sd15_digest(p):
+    _, variants, _, baselines = sd15_configs(p)
+    names = list(p.get("sd15_arms", [])) + list(p.get("sd15_fallback", []))
+    return digest({m: (variants[m].to_dict() if m in variants else [baselines[m][0], baselines[m][1].to_dict()])
+                   for m in names})
+
+
+def generate_sd15(drive_root, p, missing=(), eng=None, vis=None, max_minutes=None, log=print):
+    """Generate the SD 1.5 arms of this study with the legacy runner: the arms in "sd15_arms" (not part of the
+    earlier run) and, only for images that could not be imported, the arms in "sd15_fallback"."""
+    dirs = Dirs(drive_root, p)
+    want = {(m, sid, s) for m in p.get("sd15_arms", []) for sid in p["scenes"] for s in p["seeds"]}
+    want |= {m for m in missing if m[0] in p.get("sd15_fallback", [])}
+    want = {(m, sid, s) for m, sid, s in want
+            if not (dirs.png(m, sid, s).exists() and dirs.png(m, sid, s).with_suffix(".json").exists())}
+    if not want:
+        return eng, vis
+    log(f"[xl] SD 1.5 arms: {len(want)} images to generate ({sorted({m for m, _, _ in want})})")
+    _status(dirs, stage="generate_sd15", sd15_todo=len(want))
+    from .runner import Runner
+    E, variants, base, baselines = sd15_configs(p)
+    if eng is None:
+        from .engine import Engine
+        eng = Engine.from_pretrained(E.backbone, "cuda", E.fp16, cache_dir=os.environ.get("HF_HOME"), load_adapter=False)
+    if vis is None:
+        from .vision import Vision
+        vis = Vision(str(eng.device), cache_dir=os.environ.get("HF_HOME"))
+    runner = Runner(eng, vis, str(dirs.outputs), E.backbone, variants=variants, base_cfg=base, baselines=baselines,
+                    cache_dir=os.environ.get("HF_HOME"))
+    items = [(SPLIT, sdir, sorted((m, s) for m, sid, s in want if sid == Path(sdir).name)) for sdir in scene_dirs(p)]
+    stats = runner.run_items([x for x in items if x[2]], max_minutes=max_minutes)
+    _status(dirs, sd15=stats)
+    return eng, vis
+
+
 # ---------------------------------------------------------------------------------------------- evaluation
 class PickScore:
     """PickScore v1 (Kirstain et al., NeurIPS 2023): CLIP-H fine-tuned on human preferences between generated
@@ -249,7 +335,7 @@ def evaluate(drive_root, p, vis=None, picker=None, log=print):
     if vis is None:
         from .vision import Vision
         vis = Vision("cuda", cache_dir=os.environ.get("HF_HOME"))
-    arms, seeds = list(p["arms"]), list(p["seeds"])
+    arms, seeds = all_arms(p), list(p["seeds"])
     evaluate_images(str(dirs.outputs), "", SPLIT, arms, seeds, vis, str(dirs.results), scene_dirs=scene_dirs(p))
     extra_csv = dirs.results / SPLIT / "extra_metrics.csv"
     cached = _cached_rows(extra_csv, ["method", "sid", "seed"])
@@ -293,7 +379,7 @@ def _boot(values, n=10000, seed=0):
 
 def load_table(dirs, p):
     import pandas as pd
-    frames = [pd.read_csv(dirs.results / SPLIT / f"per_image_{a}.csv") for a in p["arms"]
+    frames = [pd.read_csv(dirs.results / SPLIT / f"per_image_{a}.csv") for a in all_arms(p)
               if (dirs.results / SPLIT / f"per_image_{a}.csv").exists()]
     if not frames:
         raise RuntimeError("No evaluated images")
@@ -304,7 +390,7 @@ def load_table(dirs, p):
 
 
 def review_order(p, sid, seed):
-    order = list(p["arms"])
+    order = all_arms(p)
     random.Random(f"{sid}:{seed}:{p['review_salt']}").shuffle(order)
     return dict(zip("ABCDEFGHIJKLMNOP", order))
 
@@ -350,7 +436,7 @@ def report(drive_root, p, log=print):
     expected = len(p["scenes"]) * len(p["seeds"])
     metrics = [m for m in METRICS if m in df]
     rows = []
-    for arm in p["arms"]:
+    for arm in all_arms(p):
         d = df[df.method == arm]
         r = dict(method=arm, images=len(d), complete=len(d) == expected)
         for k in metrics:
@@ -362,7 +448,7 @@ def report(drive_root, p, log=print):
     ref = p.get("reference_arm")
     paired = []
     if ref and (df.method == ref).any():
-        for arm in p["arms"]:
+        for arm in all_arms(p):
             if arm == ref: continue
             for k in metrics:
                 t = df.groupby(["method", "sid"])[k].mean().unstack("method")
@@ -379,7 +465,7 @@ def report(drive_root, p, log=print):
     key = make_review(dirs, p)
     lines = [f"# {p['title']}", "", f"Protocol: assets/{p['name']}/protocol.json. {len(p['scenes'])} scenes x seeds "
              f"{p['seeds']}; means over scenes (seeds averaged) with 95% bootstrap CIs over scenes.",
-             "Images are generated at 1024 px and scored at 512 px. sketch_chamfer and time_s: lower is better.", "",
+             "SDXL images are generated at 1024 px and scored at 512 px. sketch_chamfer and time_s: lower is better.", "",
              "| arm | images | " + " | ".join(metrics) + " |", "|---|---|" + "---|" * len(metrics)]
     for r in rows:
         lines.append(f"| {r['method']} | {r['images']}/{expected} | " + " | ".join(
@@ -432,11 +518,24 @@ def main(drive_root, protocol="xl_dev_v1", max_minutes=None):
             head = None
         _status(dirs, protocol=protocol, code=head, error=None)
         import torch
+        t_start = time.time()
+        missing = import_legacy(drive_root, p)
         eng, vis = generate(drive_root, p, max_minutes=max_minutes)
         del eng
         import gc
         gc.collect()
         if torch.cuda.is_available(): torch.cuda.empty_cache()
+        if p.get("sd15_arms") or missing:
+            try:        # a failure here must not lose the SDXL images' scores; Run all again retries it
+                left = max(5.0, max_minutes - (time.time() - t_start) / 60) if max_minutes else None
+                eng15, vis = generate_sd15(drive_root, p, missing, vis=vis, max_minutes=left)
+                del eng15
+            except Exception as exc:
+                print(f"[xl] SD 1.5 arms FAILED ({exc!r}); continuing with the images that exist", flush=True)
+                traceback.print_exc()
+                _status(dirs, sd15_error=repr(exc), sd15_traceback=traceback.format_exc())
+            gc.collect()
+            if torch.cuda.is_available(): torch.cuda.empty_cache()
         picker = None
         try:
             picker = PickScore("cuda" if torch.cuda.is_available() else "cpu", cache_dir=os.environ.get("HF_HOME"))
