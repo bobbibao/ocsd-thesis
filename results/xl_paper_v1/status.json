@@ -1,0 +1,24 @@
+{
+  "protocol": "xl_paper_v1",
+  "code": "90cb97659322be08af97a110c5dcf73ea294ff81",
+  "error": null,
+  "scene_identity": {
+    "manifest_sha256": "5579b88c3709de4895843a5504613f280a6b03e21765ded30f249b3b4304d52f",
+    "dataset_id": "bcd46251d8a2e0fb54900ef9088d8a4882092bcfdbb66c9a5653c5851210fc67",
+    "same_as_earlier_run": true
+  },
+  "updated": "2026-11-17 11:52:07",
+  "stage": "evaluated",
+  "total": 576,
+  "complete": 576,
+  "failures": [],
+  "arms_off": [],
+  "minutes": 249.49862553278606,
+  "sd15_todo": 144,
+  "sd15": {
+    "done": 144,
+    "skipped": 0,
+    "failed": 0
+  },
+  "pickscore_error": null
+}
