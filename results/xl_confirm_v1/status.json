@@ -1,0 +1,19 @@
+{
+  "protocol": "xl_confirm_v1",
+  "code": "dfa9ce63a88fa2401054985afe0a42d399c3854c",
+  "error": null,
+  "updated": "2026-11-17 04:26:34",
+  "stage": "evaluated",
+  "total": 144,
+  "complete": 144,
+  "failures": [],
+  "arms_off": [],
+  "minutes": 71.84362923304239,
+  "sd15_todo": 36,
+  "sd15": {
+    "done": 36,
+    "skipped": 0,
+    "failed": 0
+  },
+  "pickscore_error": null
+}
