@@ -215,4 +215,34 @@ v3_table(H3, 'heldout3', 36)
 P3 = os.environ.get('OCSD_PAPER3', '/mnt/project-files/results/paper_v3/paper3_20261105')
 v3_table(P3, 'paper3', 24)
 
+# OCSD-XL: two locked tests (held-out v3, 18 scenes; paper benchmark, 72 scenes), never pooled
+ARMXL = [('ocsd_xl_natural', 'OCSD-XL natural (ours)'), ('ocsd_xl_faithful', 'OCSD-XL faithful (ours)'),
+         ('ocsd', 'Original OCSD (SD 1.5)'), ('ocsd_v2', 'OCSD-v2 (SD 1.5)'),
+         ('xl_controlnet', 'SDXL + ControlNet'), ('xl_collage', 'SDXL Collage'),
+         ('gligen', 'GLIGEN'), ('collage', 'Collage (SD 1.5)'), ('controlnet', 'SD + ControlNet'),
+         ('ocsd_v3', 'OCSD v3 (ours)'), ('direct_box', 'InstanceDiffusion, boxes')]
+def xl_table(path, name):
+    an = json.load(open(os.path.join(path, 'analysis.json')))['means']
+    with open(os.path.join(path, 'tables', 'summary.csv'), encoding='utf-8') as f:
+        sm = {r['method']: r for r in csv.DictReader(f)}
+    rows = []
+    for a, lab in ARMXL:
+        m = sm[a]
+        rows.append([lab, '%.2f' % float(m['opr']), '%.2f' % float(m['miou']), '%.2f' % float(m['ra']),
+                     '%.2f' % float(m['count_acc']), '%.3f' % float(m['sketch_chamfer']), '%.2f' % float(m['facing_acc']),
+                     '%.2f' % float(m['pickscore']), '%.2f' % (an[a]['naturalness'] + 1e-9)])
+    for j, hi in [(1, 1), (2, 1), (3, 1), (4, 1), (5, 0), (6, 1), (7, 1), (8, 1)]: bold_best(rows, j, hi)
+    write(name, ['Method', 'OPR ↑', 'mIoU ↑', 'RA ↑', 'Count acc. ↑', 'Chamfer ↓', 'Facing ↑', 'PickScore', 'Natural. ↑'], rows)
+    with open(os.path.join(path, 'tables', 'by_count_bin.csv'), encoding='utf-8') as f:
+        bc = {}
+        for r in csv.DictReader(f): bc[(r['method'], r['count_bin'])] = r
+    bins = [b for b in ['1', '2', '3', '4', '5', '6', '7', '8+'] if any(k[1] == b for k in bc)]
+    rows = [[lab] + ['%.2f / %.2f / %.2f' % (float(bc[(a, b)]['opr']), float(bc[(a, b)]['miou']), float(bc[(a, b)]['count_acc'])) for b in bins]
+            for a, lab in ARMXL]
+    write(name + '_bins', ['Method'] + [b + ' obj.' for b in bins], rows)
+XLC = os.environ.get('OCSD_XL_CONFIRM', '/mnt/project-files/results/xl_confirm_v1')
+XLP = os.environ.get('OCSD_XL_PAPER', '/mnt/project-files/results/xl_paper_v1')
+xl_table(XLC, 'xl_heldout3')
+xl_table(XLP, 'xl_paper')
+
 print('tables from', RESULTS, '->', sorted(os.listdir(OUT)))

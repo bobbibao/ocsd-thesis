@@ -145,7 +145,7 @@ for t in doc.tables:
                 for r in p.runs:
                     r.font.size = fsize; r.font.name = FONT
                     if i == 0: r.font.bold = True
-doc.core_properties.title = 'Keeping Every Object in Shape: Sketch-Silhouette Conditioning for Object-Consistent Scene Generation'
+doc.core_properties.title = 'Keeping Every Object in Shape: Two Improved Models for Object-Consistent Sketch-and-Text Scene Generation'
 doc.core_properties.author = 'Le Hoang Bao, Thai Ba Cuong, Nguyen Thanh Chuyen'
 doc.save(out)
 print('saved', out, len(order), 'references')
