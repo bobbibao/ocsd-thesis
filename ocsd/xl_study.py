@@ -39,13 +39,33 @@ def arm_digest(arms):
     return digest(d)
 
 
-def load_protocol(name: str) -> dict:
+def import_scenes(p, drive_root):
+    """Protocols with "scene_import": the scenes are not committed. Copy them from the benchmark on Drive, check them
+    against the committed list of expected scenes (ocsd.heldout) and return what identifies the copied set."""
+    from . import heldout
+    spec = p["scene_import"]
+    heldout.use(spec["heldout_version"])
+    files = heldout.import_paper_scenes(Path(drive_root) / spec["source"])
+    if sorted({rel.split("/")[1] for rel in files}) != sorted(p["scenes"]):
+        raise ValueError("Imported scenes differ from the locked scene list")
+    # the identity that the earlier locked run recorded for its installed scenes (ocsd.provenance.dataset_identity
+    # over <data>/benchmarks_v2/quickdraw/...)
+    dataset_id = digest({"benchmarks_v2/" + rel: h for rel, h in files.items()})
+    return dict(manifest_sha256=file_hash(ROOT / p["scene_assets"] / "manifest.json"), dataset_id=dataset_id,
+                same_as_earlier_run=dataset_id == spec.get("earlier_run_dataset_id"))
+
+
+def load_protocol(name: str, drive_root=None) -> dict:
     """Read assets/<name>/protocol.json and refuse to run when scenes or arm settings differ from the lock."""
     from .engine_xl import XL_MODELS
     p = json.loads((ROOT / "assets" / name / "protocol.json").read_text())
     p["name"] = name
     from . import ocsd_xl
     ocsd_xl.use_round(p.get("round", "v1"))
+    if p.get("scene_import"):
+        if drive_root is None:
+            raise ValueError(f"Protocol {name} copies its scenes from Drive: pass the Drive root")
+        p["scene_identity"] = import_scenes(p, drive_root)
     scenes = ROOT / p["scene_assets"] / SPLIT
     manifest = json.loads((ROOT / p["scene_assets"] / "manifest.json").read_text())
     for sid in p["scenes"]:
@@ -107,6 +127,15 @@ def _done(dirs, p, arm, sid, seed):
         return meta["signature"] == _signature(p, arm, sid, seed) and meta["sha256"] == file_hash(png)
     except (OSError, ValueError, KeyError):
         return False
+
+
+def xl_images_left(drive_root, name):
+    """How many SDXL images of a protocol are not on Drive yet (no model or scene is loaded). The notebook uses it:
+    scoring and the SD 1.5 arms also run on a smaller GPU once this is 0."""
+    p = json.loads((ROOT / "assets" / name / "protocol.json").read_text())
+    out = Path(drive_root) / p["drive_root"] / "outputs" / SPLIT
+    return sum(not ((out / a / f"{sid}_s{seed}.png").exists() and (out / a / f"{sid}_s{seed}.json").exists())
+               for a in p["arms"] for sid in p["scenes"] for seed in p["seeds"])
 
 
 def _jsonable(o):
@@ -339,8 +368,12 @@ def evaluate(drive_root, p, vis=None, picker=None, log=print):
     evaluate_images(str(dirs.outputs), "", SPLIT, arms, seeds, vis, str(dirs.results), scene_dirs=scene_dirs(p))
     extra_csv = dirs.results / SPLIT / "extra_metrics.csv"
     cached = _cached_rows(extra_csv, ["method", "sid", "seed"])
-    rows, pick_error = [], None
+    rows, pick_error, fresh = [], None, 0
     for sdir in scene_dirs(p):
+        if fresh >= 50:         # checkpoint: rows computed so far + the cached rows of the scenes not reached yet
+            seen = {(r["method"], r["sid"], r["seed"]) for r in rows}
+            pd.DataFrame(rows + [r for k, r in cached.items() if k not in seen]).to_csv(extra_csv, index=False)
+            fresh = 0
         scene = load_scene(sdir)
         if hasattr(vis, "set_scene"): vis.set_scene(scene)
         for arm in arms:
@@ -363,6 +396,7 @@ def evaluate(drive_root, p, vis=None, picker=None, log=print):
                         pick_error = repr(exc)
                         log(f"[xl] PickScore unavailable: {pick_error}")
                 rows.append(row)
+                fresh += 1
     pd.DataFrame(rows).to_csv(extra_csv, index=False)
     _status(dirs, stage="evaluated", pickscore_error=pick_error)
     return vis
@@ -395,6 +429,15 @@ def review_order(p, sid, seed):
     return dict(zip("ABCDEFGHIJKLMNOP", order))
 
 
+def review_scenes(p):
+    """Scenes with a blind sheet: all of them, or the subset fixed in the protocol ("review")."""
+    return [sid for sid in p["scenes"] if sid in set(p.get("review", {}).get("scenes", p["scenes"]))]
+
+
+def review_seeds(p):
+    return [s for s in p["seeds"] if s in p.get("review", {}).get("seeds", p["seeds"])]
+
+
 def make_review(dirs, p, panel=384, columns=6):
     """Blind sheets: input sketch, then every arm under a letter (order shuffled per sheet; key kept separately)."""
     import textwrap
@@ -405,9 +448,9 @@ def make_review(dirs, p, panel=384, columns=6):
     out = dirs.results / "review"
     out.mkdir(parents=True, exist_ok=True)
     key = {}
-    for n, sdir in enumerate(scene_dirs(p), 1):
+    for n, sdir in enumerate([d for d in scene_dirs(p) if Path(d).name in review_scenes(p)], 1):
         scene = load_scene(sdir)
-        for seed in p["seeds"]:
+        for seed in review_seeds(p):
             mapping = {k: a for k, a in review_order(p, scene.sid, seed).items() if dirs.png(a, scene.sid, seed).exists()}
             key[f"{scene.sid}_s{seed}"] = mapping
             cells = [("Input sketch", Image.fromarray(scene.sketch).convert("RGB"))] + [
@@ -487,8 +530,10 @@ def report(drive_root, p, log=print):
     with ZipFile(review_zip, "w", ZIP_DEFLATED) as z:
         for path in sorted((dirs.results / "review").iterdir()):
             z.write(path, "review/" + path.name)
+        shown = {f"{sid}_s{seed}" for sid in review_scenes(p) for seed in review_seeds(p)}
         for path in sorted(dirs.m2.glob("*.jpg")):
-            z.write(path, "m2/" + path.name)
+            if any(path.name.startswith(x) for x in shown):
+                z.write(path, "m2/" + path.name)
     # the optional GitHub export (ocsd.sync) only carries logs/tables/figures: give it the sheets too
     import shutil
     fig = dirs.results / "figures" / "review_sheets"
@@ -504,7 +549,7 @@ def report(drive_root, p, log=print):
 def main(drive_root, protocol="xl_dev_v1", max_minutes=None):
     """Generate -> evaluate -> report. Everything is resumable; logs go to <root>/results/logs/run.log."""
     from .runlog import _Tee
-    p = load_protocol(protocol)
+    p = load_protocol(protocol, drive_root)
     dirs = Dirs(drive_root, p)
     log_file = (dirs.results / "logs" / "run.log").open("a")
     old_out, old_err = sys.stdout, sys.stderr
@@ -516,7 +561,8 @@ def main(drive_root, protocol="xl_dev_v1", max_minutes=None):
             head = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
         except Exception:
             head = None
-        _status(dirs, protocol=protocol, code=head, error=None)
+        _status(dirs, protocol=protocol, code=head, error=None, scene_identity=p.get("scene_identity"))
+        if p.get("scene_identity"): print("[xl] scenes:", p["scene_identity"], flush=True)
         import torch
         t_start = time.time()
         missing = import_legacy(drive_root, p)

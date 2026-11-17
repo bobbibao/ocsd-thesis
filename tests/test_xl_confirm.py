@@ -11,12 +11,14 @@ from tiny import FakeVision, make_engine, make_engine_xl
 from ocsd import ocsd_xl, xl_study
 
 W = os.environ.get("XLC_DIR", "/tmp/ocsd_xl_confirm_test")
+PROTOCOL = os.environ.get("XLC_PROTOCOL", "xl_confirm_v1")     # tests/test_xl_paper.py reuses this file for xl_paper_v1
+DRIVE = os.environ.get("XLC_DRIVE")                            # fake Drive root with the benchmark scenes (xl_paper_v1)
 BPE = os.path.join(os.path.dirname(open_clip.__file__), "bpe_simple_vocab_16e6.txt.gz")
 shutil.rmtree(W, ignore_errors=True); os.makedirs(W)
 S = 128
 
-lock = xl_study.load_protocol("xl_confirm_v1")           # digest of the SDXL arms and of the SD 1.5 settings
-assert len(lock["scenes"]) == 18 and lock["reference_arm"] == "ocsd" and len(xl_study.all_arms(lock)) == 11
+lock = xl_study.load_protocol(PROTOCOL, DRIVE)           # digest of the SDXL arms and of the SD 1.5 settings
+assert len(lock["scenes"]) == (72 if DRIVE else 18) and lock["reference_arm"] == "ocsd" and len(xl_study.all_arms(lock)) == 11
 assert ocsd_xl.arm_config("ocsd_xl_natural")[1].omega == 0.4 and ocsd_xl.arm_config("ocsd_xl_natural")[1].use_energy
 c = ocsd_xl.arm_config("ocsd_xl_faithful")[1]
 assert c.omega == 0.8 and not c.use_energy and c.eta == 0.02 and not c.use_identity
@@ -26,7 +28,7 @@ print("lock OK")
 
 ocsd_xl.XL_COMMON.update(height=S, width=S, steps=4, obj_steps=3, K=1)
 ocsd_xl.XL_OCSD.update(tau=2)
-sids = lock["scenes"][:2]
+sids = os.environ["XLC_SIDS"].split(",") if DRIVE else lock["scenes"][:2]
 p = dict(lock, name="test", drive_root="xl_confirm_test", scenes=sids, models={}, size=S,
          imported_arms={"ocsd": "old/quickdraw/ocsd", "controlnet": "old/quickdraw/controlnet",
                         "ocsd_v3": "old/quickdraw/ocsd_v3"}, sd15_fallback=["ocsd", "controlnet"])
@@ -83,12 +85,18 @@ out = xl_study.report(W, p)
 text = open(out["summary"]).read()
 assert all(a in text for a in xl_study.all_arms(p)) and "against ocsd" in text
 key = json.load(open(dirs.results / "review_key.json"))
-assert len(key) == 4 and sorted(len(v) for v in key.values()) == [7, 8, 8, 8]
+from zipfile import ZipFile
+m2 = sorted(n for n in ZipFile(out["review_archive"]).namelist() if n.startswith("m2/"))
+if "review" in lock:        # sheets only for the locked subset: here the first scene, seed 0
+    assert list(key) == [f"{sids[0]}_s0"] and len(key[f"{sids[0]}_s0"]) == 8 and m2 == [f"m2/{sids[0]}_s0.jpg"], (key, m2)
+    assert json.load(open(dirs.results / "status.json"))["sheets"] == 1
+else:
+    assert len(key) == 4 and sorted(len(v) for v in key.values()) == [7, 8, 8, 8] and len(m2) == 4
 import analyze_xl_confirm as A
 ratings = {s: {k: (i + len(s)) % 3 for i, k in enumerate(m)} for s, m in key.items()}
 json.dump(ratings, open(os.path.join(W, "ratings.json"), "w"))
 A.ROOT = type(A.ROOT)(ROOT)
-res = A.main(dirs.results, os.path.join(W, "ratings.json"))
+res = A.main(dirs.results, os.path.join(W, "ratings.json"), PROTOCOL)
 assert [r["id"] for r in res["primary"]] == ["P1", "P2", "P3", "P4"] and all(0 <= r["p"] <= r["p_holm"] <= 1 for r in res["primary"])
 assert set(res["claims"]) == {"C-faithful", "C-natural"} and "naturalness" in res["means"]["ocsd"]
 assert os.path.exists(dirs.results / "analysis.md")
