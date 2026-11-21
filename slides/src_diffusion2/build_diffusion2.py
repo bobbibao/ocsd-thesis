@@ -58,71 +58,68 @@ def strip(s, files, labels, head, y=1.72, sz=1.85, gap=0.2):
         tb(s, x, y + sz + 0.06, sz, 0.5, [[(l, 10.5 if j else 11.5, INK if j == 0 else MUT, j == 0)] for j, l in enumerate(lab.split('\n'))],
            align=PP_ALIGN.CENTER, space=0)
 
-# ------------------------------------------------------------------ slide A: forward + training
+# ------------------------------------------------------------------ slide A: forward + training (pictures only)
+def lab(s, x, y, w, text, col=MUT, sz=10, b=False):
+    tb(s, x, y, w, 0.3, [[(text, sz, col, b)]], align=PP_ALIGN.CENTER)
+def op(s, x, y, text):
+    tb(s, x, y, 0.5, 0.5, [[(text, 11, ORG, True)]], align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 s = A; clear(s)
 title(s, 'Mô hình khuếch tán: thêm nhiễu, rồi học cách xóa')
 strip(s, [f'a_fwd_{t}.png' for t in (0, 100, 300, 500, 800, 1000)],
-      ['t = 0\nảnh gốc', 't = 100\nảnh × 0,95 + nhiễu × 0,32', 't = 300\nảnh × 0,63 + nhiễu × 0,78',
-       't = 500\nảnh × 0,28 + nhiễu × 0,96', 't = 800\nảnh × 0,04 + nhiễu × 1,00', 't = 1000\nchỉ còn nhiễu'],
-      ('Quá trình thuận: trộn thêm nhiễu ngẫu nhiên qua 1000 bước, ảnh mờ dần thành nhiễu (không cần học, chỉ là phép cộng)', 13, ORG, True))
-# training (left)
-tb(s, 0.6, 4.42, 7.6, 0.3, [[('Huấn luyện: dạy mạng U-Net đoán phần nhiễu đã trộn vào', 14, INK, True)]])
-y0, z = 4.82, 1.2
-pic(s, 'a_x0.png', 0.6, y0, z, z, True); tb(s, 1.85, y0 + 0.4, 0.3, 0.4, [[('+', 20, MUT, True)]], align=PP_ALIGN.CENTER)
-pic(s, 'a_eps.png', 2.2, y0, z, z, True); tb(s, 3.45, y0 + 0.4, 0.3, 0.4, [[('=', 20, MUT, True)]], align=PP_ALIGN.CENTER)
-pic(s, 'a_x300.png', 3.8, y0, z, z, True)
-for x, l in [(0.6, 'ảnh thật'), (2.2, 'nhiễu (biết trước)'), (3.8, 'ảnh nhiễu, t = 300')]:
-    tb(s, x - 0.1, y0 + z + 0.04, z + 0.2, 0.25, [[(l, 10, MUT, False)]], align=PP_ALIGN.CENTER)
-arrow(s, 5.08, y0 + 0.46, 0.38)
-u = box(s, 5.52, y0 + 0.1, 1.1, 1.0, LBL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-tb(s, 5.52, y0 + 0.1, 1.1, 1.0, [[('U-Net', 14, BLU, True)], [('mạng nơ-ron', 9.5, MUT, False)]], align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, space=0)
-arrow(s, 6.68, y0 + 0.46, 0.38)
-tb(s, 7.12, y0 + 0.12, 1.1, 1.0, [[('đoán:', 10.5, MUT, False)], [('nhiễu nào đã', 11, INK, True)], [('trộn vào?', 11, INK, True)]],
-   anchor=MSO_ANCHOR.MIDDLE, space=0)
-pic(s, 'eq_loss.png', 0.6, 6.42, h=0.3)
-tb(s, 2.55, 6.42, 5.7, 0.4, [[('So nhiễu đoán với nhiễu thật, sai bao nhiêu thì sửa trọng số; lặp lại với rất nhiều ảnh và mọi bước t.', 10.5, MUT, False)]],
-   anchor=MSO_ANCHOR.MIDDLE)
-# one-pixel example (right)
-box(s, 8.5, 4.42, 4.2, 2.45, PEA, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-tb(s, 8.72, 4.55, 3.8, 1.75, [[('Ví dụ với một điểm ảnh', 14, ORG, True)],
-                               [('Điểm ảnh có độ sáng ', 11.5, INK, False), ('0,8', 11.5, INK, True), ('; rút ngẫu nhiên một nhiễu ', 11.5, INK, False), ('0,5', 11.5, INK, True), ('.', 11.5, INK, False)],
-                               [('Ở bước t = 300: 0,63 × 0,8 + 0,78 × 0,5 ≈ ', 11.5, INK, False), ('0,89', 11.5, INK, True)],
-                               [('Mạng chỉ thấy 0,89 (và biết t = 300), phải đoán ra nhiễu 0,5.', 11.5, INK, False)]], space=5)
-pic(s, 'eq_fwd.png', 8.72, 6.35, h=0.36)
+      ['t = 0\nảnh gốc', 't = 100\nthêm một ít nhiễu', 't = 300\ncon bò mờ đi', 't = 500\ngần như không thấy', 't = 800\nchỉ còn vệt mờ', 't = 1000\nnhiễu hoàn toàn'],
+      ('Quá trình thuận: mỗi bước rắc thêm một ít nhiễu, sau 1000 bước ảnh thành nhiễu (không cần học)', 13, ORG, True))
+tb(s, 0.6, 4.4, 7.8, 0.3, [[('Huấn luyện = cho mạng làm bài tập “tìm nhiễu”', 14, INK, True)]])
+y0, z = 4.8, 1.35
+pic(s, 'c_tr0_noisy.png', 0.6, y0, z, z, True); lab(s, 0.5, y0 + z + 0.03, z + 0.2, 'đề bài: ảnh bị nhiễu')
+arrow(s, 2.05, y0 + 0.53, 0.35)
+box(s, 2.5, y0 + 0.2, 1.0, 0.95, LBL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+tb(s, 2.5, y0 + 0.2, 1.0, 0.95, [[('U-Net', 14, BLU, True)], [('mạng nơ-ron', 9, MUT, False)]], align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, space=0)
+arrow(s, 3.6, y0 + 0.53, 0.35)
+pic(s, 'c_tr0_noise.png', 4.05, y0, z, z, True); lab(s, 3.95, y0 + z + 0.03, z + 0.2, 'mạng chỉ ra: đây là nhiễu')
+op(s, 5.45, y0 + 0.42, 'bỏ đi')
+pic(s, 'c_tr0_clean.png', 5.95, y0, z, z, True); lab(s, 5.85, y0 + z + 0.03, z + 0.2, 'còn lại: ảnh gốc ✓', INK, 10, True)
+tb(s, 7.45, y0 + 0.15, 0.95, 1.1, [[('Sai thì sửa mạng, làm lại với ảnh khác.', 9.5, MUT, False)]], anchor=MSO_ANCHOR.MIDDLE)
+box(s, 8.6, 4.4, 4.1, 2.5, PEA, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+tb(s, 8.8, 4.5, 3.7, 0.3, [[('Luyện ở mọi mức nhiễu', 14, ORG, True)]])
+for k, (f, l) in enumerate([('c_tr0_noisy.png', 'nhẹ'), ('c_tr1_noisy.png', 'vừa'), ('c_tr2_noisy.png', 'nặng')]):
+    x = 8.8 + k * 1.25; pic(s, f, x, 4.9, 1.1, 1.1, True); lab(s, x, 6.02, 1.1, l, INK, 10, True)
+tb(s, 8.8, 6.33, 3.7, 0.5, [[('Học từ rất nhiều ảnh, mạng dần “biết” ảnh thật trông thế nào.', 10.5, INK, False)]])
 A.notes_slide.notes_text_frame.text = (
-    'Mô hình khuếch tán dựa trên một ý rất đơn giản. Hàng ảnh trên là quá trình thuận: lấy ảnh con bò, mỗi bước trộn thêm một chút nhiễu ngẫu nhiên. '
-    'Sau 1000 bước ảnh chỉ còn là nhiễu. Bước này không cần học, chỉ là phép cộng có hệ số: ví dụ ở bước 300, ảnh nhân 0,63 cộng nhiễu nhân 0,78. '
-    'Điều mô hình phải học là chiều ngược lại. Khi huấn luyện, ta lấy ảnh thật, rút một nhiễu ngẫu nhiên, trộn lại thành ảnh nhiễu ở một bước t bất kỳ, '
-    'rồi đưa cho mạng U-Net và hỏi: nhiễu nào đã được trộn vào? Vì ta biết nhiễu thật nên tính được mạng sai bao nhiêu và sửa trọng số. '
-    'Ví dụ một điểm ảnh sáng 0,8, nhiễu rút được là 0,5; ở bước 300 điểm ảnh thành 0,63 nhân 0,8 cộng 0,78 nhân 0,5, khoảng 0,89. Mạng chỉ thấy 0,89 và phải đoán ra 0,5. '
-    'Lặp lại với rất nhiều ảnh, mạng học được ảnh thật trông như thế nào.')
+    'Mô hình khuếch tán dựa trên một ý rất đơn giản. Hàng ảnh trên: lấy ảnh con bò, mỗi bước rắc thêm một ít nhiễu, giống như ảnh bị phủ dần bởi hạt nhiễu. '
+    'Sau 1000 bước ảnh chỉ còn là nhiễu. Bước này không cần học. '
+    'Điều mô hình phải học là chiều ngược lại. Khi huấn luyện, ta cho mạng U-Net làm bài tập tìm nhiễu: đưa một ảnh bị nhiễu, mạng phải chỉ ra phần nào là nhiễu. '
+    'Vì chính ta đã thêm nhiễu nên ta biết đáp án; bỏ phần nhiễu đi thì phải còn lại đúng ảnh gốc. Sai thì sửa mạng, rồi làm lại với ảnh khác. '
+    'Bài tập có đủ mức nhiễu, từ nhẹ đến rất nặng. Luyện với rất nhiều ảnh, mạng dần biết ảnh thật trông như thế nào.')
 
-# ------------------------------------------------------------------ slide B: sampling
+# ------------------------------------------------------------------ slide B: sampling (pictures only)
 s = B; clear(s)
 title(s, 'Sinh ảnh: bắt đầu từ nhiễu, xóa dần từng bước')
 strip(s, [f'b_x_{t}.png' for t in (1000, 800, 600, 400, 200, 0)],
-      ['t = 1000\nnhiễu ngẫu nhiên', 't = 800', 't = 600', 't = 400', 't = 200', 't = 0\nảnh mới'],
-      ('Quá trình ngược: lặp lại “đoán nhiễu rồi trừ bớt”, từ nhiễu thuần đến ảnh rõ nét', 13, ORG, True))
-tb(s, 0.6, 4.22, 12.1, 0.2, [[('Dãy ảnh tính thật bằng công thức DDPM (T = 1000). Để chạy được trên máy thường, bộ đoán nhiễu ở đây là bộ đoán lý tưởng trên 12 ảnh mẫu thay cho U-Net đã huấn luyện.', 9, MUT, False, True)]])
-box(s, 0.6, 4.55, 6.6, 2.32, GRY, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-tb(s, 0.82, 4.67, 6.2, 1.6, [[('Một bước làm gì? (tiếp ví dụ điểm ảnh)', 14, INK, True)],
-                              [('1. Mạng nhìn thấy 0,89 ở bước 300 và đoán nhiễu ≈ 0,5.', 11.5, INK, False)],
-                              [('2. Suy ra ảnh sạch: (0,89 − 0,78 × 0,5) / 0,63 ≈ ', 11.5, INK, False), ('0,8', 11.5, INK, True)],
-                              [('3. Chỉ đi một bước nhỏ về phía 0,8 (sang bước 299), rồi lặp lại đến t = 0.', 11.5, INK, False)]], space=5)
-pic(s, 'eq_x0.png', 0.82, 6.05, h=0.34)
-box(s, 7.45, 4.55, 5.25, 2.32, LBL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-tb(s, 7.67, 4.67, 4.85, 2.1, [[('Stable Diffusion dùng đúng cách này, thêm:', 14, BLU, True)],
-                               [('• Câu lệnh: ', 11.5, INK, True), ('mạng đoán nhiễu theo câu mô tả, nên ảnh cuối khớp câu.', 11.5, INK, False)],
-                               [('• Ảnh nén: ', 11.5, INK, True), ('khử nhiễu trên ảnh nén 64 × 64, nhanh hơn nhiều.', 11.5, INK, False)],
-                               [('• DDIM: ', 11.5, INK, True), ('chỉ cần khoảng 30 bước thay vì 1000.', 11.5, INK, False)],
-                               [('• Nhiễu ban đầu khác (hạt giống khác) → ảnh khác.', 11.5, INK, False)]], space=5)
+      ['t = 1000\nnhiễu ngẫu nhiên', 't = 800\nchưa thấy gì', 't = 600\nbắt đầu có hình', 't = 400\nthấy dáng con bò', 't = 200\nrõ dần', 't = 0\nảnh mới'],
+      ('Quá trình ngược: lặp lại “tìm nhiễu rồi xóa bớt một ít”, từ nhiễu thuần đến ảnh rõ nét', 13, ORG, True))
+tb(s, 0.6, 4.2, 12.1, 0.2, [[('Ảnh tính thật theo DDPM (1000 bước); để chạy được trên máy thường, bộ đoán nhiễu ở đây là bộ đoán lý tưởng trên 12 ảnh mẫu thay cho U-Net đã huấn luyện.', 9, MUT, False, True)]])
+box(s, 0.6, 4.5, 6.7, 2.4, GRY, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+tb(s, 0.8, 4.6, 6.3, 0.3, [[('Một bước làm gì?', 14, INK, True)]])
+y0, z = 5.0, 1.3
+pic(s, 'c_step_xa.png', 0.8, y0, z, z, True); lab(s, 0.7, y0 + z + 0.03, z + 0.2, 'ảnh đang nhiễu')
+arrow(s, 2.2, y0 + 0.5, 0.4)
+pic(s, 'c_step_guess.png', 2.7, y0, z, z, True); lab(s, 2.5, y0 + z + 0.03, z + 0.4, 'mạng đoán: ảnh sạch như này')
+arrow(s, 4.1, y0 + 0.5, 0.4)
+pic(s, 'c_step_xb.png', 4.6, y0, z, z, True); lab(s, 4.5, y0 + z + 0.03, z + 0.2, 'xóa bớt một ít nhiễu')
+tb(s, 6.0, y0 + 0.1, 1.2, 1.1, [[('Lặp lại đến khi hết nhiễu.', 10, ORG, True)]], anchor=MSO_ANCHOR.MIDDLE)
+box(s, 7.5, 4.5, 5.2, 2.4, LBL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+tb(s, 7.7, 4.6, 4.8, 0.3, [[('Nhiễu ban đầu khác → ảnh khác', 14, BLU, True)]])
+for k in range(3):
+    x = 7.75 + k * 1.6
+    pic(s, f'c_seed{k}_noise.png', x, 5.0, 0.8, 0.8, True); tb(s, x + 0.82, 5.22, 0.3, 0.35, [[('→', 12, BLU, True)]])
+    pic(s, f'c_seed{k}_img.png', x + 0.55, 5.55, 0.9, 0.9, True)
+tb(s, 7.7, 6.5, 4.8, 0.35, [[('Stable Diffusion thêm câu lệnh để chọn ảnh theo mô tả (slide 13).', 10.5, INK, True)]])
 B.notes_slide.notes_text_frame.text = (
-    'Khi đã có mạng biết đoán nhiễu, sinh ảnh mới là đi ngược lại. Bắt đầu từ một nhiễu hoàn toàn ngẫu nhiên ở bước 1000. '
-    'Ở mỗi bước, mạng đoán phần nhiễu, từ đó suy ra ảnh sạch trông thế nào, rồi chỉ đi một bước nhỏ về phía đó. Lặp lại đến bước 0 thì được ảnh rõ nét. '
-    'Tiếp ví dụ điểm ảnh: mạng thấy 0,89 ở bước 300, đoán nhiễu khoảng 0,5, suy ra ảnh sạch là 0,89 trừ 0,78 nhân 0,5, chia 0,63, đúng bằng 0,8. '
-    'Dãy ảnh trên được tính thật bằng công thức DDPM; để chạy trên máy thường, nhóm dùng bộ đoán lý tưởng trên 12 ảnh thay cho U-Net, nên ảnh cuối là một ảnh trong tập. '
-    'Stable Diffusion dùng đúng cách này nhưng thêm ba điều: mạng đoán nhiễu theo câu lệnh, khử nhiễu trên ảnh nén nhỏ nên nhanh, và dùng DDIM chỉ khoảng 30 bước. '
-    'Bây giờ quay lại slide 13 để nói về Stable Diffusion.')
+    'Khi mạng đã biết tìm nhiễu, sinh ảnh mới là đi ngược lại. Bắt đầu từ một nhiễu hoàn toàn ngẫu nhiên. '
+    'Ở mỗi bước, mạng nhìn ảnh đang nhiễu và đoán ảnh sạch trông thế nào, rồi chỉ xóa bớt một ít nhiễu theo hướng đó. '
+    'Lặp lại nhiều bước: lúc đầu chưa thấy gì, rồi có dáng con bò, cuối cùng là ảnh rõ nét. '
+    'Nhiễu ban đầu khác thì ra ảnh khác, như ba ví dụ bên phải. Dãy ảnh được tính thật theo công thức DDPM; để chạy được trên máy thường, nhóm dùng bộ đoán lý tưởng trên 12 ảnh thay cho U-Net. '
+    'Stable Diffusion làm đúng như vậy nhưng thêm câu lệnh, để ảnh sinh ra khớp với câu mô tả; bây giờ quay lại slide 13.')
 
 # ------------------------------------------------------------------ delete old explainer slides 16-20
 lst = p.slides._sldIdLst; ids = list(lst)
