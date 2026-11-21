@@ -1,0 +1,287 @@
+{
+ "schema": "ocsd-xl-study-v1",
+ "title": "OCSD-XL development round 3 (M1-M5 on SDXL, 1024 px)",
+ "stage": "development: chooses the OCSD-XL configuration; not a held-out result",
+ "drive_root": "xl_dev_v3",
+ "scene_assets": "assets/heldout_v2",
+ "scenes": [
+  "h2_qd_3_complex_001",
+  "h2_qd_3_medium_001",
+  "h2_qd_3_simple_001",
+  "h2_qd_5_complex_001",
+  "h2_qd_5_medium_001",
+  "h2_qd_5_simple_001",
+  "h2_qd_8p_complex_001",
+  "h2_qd_8p_medium_001",
+  "h2_qd_8p_simple_001"
+ ],
+ "seeds": [
+  0,
+  1
+ ],
+ "size": 1024,
+ "arms": [
+  "xl_controlnet",
+  "xl_collage",
+  "ocsd_xl",
+  "ocsd_xl_noenergy",
+  "ocsd_xl_e05",
+  "ocsd_xl_w04",
+  "ocsd_xl_w04_noenergy",
+  "ocsd_xl_w08_noenergy",
+  "ocsd_xl_a02",
+  "ocsd_xl_a06",
+  "ocsd_xl_norepair",
+  "ocsd_xl_region",
+  "ocsd_xl_id"
+ ],
+ "arm_config_sha256": "8f3d8106fc8e94fc82375604333d344adac9826e990bf9dd34458ff0b4c2a0d6",
+ "models": {
+  "sd": "stabilityai/stable-diffusion-xl-base-1.0",
+  "vae": "madebyollin/sdxl-vae-fp16-fix",
+  "controlnet": "xinsir/controlnet-scribble-sdxl-1.0"
+ },
+ "arm_settings": {
+  "xl_controlnet": {
+   "kind": "controlnet",
+   "overrides": {}
+  },
+  "xl_collage": {
+   "kind": "collage",
+   "overrides": {
+    "collage_strength": 0.3,
+    "m2_per_seed": true
+   }
+  },
+  "ocsd_xl": {
+   "kind": "ocsd",
+   "overrides": {}
+  },
+  "ocsd_xl_noenergy": {
+   "kind": "ocsd",
+   "overrides": {
+    "use_energy": false
+   }
+  },
+  "ocsd_xl_e05": {
+   "kind": "ocsd",
+   "overrides": {
+    "eta": 0.05
+   }
+  },
+  "ocsd_xl_w04": {
+   "kind": "ocsd",
+   "overrides": {
+    "omega": 0.4
+   }
+  },
+  "ocsd_xl_w04_noenergy": {
+   "kind": "ocsd",
+   "overrides": {
+    "omega": 0.4,
+    "use_energy": false
+   }
+  },
+  "ocsd_xl_w08_noenergy": {
+   "kind": "ocsd",
+   "overrides": {
+    "omega": 0.8,
+    "use_energy": false
+   }
+  },
+  "ocsd_xl_a02": {
+   "kind": "ocsd",
+   "overrides": {
+    "alpha": 0.2
+   }
+  },
+  "ocsd_xl_a06": {
+   "kind": "ocsd",
+   "overrides": {
+    "alpha": 0.6
+   }
+  },
+  "ocsd_xl_norepair": {
+   "kind": "ocsd",
+   "overrides": {
+    "use_verify": false,
+    "repair": false
+   }
+  },
+  "ocsd_xl_region": {
+   "kind": "ocsd",
+   "overrides": {
+    "alpha": 1.0
+   }
+  },
+  "ocsd_xl_id": {
+   "kind": "ocsd",
+   "overrides": {
+    "use_identity": true,
+    "S1": 100,
+    "S2": 100,
+    "lora_scale": 0.5
+   }
+  }
+ },
+ "common_settings": {
+  "height": 1024,
+  "width": 1024,
+  "steps": 30,
+  "guidance": 6.0,
+  "K": 3,
+  "obj_steps": 20,
+  "obj_cn_scale": 0.7,
+  "cn_scale": 1.0,
+  "S1": 0,
+  "S2": 0,
+  "R": 2,
+  "bo_n": 3,
+  "negative_prompt": "lowres, blurry, deformed, bad anatomy, extra limbs, watermark, text, drawing, sketch, line art, outline, illustration, painting, cartoon, clipart, paper cutout, 3d render",
+  "obj_negative_prompt": "lowres, blurry, deformed, bad anatomy, extra limbs, watermark, text, drawing, sketch, line art, outline, illustration, painting, cartoon, clipart, paper cutout, 3d render, white silhouette, blank, flat, text",
+  "obj_prompt_tmpl": "a photo of a {phrase}, realistic, detailed texture, natural colors, soft studio lighting, plain gray studio background"
+ },
+ "ocsd_xl_settings": {
+  "blend_mode": "joint",
+  "use_identity": false,
+  "alpha": 0.4,
+  "anchor_shrink": 0.3,
+  "m2_per_seed": true,
+  "repair": true,
+  "region_min_cell": true,
+  "caption_class_masks": true,
+  "energy_reduce": "mean",
+  "energy_tokens": "phrase",
+  "eta": 0.02,
+  "use_region_attn": true,
+  "use_energy": true,
+  "omega": 0.6,
+  "energy_grad_norm": true,
+  "tau": 10,
+  "lambda0": 8.0
+ },
+ "centre_config": {
+  "steps": 30,
+  "guidance": 6.0,
+  "height": 1024,
+  "width": 1024,
+  "negative_prompt": "lowres, blurry, deformed, bad anatomy, extra limbs, watermark, text, drawing, sketch, line art, outline, illustration, painting, cartoon, clipart, paper cutout, 3d render",
+  "K": 3,
+  "obj_steps": 20,
+  "obj_cn_scale": 0.7,
+  "obj_prompt_tmpl": "a photo of a {phrase}, realistic, detailed texture, natural colors, soft studio lighting, plain gray studio background",
+  "use_user_phrase": true,
+  "select_weights": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "use_identity": false,
+  "S1": 0,
+  "S2": 0,
+  "lora_scale": 0.5,
+  "lr_emb1": 0.005,
+  "lr_emb2": 5e-05,
+  "lr_lora": 0.0001,
+  "lora_rank": 16,
+  "lambda_att": 0.01,
+  "use_att_sep": true,
+  "use_blend": true,
+  "alpha": 0.4,
+  "bg_prompt_tmpl": "a photo of {bg}, high quality",
+  "placement_search": true,
+  "use_caption": true,
+  "blend_mode": "joint",
+  "anchor_shrink": 0.3,
+  "m2_per_seed": true,
+  "collage_strength": 0.3,
+  "use_region_attn": true,
+  "lambda0": 8.0,
+  "gamma": 1.0,
+  "use_energy": true,
+  "beta": 1.0,
+  "eta": 0.02,
+  "tau": 10,
+  "energy_tokens": "phrase",
+  "use_scene_cn": true,
+  "omega": 0.6,
+  "use_verify": true,
+  "R": 2,
+  "lambda0_boost": 1.5,
+  "verify_thr": 0.35,
+  "repair": true,
+  "repair_strength": 0.5,
+  "region_min_cell": true,
+  "caption_class_masks": true,
+  "energy_reduce": "mean",
+  "energy_grad_norm": true,
+  "cn_scale": 1.0,
+  "adapter_scale": 1.0,
+  "gligen_beta": 0.3,
+  "bo_n": 3,
+  "prompt_mode": "both",
+  "obj_negative_prompt": "lowres, blurry, deformed, bad anatomy, extra limbs, watermark, text, drawing, sketch, line art, outline, illustration, painting, cartoon, clipart, paper cutout, 3d render, white silhouette, blank, flat, text"
+ },
+ "reference_arm": "xl_controlnet",
+ "review_salt": "ocsd-xl-dev-v3",
+ "evaluation": {
+  "detector": "OWLv2 (independent of the Grounding DINO used inside M2 / M5(d))",
+  "det_thr": 0.3,
+  "match_iou": 0.1,
+  "image_size": 512,
+  "sketch_fidelity": "SAM outline vs raw sketch ink",
+  "quality_proxy": "PickScore v1 (secondary; a learned preference model, not a human rating)"
+ },
+ "decision_rule": {
+  "candidates": [
+   "ocsd_xl",
+   "ocsd_xl_noenergy",
+   "ocsd_xl_e05",
+   "ocsd_xl_w04",
+   "ocsd_xl_w04_noenergy",
+   "ocsd_xl_w08_noenergy",
+   "ocsd_xl_a02",
+   "ocsd_xl_a06",
+   "ocsd_xl_id"
+  ],
+  "ablations_only": [
+   "ocsd_xl_norepair",
+   "ocsd_xl_region"
+  ],
+  "baselines": [
+   "xl_controlnet",
+   "xl_collage"
+  ],
+  "structure": "S = mean over scenes of (OPR + mIoU) / 2, OWLv2, seeds averaged",
+  "naturalness": "N = mean blind rating (0 broken or pasted, 1 fake but readable, 2 natural) over the 18 sheets, written by the analyst before opening review_key.json",
+  "steps": [
+   "1. A candidate must have all 18 images.",
+   "2. Admissible: N >= 1.0 and S >= (best S among candidates) - 0.03.",
+   "3. Choose the admissible candidate with the highest N; within 0.1 of N prefer the lower sketch chamfer, then the lower time per image.",
+   "4. Go to confirmation only if the chosen arm has S >= S of xl_controlnet (same backbone and ControlNet); otherwise report that M2-M5 add nothing on SDXL.",
+   "5. If no candidate is admissible, nothing is frozen and the SDXL line is reported as not yet better than its own baseline; a third round needs a new diagnosis first."
+  ],
+  "note": "PickScore, CLIP, count accuracy, relations and facing are reported but do not enter the rule."
+ },
+ "confirmation_plan": "Frozen OCSD-XL vs original OCSD (v1), OCSD-v2, GLIGEN, Collage, ControlNet (SD 1.5), InstanceDiffusion and the SDXL baselines on the 18 held-out v3 scenes and the 72 paper scenes; protocol locked in a separate file before that run.",
+ "round": "v3",
+ "m2_variants": {
+  "a": {}
+ },
+ "arm_m2": {
+  "xl_controlnet": "a",
+  "xl_collage": "a",
+  "ocsd_xl": "a",
+  "ocsd_xl_noenergy": "a",
+  "ocsd_xl_e05": "a",
+  "ocsd_xl_w04": "a",
+  "ocsd_xl_w04_noenergy": "a",
+  "ocsd_xl_w08_noenergy": "a",
+  "ocsd_xl_a02": "a",
+  "ocsd_xl_a06": "a",
+  "ocsd_xl_norepair": "a",
+  "ocsd_xl_region": "a",
+  "ocsd_xl_id": "a"
+ },
+ "changes_since_previous_round": "Centre moved to omega 0.6 and eta 0.02; the energy step is crossed with omega (0.4 / 0.6 / 0.8); the v1 sampler and M2 variant b are dropped; text encoders kept in float32 during M3 training. M2 and the prompts as in round 2."
+}

@@ -47,7 +47,7 @@ def _cuda_peak():
 def sample(eng: Engine, prompts: Sequence[str], seeds: Sequence[int], cfg: OCSDConfig, control=None,
            cn_scale: float = 0.0, adapter_states=None, steps: Optional[int] = None,
            neg: Optional[str] = None, region: Optional[dict] = None, energy: Optional[dict] = None,
-           size: Optional[Tuple[int, int]] = None) -> np.ndarray:
+           size: Optional[Tuple[int, int]] = None, cn_end: float = 1.0) -> np.ndarray:
     """Lấy mẫu DDIM + CFG cho một batch. `region`/`energy` cho baseline có điều khiển vùng/năng lượng.
 
     region = dict(masks, tokens, bg_tokens, lambda0, gamma[, min_cell]) ;
@@ -79,7 +79,9 @@ def sample(eng: Engine, prompts: Sequence[str], seeds: Sequence[int], cfg: OCSDC
                                               grad_norm=energy.get("grad_norm", False))
                     zs.append(zb)
                 z = torch.cat(zs)
-            eps = eng.cfg_eps(z, t, emb_c, emb_u, cfg.guidance, control, cn_scale, adapter_states)
+            use_cn = control is not None and j < cn_end * len(ts)
+            eps = eng.cfg_eps(z, t, emb_c, emb_u, cfg.guidance, control if use_cn else None,
+                              cn_scale if (use_cn or control is None) else 0.0, adapter_states)
             z = eng.step(eps, t, z)
     finally:
         eng.ctrl.clear_regions()
@@ -116,7 +118,8 @@ def object_branch(eng: Engine, vis, scene: Scene, cfg: OCSDConfig, seed: int = 0
         prompt = cfg.obj_prompt_tmpl.format(phrase=phrase)
         control = eng.control_tensor(sketch_to_control(sk_crop), cfg.K)
         seeds = [seed * 1000 + 17 * i + k for k in range(cfg.K)]
-        imgs = sample(eng, [prompt] * cfg.K, seeds, cfg, control, cfg.obj_cn_scale, steps=cfg.obj_steps)
+        imgs = sample(eng, [prompt] * cfg.K, seeds, cfg, control, cfg.obj_cn_scale, steps=cfg.obj_steps,
+                      neg=cfg.obj_negative_prompt, cn_end=cfg.obj_cn_end)
         best, best_s = None, -1e9
         for k in range(cfg.K):
             img = imgs[k]
@@ -150,12 +153,13 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
     n = scene.n
     tokens = ID_TOKENS[:n]
     tok = eng.tokenizer
-    emb_layer = eng.text_encoder.get_input_embeddings()
+    layers = eng.embedding_layers()          # one per text encoder (two with SDXL)
     # khởi tạo <o_i> bằng vector nhúng của tên lớp
     with torch.no_grad():
-        for i, o in enumerate(scene.objects):
-            ids = tok(o.cls, add_special_tokens=False).input_ids
-            emb_layer.weight[eng.id_token_ids[i]] = emb_layer.weight[ids].mean(0)
+        for tk, layer, rows in layers:
+            for i, o in enumerate(scene.objects):
+                ids = tk(o.cls, add_special_tokens=False).input_ids
+                layer.weight[rows[i]] = layer.weight[ids].mean(0)
     if cfg.S1 + cfg.S2 == 0:
         return tokens
     rng = random.Random(seed)
@@ -200,21 +204,24 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
         s["gp"] = _token_positions(tok, s["prompt"], [tokens[i] for i in s["ids"]])
         s["eot"] = eng.eot_index(s["prompt"])
     # ---------------- tối ưu
-    id_rows = torch.tensor(eng.id_token_ids[:n], device=emb_layer.weight.device)
-    emb_layer.weight.requires_grad_(True)
-    keep = emb_layer.weight.data.clone()
-    row_mask = torch.zeros(emb_layer.weight.shape[0], 1, device=emb_layer.weight.device)
-    row_mask[id_rows] = 1
+    weights = [layer.weight for _, layer, _ in layers]
+    keeps, row_masks = [], []
+    for _, layer, rows in layers:
+        layer.weight.requires_grad_(True)
+        keeps.append(layer.weight.data.clone())
+        rm = torch.zeros(layer.weight.shape[0], 1, device=layer.weight.device)
+        rm[torch.tensor(rows[:n], device=layer.weight.device)] = 1
+        row_masks.append(rm)
     use_lora = cfg.S2 > 0
     if use_lora:
         # Local RNG scope: initial LoRA weights must not depend on earlier methods/scenes.
         with torch.random.fork_rng(devices=list(range(torch.cuda.device_count()))):
             torch.manual_seed(seed)
             eng.add_lora(cfg.lora_rank)
-    opt = torch.optim.AdamW([emb_layer.weight], lr=cfg.lr_emb1, weight_decay=0.0)
+    opt = torch.optim.AdamW(weights, lr=cfg.lr_emb1, weight_decay=0.0)
     sch = eng.scheduler
     T_train = sch.config.num_train_timesteps
-    losses = []
+    losses, skipped = [], 0
     t0 = time.time()
     g = torch.Generator("cpu").manual_seed(seed)
     try:
@@ -223,7 +230,7 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
                 eng.lora(True)
                 for p in eng.lora_params():
                     p.requires_grad_(True)
-                opt = torch.optim.AdamW([{"params": [emb_layer.weight], "lr": cfg.lr_emb2, "weight_decay": 0.0},
+                opt = torch.optim.AdamW([{"params": weights, "lr": cfg.lr_emb2, "weight_decay": 0.0},
                                          {"params": eng.lora_params(), "lr": cfg.lr_lora, "weight_decay": 1e-2}])
             multi = [s for s in samples if len(s["ids"]) > 1]
             s = rng.choice(multi) if (multi and rng.random() < 0.35) else rng.choice(samples[:n])
@@ -236,7 +243,7 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
             eng.ctrl.bias_enabled = False
             with eng.autocast():
                 emb = eng.encode_grad([s["prompt"]])
-                pred = eng.unet(zt, t, encoder_hidden_states=emb, return_dict=False)[0]
+                pred = eng.unet_eps(zt, t, emb)
             m = s["m_lat"].amax(0)[None, None]
             prediction = sch.config.prediction_type
             if prediction == "epsilon":
@@ -254,17 +261,28 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
                 l_att = ((maps - s["m_att"].to(maps.dtype)) ** 2).mean()
                 loss = loss + cfg.lambda_att * l_att
             opt.zero_grad(set_to_none=True)
+            if not torch.isfinite(loss):          # half-precision overflow in the forward pass: skip this step
+                skipped += 1
+                continue
             loss.backward()
-            if emb_layer.weight.grad is not None:
-                emb_layer.weight.grad.mul_(row_mask.to(emb_layer.weight.grad.dtype))
+            for w, rm in zip(weights, row_masks):
+                if w.grad is not None:
+                    w.grad.mul_(rm.to(w.grad.dtype))
+            params = [q for group in opt.param_groups for q in group["params"]]
+            if any(q.grad is not None and not torch.isfinite(q.grad).all() for q in params):
+                skipped += 1                      # a non-finite gradient would turn the weights into NaN for good
+                opt.zero_grad(set_to_none=True)
+                continue
             opt.step()
             with torch.no_grad():   # giữ nguyên các hàng không phải token định danh
-                emb_layer.weight.data = torch.where(row_mask.bool(), emb_layer.weight.data, keep)
+                for w, rm, keep in zip(weights, row_masks, keeps):
+                    w.data = torch.where(rm.bool(), w.data, keep)
             losses.append(loss.item())
     finally:
         eng.ctrl.store = False
         eng.ctrl.reset_maps()
-        emb_layer.weight.requires_grad_(False)
+        for w in weights:
+            w.requires_grad_(False)
         for p in eng.lora_params():
             p.requires_grad_(False)
         eng.lora(False)
@@ -272,6 +290,7 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
         log["m3_loss_first"] = float(np.mean(losses[:20])) if losses else None
         log["m3_loss_last"] = float(np.mean(losses[-20:])) if losses else None
         log["m3_time"] = time.time() - t0
+        log["m3_skipped_steps"] = skipped
     return tokens
 
 

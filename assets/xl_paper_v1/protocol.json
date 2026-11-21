@@ -1,0 +1,295 @@
+{
+ "schema": "ocsd-xl-study-v3",
+ "round": "c1",
+ "title": "OCSD-XL on the paper benchmark (72 QuickDraw-Scenes): two frozen settings vs OCSD v1/v2 and baselines",
+ "stage": "second confirmation: the settings, arms, tests and claim rules of assets/xl_confirm_v1, on the paper benchmark",
+ "drive_root": "xl_paper_v1",
+ "scene_assets": "assets/paper_v3",
+ "scene_import": {
+  "heldout_version": "v4",
+  "source": "data/benchmarks/quickdraw",
+  "expected": "assets/paper_v3/expected_scenes.json",
+  "earlier_run": "20261105T085721Z_c08740c2",
+  "earlier_run_dataset_id": "bcd46251d8a2e0fb54900ef9088d8a4882092bcfdbb66c9a5653c5851210fc67",
+  "note": "The scenes are not committed. They are copied from the paper benchmark on Drive at run time and must match the expected list; the run records whether the copied files have the dataset identity that the 2026-11-05 run recorded."
+ },
+ "scenes": [
+  "qd_1_complex_003",
+  "qd_1_complex_004",
+  "qd_1_complex_005",
+  "qd_1_complex_006",
+  "qd_1_complex_007",
+  "qd_1_complex_008",
+  "qd_1_medium_003",
+  "qd_1_medium_004",
+  "qd_1_medium_005",
+  "qd_1_medium_006",
+  "qd_1_medium_007",
+  "qd_1_medium_008",
+  "qd_1_simple_003",
+  "qd_1_simple_004",
+  "qd_1_simple_005",
+  "qd_1_simple_006",
+  "qd_1_simple_007",
+  "qd_1_simple_008",
+  "qd_3_complex_003",
+  "qd_3_complex_004",
+  "qd_3_complex_005",
+  "qd_3_complex_006",
+  "qd_3_complex_007",
+  "qd_3_complex_008",
+  "qd_3_medium_003",
+  "qd_3_medium_004",
+  "qd_3_medium_005",
+  "qd_3_medium_006",
+  "qd_3_medium_007",
+  "qd_3_medium_008",
+  "qd_3_simple_003",
+  "qd_3_simple_004",
+  "qd_3_simple_005",
+  "qd_3_simple_006",
+  "qd_3_simple_007",
+  "qd_3_simple_008",
+  "qd_5_complex_003",
+  "qd_5_complex_004",
+  "qd_5_complex_005",
+  "qd_5_complex_006",
+  "qd_5_complex_007",
+  "qd_5_complex_008",
+  "qd_5_medium_003",
+  "qd_5_medium_004",
+  "qd_5_medium_005",
+  "qd_5_medium_006",
+  "qd_5_medium_007",
+  "qd_5_medium_008",
+  "qd_5_simple_003",
+  "qd_5_simple_004",
+  "qd_5_simple_005",
+  "qd_5_simple_006",
+  "qd_5_simple_007",
+  "qd_5_simple_008",
+  "qd_8p_complex_003",
+  "qd_8p_complex_004",
+  "qd_8p_complex_005",
+  "qd_8p_complex_006",
+  "qd_8p_complex_007",
+  "qd_8p_complex_008",
+  "qd_8p_medium_003",
+  "qd_8p_medium_004",
+  "qd_8p_medium_005",
+  "qd_8p_medium_006",
+  "qd_8p_medium_007",
+  "qd_8p_medium_008",
+  "qd_8p_simple_003",
+  "qd_8p_simple_004",
+  "qd_8p_simple_005",
+  "qd_8p_simple_006",
+  "qd_8p_simple_007",
+  "qd_8p_simple_008"
+ ],
+ "seeds": [
+  0,
+  1
+ ],
+ "size": 1024,
+ "arms": [
+  "xl_controlnet",
+  "xl_collage",
+  "ocsd_xl_natural",
+  "ocsd_xl_faithful"
+ ],
+ "arm_config_sha256": "4dcb66131e44c03befb1a1395f8e96fd02b76e13592a8ed0fa2d2db525bb4aa7",
+ "models": {
+  "sd": "stabilityai/stable-diffusion-xl-base-1.0",
+  "vae": "madebyollin/sdxl-vae-fp16-fix",
+  "controlnet": "xinsir/controlnet-scribble-sdxl-1.0"
+ },
+ "arm_settings": {
+  "xl_controlnet": {
+   "kind": "controlnet",
+   "overrides": {}
+  },
+  "xl_collage": {
+   "kind": "collage",
+   "overrides": {
+    "collage_strength": 0.3,
+    "m2_per_seed": true
+   }
+  },
+  "ocsd_xl_natural": {
+   "kind": "ocsd",
+   "overrides": {
+    "omega": 0.4
+   }
+  },
+  "ocsd_xl_faithful": {
+   "kind": "ocsd",
+   "overrides": {
+    "omega": 0.8,
+    "use_energy": false
+   }
+  }
+ },
+ "common_settings": {
+  "height": 1024,
+  "width": 1024,
+  "steps": 30,
+  "guidance": 6.0,
+  "K": 3,
+  "obj_steps": 20,
+  "obj_cn_scale": 0.7,
+  "cn_scale": 1.0,
+  "S1": 0,
+  "S2": 0,
+  "R": 2,
+  "bo_n": 3,
+  "negative_prompt": "lowres, blurry, deformed, bad anatomy, extra limbs, watermark, text, drawing, sketch, line art, outline, illustration, painting, cartoon, clipart, paper cutout, 3d render",
+  "obj_negative_prompt": "lowres, blurry, deformed, bad anatomy, extra limbs, watermark, text, drawing, sketch, line art, outline, illustration, painting, cartoon, clipart, paper cutout, 3d render, white silhouette, blank, flat, text",
+  "obj_prompt_tmpl": "a photo of a {phrase}, realistic, detailed texture, natural colors, soft studio lighting, plain gray studio background"
+ },
+ "ocsd_xl_settings": {
+  "blend_mode": "joint",
+  "use_identity": false,
+  "alpha": 0.4,
+  "anchor_shrink": 0.3,
+  "m2_per_seed": true,
+  "repair": true,
+  "region_min_cell": true,
+  "caption_class_masks": true,
+  "energy_reduce": "mean",
+  "energy_tokens": "phrase",
+  "eta": 0.02,
+  "use_region_attn": true,
+  "use_energy": true,
+  "omega": 0.6,
+  "energy_grad_norm": true,
+  "tau": 10,
+  "lambda0": 8.0
+ },
+ "frozen_from": {
+  "ocsd_xl_natural": "xl_dev_v3 arm ocsd_xl_w04; unchanged since assets/xl_confirm_v1",
+  "ocsd_xl_faithful": "xl_dev_v3 arm ocsd_xl_w08_noenergy; unchanged since assets/xl_confirm_v1"
+ },
+ "sd15_tier": "heldout_final",
+ "sd15_arms": [
+  "ocsd_v2"
+ ],
+ "imported_arms": {
+  "ocsd": "paper_v3/outputs/runs/20261105T085721Z_c08740c2/quickdraw/ocsd",
+  "gligen": "paper_v3/outputs/runs/20261105T085721Z_c08740c2/quickdraw/gligen",
+  "collage": "paper_v3/outputs/runs/20261105T085721Z_c08740c2/quickdraw/collage",
+  "controlnet": "paper_v3/outputs/runs/20261105T085721Z_c08740c2/quickdraw/controlnet",
+  "ocsd_v3": "paper_v3/outputs/runs/20261105T085721Z_c08740c2/quickdraw/ocsd_v3",
+  "direct_box": "paper_v3/outputs/runs/20261105T085721Z_c08740c2/quickdraw/direct_box"
+ },
+ "sd15_fallback": [
+  "ocsd",
+  "gligen",
+  "collage",
+  "controlnet"
+ ],
+ "reference_arm": "ocsd",
+ "review_salt": "ocsd-xl-paper-v1",
+ "review": {
+  "scenes": [
+   "qd_1_complex_003",
+   "qd_1_complex_004",
+   "qd_1_complex_005",
+   "qd_1_medium_003",
+   "qd_1_medium_004",
+   "qd_1_medium_005",
+   "qd_1_simple_003",
+   "qd_1_simple_004",
+   "qd_1_simple_005",
+   "qd_3_complex_003",
+   "qd_3_complex_004",
+   "qd_3_complex_005",
+   "qd_3_medium_003",
+   "qd_3_medium_004",
+   "qd_3_medium_005",
+   "qd_3_simple_003",
+   "qd_3_simple_004",
+   "qd_3_simple_005",
+   "qd_5_complex_003",
+   "qd_5_complex_004",
+   "qd_5_complex_005",
+   "qd_5_medium_003",
+   "qd_5_medium_004",
+   "qd_5_medium_005",
+   "qd_5_simple_003",
+   "qd_5_simple_004",
+   "qd_5_simple_005",
+   "qd_8p_complex_003",
+   "qd_8p_complex_004",
+   "qd_8p_complex_005",
+   "qd_8p_medium_003",
+   "qd_8p_medium_004",
+   "qd_8p_medium_005",
+   "qd_8p_simple_003",
+   "qd_8p_simple_004",
+   "qd_8p_simple_005"
+  ],
+  "seeds": [
+   0
+  ]
+ },
+ "evaluation": {
+  "detector": "OWLv2",
+  "det_thr": 0.3,
+  "match_iou": 0.1,
+  "image_size": 512,
+  "sketch_fidelity": "SAM outline vs raw sketch ink",
+  "quality_proxy": "PickScore v1 (secondary)",
+  "naturalness": "blind analyst rating 0 / 1 / 2 on 36 sheets: the scenes numbered 003 to 005 (3 per cell, 9 per object-count bin), seed 0, every arm on each sheet in shuffled order, written before review_key.json or any table is opened"
+ },
+ "analysis": {
+  "unit": "scene; per-scene value = mean over seeds 0 and 1 (72 scenes) for the automatic metrics, and the seed 0 rating of the 36 reviewed scenes for naturalness",
+  "test": "exact two-sided sign test over scenes; Holm over the four primary tests; paired bootstrap 95% CIs",
+  "primary": [
+   {
+    "id": "P1",
+    "a": "ocsd_xl_faithful",
+    "b": "ocsd",
+    "metric": "opr",
+    "better": 1
+   },
+   {
+    "id": "P2",
+    "a": "ocsd_xl_faithful",
+    "b": "ocsd",
+    "metric": "miou",
+    "better": 1
+   },
+   {
+    "id": "P3",
+    "a": "ocsd_xl_natural",
+    "b": "ocsd",
+    "metric": "naturalness",
+    "better": 1
+   },
+   {
+    "id": "P4",
+    "a": "ocsd_xl_natural",
+    "b": "ocsd",
+    "metric": "opr",
+    "better": 1
+   }
+  ],
+  "claims": [
+   "C-faithful \"OCSD-XL (faithful) keeps objects better than the original OCSD\": P1 or P2 has Holm p < 0.05 in its favour and neither is significantly worse.",
+   "C-natural \"OCSD-XL (natural) looks more natural than the original OCSD without losing objects\": P3 has Holm p < 0.05 in its favour and P4 is not significantly worse (Holm p >= 0.05 or in favour).",
+   "A claim is reported as confirmed on the paper benchmark only if it holds here. The two test sets are reported side by side and never pooled; a claim that holds on one set and not on the other is reported as such."
+  ],
+  "secondary": "Both settings against ocsd_v2, xl_controlnet, xl_collage, gligen, collage, controlnet, ocsd_v3 and direct_box on OPR, mIoU, sketch chamfer, naturalness and PickScore, and the means by object-count bin: differences with bootstrap CIs and unadjusted sign tests, labelled exploratory.",
+  "tool": "tools/analyze_xl_confirm.py <results> <ratings> xl_paper_v1 (unchanged since the first confirmation)"
+ },
+ "limits": [
+  "The naturalness rater is the analyst who developed the settings and who has seen OCSD-XL images of other scenes; sheets are blind and shuffled, but SDXL images can be recognisable by their look.",
+  "Naturalness is rated on half of the scenes and one seed, fixed in this lock.",
+  "OCSD-XL runs without M3 (identity learning does not train on SDXL in this code); the original OCSD uses M3.",
+  "Part of any difference to the SD 1.5 methods is the backbone; xl_controlnet and xl_collage are the same-backbone references.",
+  "The 72 scenes are the evaluation scenes of results/paper_v2 and of the 2026-11-05 run: the SD 1.5 methods and OCSD v3 have been reported on them before. No OCSD-XL image of these scenes exists before this run, and no OCSD-XL setting was chosen on them.",
+  "OCSD-XL has not been run on single-object scenes before (18 of the 72)."
+ ],
+ "sd15_config_sha256": "7069017c67f37dc76fd16eb287f59df66b7b0f6331f9b3bc9f13f59578c3912e"
+}

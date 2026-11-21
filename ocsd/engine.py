@@ -72,13 +72,24 @@ class Engine:
                 m.eval()
         return cls(tok, te, unet, vae, sch, cn, ad, device, dtype)
 
+    def text_stacks(self):
+        """(tokenizer, text encoder) pairs; one for SD 1.x / 2.x, two for SDXL."""
+        return [(self.tokenizer, self.text_encoder)]
+
+    def embedding_layers(self):
+        """(tokenizer, input-embedding layer, identity-token rows) for every text encoder (M3)."""
+        return [(tok, te.get_input_embeddings(), ids) for (tok, te), ids in zip(self.text_stacks(), self.id_token_rows)]
+
     def _add_id_tokens(self):
-        added = self.tokenizer.add_tokens(ID_TOKENS)
-        if added:
-            self.text_encoder.resize_token_embeddings(len(self.tokenizer))
-        self.id_token_ids = self.tokenizer.convert_tokens_to_ids(ID_TOKENS)
-        emb = self.text_encoder.get_input_embeddings().weight
-        self._orig_id_emb = emb.data[self.id_token_ids].clone()
+        self.id_token_rows, self._orig_id_embs = [], []
+        for tok, te in self.text_stacks():
+            if tok.add_tokens(ID_TOKENS):
+                te.resize_token_embeddings(len(tok))
+            ids = tok.convert_tokens_to_ids(ID_TOKENS)
+            self.id_token_rows.append(ids)
+            self._orig_id_embs.append(te.get_input_embeddings().weight.data[ids].clone())
+        self.id_token_ids = self.id_token_rows[0]
+        self._orig_id_emb = self._orig_id_embs[0]
 
     # ------------------------------------------------------------------ text
     @torch.no_grad()
@@ -130,18 +141,26 @@ class Engine:
         self.scheduler.set_timesteps(steps, device=self.device)
         return self.scheduler.timesteps
 
+    def _unet(self, z, t, emb, **kw):
+        """One U-Net call. Subclasses (EngineXL) add their extra conditioning here."""
+        return self.unet(z, t, encoder_hidden_states=emb, return_dict=False, **kw)[0]
+
+    def _control(self, z, t, emb, control, cn_scale: float):
+        """ControlNet residuals as U-Net keyword arguments."""
+        down, mid = self.controlnet(z, t, encoder_hidden_states=emb, controlnet_cond=control,
+                                    conditioning_scale=cn_scale, return_dict=False)
+        return dict(down_block_additional_residuals=down, mid_block_additional_residual=mid)
+
     def unet_eps(self, z, t, emb, control=None, cn_scale: float = 0.0, adapter_states=None,
                  cond_flags: Optional[Sequence[bool]] = None):
         kw = {}
         if control is not None and cn_scale > 0 and self.controlnet is not None:
-            down, mid = self.controlnet(z, t, encoder_hidden_states=emb, controlnet_cond=control,
-                                        conditioning_scale=cn_scale, return_dict=False)
-            kw.update(down_block_additional_residuals=down, mid_block_additional_residual=mid)
+            kw.update(self._control(z, t, emb, control, cn_scale))
         if adapter_states is not None:
             kw["down_intrablock_additional_residuals"] = [
                 s.repeat(z.shape[0] // s.shape[0], 1, 1, 1).clone() for s in adapter_states]
         self.ctrl.cond_flags = cond_flags
-        return self.unet(z, t, encoder_hidden_states=emb, return_dict=False, **kw)[0]
+        return self._unet(z, t, emb, **kw)
 
     def cfg_eps(self, z, t, emb_c, emb_u, guidance: float, control=None, cn_scale: float = 0.0,
                 adapter_states=None):
@@ -169,15 +188,13 @@ class Engine:
         kw = {}
         if control is not None and cn_scale > 0 and self.controlnet is not None:
             with torch.no_grad():
-                down, mid = self.controlnet(z, t, encoder_hidden_states=emb_c, controlnet_cond=control,
-                                            conditioning_scale=cn_scale, return_dict=False)
-            kw.update(down_block_additional_residuals=down, mid_block_additional_residual=mid)
+                kw.update(self._control(z, t, emb_c, control, cn_scale))
         z = z.detach().requires_grad_(True)
         self.ctrl.store, self.ctrl.store_res = True, n_pix
         self.ctrl.reset_maps()
         self.ctrl.cond_flags = [True]
         with torch.enable_grad():
-            self.unet(z, t, encoder_hidden_states=emb_c, return_dict=False, **kw)
+            self._unet(z, t, emb_c, **kw)
             A = self.ctrl.aggregated_map(0)
             if A is None:
                 self.ctrl.store = False
@@ -187,7 +204,7 @@ class Engine:
             grad = torch.autograd.grad(E, z, allow_unused=True)[0] if E.requires_grad else None
         self.ctrl.store = False
         self.ctrl.reset_maps()
-        if grad is None:
+        if grad is None or not torch.isfinite(grad).all():   # half-precision overflow: skip this update
             return z.detach(), float(E)
         if grad_norm:
             grad = grad / (grad.float().pow(2).mean().sqrt().to(grad.dtype) + 1e-8)
@@ -237,8 +254,8 @@ class Engine:
 
     def reset_identity(self):
         """Đưa token định danh và LoRA về trạng thái ban đầu trước mỗi cảnh (không rò rỉ giữa các cảnh)."""
-        emb = self.text_encoder.get_input_embeddings().weight
-        emb.data[self.id_token_ids] = self._orig_id_emb.to(emb.device, emb.dtype)
+        for (_, layer, ids), orig in zip(self.embedding_layers(), self._orig_id_embs):
+            layer.weight.data[ids] = orig.to(layer.weight.device, layer.weight.dtype)
         if self.has_lora:
             with torch.no_grad():
                 for n, p in self.unet.named_parameters():

@@ -1,0 +1,55 @@
+{
+  "protocol": "xl_dev_v3",
+  "code": "4baac9662bddbfb23c90d492d94573c4c20b7a93",
+  "error": null,
+  "updated": "2026-11-13 13:27:59",
+  "stage": "evaluated",
+  "total": 234,
+  "complete": 216,
+  "failures": [
+    {
+      "arm": "ocsd_xl_id",
+      "sid": "h2_qd_3_complex_001",
+      "seed": 0,
+      "error": "RuntimeError('Generated image is blank (half-precision overflow?)')",
+      "traceback": "Traceback (most recent call last):\n  File \"/content/KLTN_OCSD/ocsd/xl_study.py\", line 178, in generate\n    raise RuntimeError(\"Generated image is blank (half-precision overflow?)\")\nRuntimeError: Generated image is blank (half-precision overflow?)\n",
+      "m3": {
+        "m3_loss_first": 0.31823551654815674,
+        "m3_loss_last": 0.31823551654815674,
+        "m3_time": 58.66474747657776,
+        "m3_skipped_steps": 199
+      }
+    },
+    {
+      "arm": "ocsd_xl_id",
+      "sid": "h2_qd_3_complex_001",
+      "seed": 1,
+      "error": "RuntimeError('Generated image is blank (half-precision overflow?)')",
+      "traceback": "Traceback (most recent call last):\n  File \"/content/KLTN_OCSD/ocsd/xl_study.py\", line 178, in generate\n    raise RuntimeError(\"Generated image is blank (half-precision overflow?)\")\nRuntimeError: Generated image is blank (half-precision overflow?)\n",
+      "m3": {
+        "m3_loss_first": 0.2851022183895111,
+        "m3_loss_last": 0.2851022183895111,
+        "m3_time": 57.92755174636841,
+        "m3_skipped_steps": 199
+      }
+    },
+    {
+      "arm": "ocsd_xl_id",
+      "sid": "h2_qd_3_medium_001",
+      "seed": 0,
+      "error": "RuntimeError('Generated image is blank (half-precision overflow?)')",
+      "traceback": "Traceback (most recent call last):\n  File \"/content/KLTN_OCSD/ocsd/xl_study.py\", line 178, in generate\n    raise RuntimeError(\"Generated image is blank (half-precision overflow?)\")\nRuntimeError: Generated image is blank (half-precision overflow?)\n",
+      "m3": {
+        "m3_loss_first": 0.23074433207511902,
+        "m3_loss_last": 0.23074433207511902,
+        "m3_time": 59.985867977142334,
+        "m3_skipped_steps": 199
+      }
+    }
+  ],
+  "arms_off": [
+    "ocsd_xl_id"
+  ],
+  "minutes": 99.83217341105143,
+  "pickscore_error": null
+}

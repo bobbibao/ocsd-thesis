@@ -164,8 +164,17 @@ class OCSDConfig:
     # biến thể câu lệnh (cho ablation "chỉ câu lệnh nền / chỉ câu lệnh toàn cục")
     prompt_mode: str = "both"         # both | bg_only | global_only
 
+    # M2 on SDXL (added 2026-11-13). Left out of to_dict() at their defaults so that the settings digests of every
+    # earlier locked protocol stay the same.
+    obj_negative_prompt: Optional[str] = None   # negative prompt of the object branch (None: negative_prompt)
+    obj_cn_end: float = 1.0                     # fraction of the M2 steps that use the scribble ControlNet
+
     def to_dict(self):
-        return asdict(self)
+        d = asdict(self)
+        for k, v in (("obj_negative_prompt", None), ("obj_cn_end", 1.0)):
+            if d[k] == v:
+                d.pop(k)
+        return d
 
     def replace(self, **kw) -> "OCSDConfig":
         d = self.to_dict()

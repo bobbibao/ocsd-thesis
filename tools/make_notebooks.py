@@ -95,7 +95,7 @@ DIRECT_MOUNT = MOUNT.replace(
     'gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True)\n'
     'if gpu.returncode:\n    raise RuntimeError("Select a GPU runtime before Run all")\nprint(gpu.stdout)',
     '''import shutil
-if RUN_MODE not in ("direct_preflight", "direct_canary", "direct_dev", "silhouette_dev", "naturalness_dev", "heldout", "heldout2", "heldout3", "paper3", "experiment"):
+if RUN_MODE not in ("xl_paper", "xl_confirm", "xl_dev3", "xl_dev2", "xl_dev", "direct_preflight", "direct_canary", "direct_dev", "silhouette_dev", "naturalness_dev", "heldout", "heldout2", "heldout3", "paper3", "experiment"):
     raise ValueError("Unknown RUN_MODE")
 gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv"], capture_output=True, text=True) if shutil.which("nvidia-smi") else None
 if RUN_MODE == "direct_preflight":
@@ -293,6 +293,40 @@ if RUN_MODE in ("heldout", "heldout2", "heldout3", "paper3"):
 else:
     print("Skipping the held-out comparison in this mode.")'''
 
+XL_STUDY = r'''#@title 3e. OCSD-XL study (M1-M5 on SDXL, 1024 px): generate, score, package
+if RUN_MODE in ("xl_dev", "xl_dev2", "xl_dev3", "xl_confirm", "xl_paper"):
+    XL_PROTOCOL = {"xl_dev": "xl_dev_v1", "xl_dev2": "xl_dev_v2", "xl_dev3": "xl_dev_v3", "xl_confirm": "xl_confirm_v1", "xl_paper": "xl_paper_v1"}[RUN_MODE]
+    from ocsd import xl_study
+    XL_LEFT = xl_study.xl_images_left(DRIVE_ROOT, XL_PROTOCOL)
+    print(f"{XL_PROTOCOL}: {XL_LEFT} SDXL images still to generate", flush=True)
+    prop = subprocess.run(["nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits"], capture_output=True, text=True).stdout.strip()
+    # SDXL generation needs the A100; once every SDXL image is on Drive, the SD 1.5 arm and the scoring also run on an L4 or T4
+    if XL_LEFT and int(prop.splitlines()[0]) < 30000:
+        raise RuntimeError("OCSD-XL needs about 30 GB of GPU memory: Runtime > Change runtime type > A100 GPU, then Run all")
+    subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "-q", "torchao"], check=True)
+    r = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", os.path.join(CODE, "requirements-colab.txt")], capture_output=True, text=True)
+    print(r.stdout[-1500:], r.stderr[-2500:])
+    if r.returncode != 0:
+        raise RuntimeError("pip install failed (see the text above)")
+    from ocsd import hfcache
+    hfcache.repair(os.environ["HF_HOME"])
+    print("First run downloads about 20 GB of public models (SDXL, ControlNet, detectors); no token needed.", flush=True)
+    print("If Colab stops, just Run all again: finished images are kept.", flush=True)
+    XL_OUT = xl_study.main(DRIVE_ROOT, XL_PROTOCOL, max_minutes=XL_MAX_MINUTES)
+    from ocsd import sync
+    if PUSH_RESULTS:
+        sync.try_push_results(os.path.dirname(XL_OUT["summary"]), sync.colab_token())
+    from google.colab import files
+    for path in (XL_OUT["archive"], XL_OUT["review_archive"]):
+        print(path)
+        try:
+            files.download(path)
+        except Exception as exc:
+            print("Get it from Drive:", exc)
+    print("GPU work finished. Disconnect the GPU runtime after the two ZIP files have downloaded.")
+else:
+    print("Skipping the OCSD-XL study in this mode.")'''
+
 def nb(cells, name):
     n = nbf.v4.new_notebook()
     n.metadata = {"accelerator": "GPU", "colab": {"gpuType": "L4", "machine_shape": "hm", "provenance": []},
@@ -344,19 +378,30 @@ nb([
     "([dev v3 results](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/DIRECT_DEV3_20261104_RESULTS.md)).\n\n"
     "Held-out v3 is done: OCSD v3 beats the original OCSD; do not rerun it "
     "([held-out v3 results](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/HELDOUT3_20261105_RESULTS.md)).\n\n"
-    "**Next step:** Runtime → Change runtime type → **GPU L4 or A100** (High-RAM) → keep `RUN_MODE=\"paper3\"`, `RUN_ID=\"\"` → **Run all**. "
-    "This confirms the frozen OCSD v3 on the 72 paper_v2 evaluation scenes (read from Drive `data/benchmarks`) × 2 seeds × 6 methods "
-    "= 864 images, then OWLv2/CLIP/SAM metrics and review sheets. Expect about 5–6 GPU hours on an L4; if Colab stops, "
-    "just Run all again (`RUN_ID` empty): finished images are kept. "
-    "If the browser download fails, the ZIPs stay on Drive in `paper_v3/results/...`; no review needed from you. "
-    "[Protocol](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/PAPER3_PROTOCOL.md).\n\n"
+    "The paper3 confirmation of OCSD v3 is done; do not rerun it "
+    "([results](https://github.com/bobbibao/ocsd-thesis/blob/main/docs/PAPER3_20261105_RESULTS.md)). OCSD v3 replaces M2-M5 "
+    "with an external generator, so it is kept only as a comparison.\n\n"
+    "The three OCSD-XL development rounds are done; do not rerun them "
+    "([round 3 results](https://github.com/bobbibao/ocsd-thesis/blob/claude/project-thread-ezrky1/docs/XL_DEV3_RESULTS.md)).\n\n"
+    "The OCSD-XL confirmation on the 18 held-out v3 scenes is done; do not rerun it "
+    "([results](https://github.com/bobbibao/ocsd-thesis/blob/claude/project-thread-ezrky1/docs/XL_CONFIRM_RESULTS.md)).\n\n"
+    "**Next step (2026-11-17): OCSD-XL on the 72 paper benchmark scenes.** The same two frozen OCSD-XL settings "
+    "(natural, faithful) and two SDXL baselines are generated, OCSD-v2 (SD 1.5) is generated, and the images of the "
+    "2026-11-05 paper benchmark run (original OCSD, GLIGEN, Collage, ControlNet, OCSD v3, InstanceDiffusion) are read "
+    "from Drive `paper_v3/outputs/runs/20261105T085721Z_c08740c2` and scored again with the same evaluator. "
+    "Runtime → Change runtime type → **A100 GPU** (High-RAM) → keep `RUN_MODE=\"xl_paper\"` → **Run all**. "
+    "About 7 hours in total: about 5 A100 hours of generation, then about 2 hours of scoring. If Colab stops, Run all "
+    "again: finished images and scores are kept. Once the notebook prints `0 SDXL images still to generate`, the rest "
+    "also runs on an L4 or T4 runtime. Two ZIP files download at the end (also on Drive in `xl_paper_v1/results/`); "
+    "send both to Claude. "
+    "[Protocol](https://github.com/bobbibao/ocsd-thesis/blob/claude/project-thread-ezrky1/docs/XL_PAPER_PROTOCOL.md).\n\n"
     "Chỉ khi chủ động tái lập thí nghiệm cũ: chọn `RUN_MODE=\"experiment\"` và GPU L4/A100. "
     "Luồng này chạy 4 giai đoạn: (A) dựng bộ dữ liệu, (B) sinh ảnh cho E1–E4 và khảo sát α, (C) đánh giá, "
     "(D) xuất bảng/hình/tóm tắt. Mọi kết quả nằm trong `DRIVE_ROOT/results/runs/<run_id>/` "
     "(`summary.md`, `summary.json`, `tables/`, `figures/`, `progress.json`). "
     "Lưu RUN_ID để resume. Chỉ tái sử dụng kết quả cùng code, cấu hình, thư viện và dữ liệu. Xem docs/EXPERIMENT_RUNBOOK.md.",
-    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "paper3"  #@param ["paper3", "heldout3", "naturalness_dev", "heldout2", "silhouette_dev", "heldout", "direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20'),
-    DIRECT_MOUNT, DIRECT_PREFLIGHT, DIRECT_CANARY, DIRECT_DEV, DIRECT_HELDOUT, INSTALL,
+    SETUP.replace('REPO_URL   =', 'RUN_MODE   = "xl_paper"  #@param ["xl_paper", "xl_confirm", "xl_dev3", "xl_dev2", "xl_dev", "paper3", "heldout3", "naturalness_dev", "heldout2", "silhouette_dev", "heldout", "direct_dev", "direct_canary", "direct_preflight", "experiment"]\nREPO_URL   =').replace('TIER       = "pilot"', 'TIER       = "foreground_screen"').replace('MAX_MINUTES = 600', 'MAX_MINUTES = 20').replace('BRANCH     = "main"   ', 'BRANCH     = "claude/project-thread-ezrky1"').replace('RUN_ID     = ""', 'XL_MAX_MINUTES = 480   #@param {type:"number"}\nRUN_ID     = ""'),
+    DIRECT_MOUNT, DIRECT_PREFLIGHT, DIRECT_CANARY, DIRECT_DEV, DIRECT_HELDOUT, XL_STUDY, INSTALL,
     "MD:## Các ô dưới chỉ chạy khi RUN_MODE=experiment\nPhép thử cũ `foreground_screen`: 1 cảnh xe đạp × 4 đối chứng "
     "= 4 ảnh cuối. So sánh clean cũ, anchor có nền cảnh, mask học được dạng cứng và dạng mềm. "
     "BiRefNet-lite chạy CPU, tải khoảng 224 MB một lần và kiểm tra SHA-256. "
