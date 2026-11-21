@@ -58,6 +58,18 @@ def strip(s, files, labels, head, y=1.72, sz=1.85, gap=0.2):
         tb(s, x, y + sz + 0.06, sz, 0.5, [[(l, 10.5 if j else 11.5, INK if j == 0 else MUT, j == 0)] for j, l in enumerate(lab.split('\n'))],
            align=PP_ALIGN.CENTER, space=0)
 
+def equation(s, y, tiles, opch, sz=1.38, ow=0.4):
+    """tiles: list of (file, label, sublabel, highlight); operators between tiles alternate opch and '='."""
+    x = 0.6
+    for k, (f, l1, l2, hl) in enumerate(tiles):
+        q = pic(s, f, x, y, sz, sz, True)
+        if hl: q.line.color.rgb = ORG; q.line.width = Pt(2)
+        tb(s, x - 0.1, y + sz + 0.04, sz + 0.2, 0.45, [[(l1, 10.5, INK if not hl else ORG, True)], [(l2, 9.5, MUT, False)]], align=PP_ALIGN.CENTER, space=0)
+        x += sz
+        if k < len(tiles) - 1:
+            tb(s, x, y + sz / 2 - 0.25, ow, 0.5, [[(opch if k % 2 == 0 else '=', 26, ORG, True)]], align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+            x += ow
+
 # ------------------------------------------------------------------ slide A: forward + training (pictures only)
 def lab(s, x, y, w, text, col=MUT, sz=10, b=False):
     tb(s, x, y, w, 0.3, [[(text, sz, col, b)]], align=PP_ALIGN.CENTER)
@@ -65,20 +77,20 @@ def op(s, x, y, text):
     tb(s, x, y, 0.5, 0.5, [[(text, 11, ORG, True)]], align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 s = A; clear(s)
 title(s, 'Mô hình khuếch tán: thêm nhiễu, rồi học cách xóa')
-strip(s, [f'a_fwd_{t}.png' for t in (0, 100, 300, 500, 800, 1000)],
-      ['t = 0\nảnh gốc', 't = 100\nthêm một ít nhiễu', 't = 300\ncon bò mờ đi', 't = 500\ngần như không thấy', 't = 800\nchỉ còn vệt mờ', 't = 1000\nnhiễu hoàn toàn'],
-      ('Quá trình thuận: mỗi bước rắc thêm một ít nhiễu, sau 1000 bước ảnh thành nhiễu (không cần học)', 13, ORG, True))
+tb(s, 0.6, 1.36, 12.1, 0.3, [[('Quá trình thuận: CỘNG thêm nhiễu nhiều lần, ảnh mờ dần thành nhiễu (không cần học)', 13, ORG, True)]])
+equation(s, 1.75, [('d_fwd_0.png', 'ảnh gốc', 't = 0', False), ('d_add_150.png', 'nhiễu', 'thêm vào', True),
+                   ('d_fwd_150.png', 'ảnh hơi nhiễu', 't = 150', False), ('d_add_400.png', 'nhiễu', 'thêm vào', True),
+                   ('d_fwd_400.png', 'ảnh rất nhiễu', 't = 400', False), ('d_add_1000.png', 'nhiễu', 'thêm vào', True),
+                   ('d_fwd_1000.png', 'chỉ còn nhiễu', 't = 1000', False)], '+')
 tb(s, 0.6, 4.4, 7.8, 0.3, [[('Huấn luyện = cho mạng làm bài tập “tìm nhiễu”', 14, INK, True)]])
 y0, z = 4.8, 1.35
-pic(s, 'c_tr0_noisy.png', 0.6, y0, z, z, True); lab(s, 0.5, y0 + z + 0.03, z + 0.2, 'đề bài: ảnh bị nhiễu')
-arrow(s, 2.05, y0 + 0.53, 0.35)
-box(s, 2.5, y0 + 0.2, 1.0, 0.95, LBL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-tb(s, 2.5, y0 + 0.2, 1.0, 0.95, [[('U-Net', 14, BLU, True)], [('mạng nơ-ron', 9, MUT, False)]], align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, space=0)
-arrow(s, 3.6, y0 + 0.53, 0.35)
-pic(s, 'c_tr0_noise.png', 4.05, y0, z, z, True); lab(s, 3.95, y0 + z + 0.03, z + 0.2, 'mạng chỉ ra: đây là nhiễu')
-op(s, 5.45, y0 + 0.42, 'bỏ đi')
-pic(s, 'c_tr0_clean.png', 5.95, y0, z, z, True); lab(s, 5.85, y0 + z + 0.03, z + 0.2, 'còn lại: ảnh gốc ✓', INK, 10, True)
-tb(s, 7.45, y0 + 0.15, 0.95, 1.1, [[('Sai thì sửa mạng, làm lại với ảnh khác.', 9.5, MUT, False)]], anchor=MSO_ANCHOR.MIDDLE)
+pic(s, 'd_tr_noisy.png', 0.6, y0, z, z, True); lab(s, 0.5, y0 + z + 0.03, z + 0.2, 'đề bài: ảnh bị nhiễu')
+tb(s, 1.95, y0 + 0.4, 0.5, 0.5, [[('−', 26, ORG, True)]], align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+q = pic(s, 'd_tr_noise.png', 2.45, y0, z, z, True); q.line.color.rgb = ORG; q.line.width = Pt(2)
+lab(s, 2.2, y0 + z + 0.03, z + 0.5, 'nhiễu do U-Net chỉ ra', ORG, 10, True)
+tb(s, 3.8, y0 + 0.4, 0.5, 0.5, [[('=', 26, ORG, True)]], align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+pic(s, 'd_tr_clean.png', 4.3, y0, z, z, True); lab(s, 4.2, y0 + z + 0.03, z + 0.2, 'phải ra ảnh gốc ✓', INK, 10, True)
+tb(s, 5.9, y0 + 0.1, 2.4, 1.2, [[('Ta biết đáp án vì chính ta đã cộng nhiễu vào.', 10.5, INK, False)], [('U-Net chỉ sai thì sửa mạng, rồi làm lại với ảnh khác.', 10.5, MUT, False)]], anchor=MSO_ANCHOR.MIDDLE, space=6)
 box(s, 8.6, 4.4, 4.1, 2.5, PEA, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 tb(s, 8.8, 4.5, 3.7, 0.3, [[('Luyện ở mọi mức nhiễu', 14, ORG, True)]])
 for k, (f, l) in enumerate([('c_tr0_noisy.png', 'nhẹ'), ('c_tr1_noisy.png', 'vừa'), ('c_tr2_noisy.png', 'nặng')]):
@@ -94,19 +106,18 @@ A.notes_slide.notes_text_frame.text = (
 # ------------------------------------------------------------------ slide B: sampling (pictures only)
 s = B; clear(s)
 title(s, 'Sinh ảnh: bắt đầu từ nhiễu, xóa dần từng bước')
-strip(s, [f'b_x_{t}.png' for t in (1000, 800, 600, 400, 200, 0)],
-      ['t = 1000\nnhiễu ngẫu nhiên', 't = 800\nchưa thấy gì', 't = 600\nbắt đầu có hình', 't = 400\nthấy dáng con bò', 't = 200\nrõ dần', 't = 0\nảnh mới'],
-      ('Quá trình ngược: lặp lại “tìm nhiễu rồi xóa bớt một ít”, từ nhiễu thuần đến ảnh rõ nét', 13, ORG, True))
-tb(s, 0.6, 4.2, 12.1, 0.2, [[('Ảnh tính thật theo DDPM (1000 bước); để chạy được trên máy thường, bộ đoán nhiễu ở đây là bộ đoán lý tưởng trên 12 ảnh mẫu thay cho U-Net đã huấn luyện.', 9, MUT, False, True)]])
+tb(s, 0.6, 1.36, 12.1, 0.3, [[('Quá trình ngược: TRỪ đi phần nhiễu mà U-Net chỉ ra, nhiều lần, từ nhiễu thuần đến ảnh rõ', 13, ORG, True)]])
+equation(s, 1.75, [('d_rev_1000.png', 'nhiễu ngẫu nhiên', 't = 1000', False), ('d_sub_350.png', 'nhiễu', 'bị trừ đi', True),
+                   ('d_rev_350.png', 'thấy dáng con bò', 't = 350', False), ('d_sub_150.png', 'nhiễu', 'bị trừ đi', True),
+                   ('d_rev_150.png', 'rõ dần', 't = 150', False), ('d_sub_0.png', 'nhiễu', 'bị trừ đi', True),
+                   ('d_rev_0.png', 'ảnh mới', 't = 0', False)], '−')
+tb(s, 0.6, 4.2, 12.1, 0.2, [[('Ảnh tính thật theo DDPM; mỗi phép tính đúng từng điểm ảnh. Bộ đoán nhiễu ở đây là bộ đoán lý tưởng trên 12 ảnh mẫu thay cho U-Net đã huấn luyện (để chạy trên máy thường).', 9, MUT, False, True)]])
 box(s, 0.6, 4.5, 6.7, 2.4, GRY, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-tb(s, 0.8, 4.6, 6.3, 0.3, [[('Một bước làm gì?', 14, INK, True)]])
-y0, z = 5.0, 1.3
-pic(s, 'c_step_xa.png', 0.8, y0, z, z, True); lab(s, 0.7, y0 + z + 0.03, z + 0.2, 'ảnh đang nhiễu')
-arrow(s, 2.2, y0 + 0.5, 0.4)
-pic(s, 'c_step_guess.png', 2.7, y0, z, z, True); lab(s, 2.5, y0 + z + 0.03, z + 0.4, 'mạng đoán: ảnh sạch như này')
-arrow(s, 4.1, y0 + 0.5, 0.4)
-pic(s, 'c_step_xb.png', 4.6, y0, z, z, True); lab(s, 4.5, y0 + z + 0.03, z + 0.2, 'xóa bớt một ít nhiễu')
-tb(s, 6.0, y0 + 0.1, 1.2, 1.1, [[('Lặp lại đến khi hết nhiễu.', 10, ORG, True)]], anchor=MSO_ANCHOR.MIDDLE)
+tb(s, 0.8, 4.6, 6.3, 0.3, [[('Thực tế: trừ từng chút một, qua rất nhiều bước nhỏ', 14, INK, True)]])
+for k, t in enumerate((1000, 800, 600, 400, 200, 0)):
+    x = 0.8 + k * 1.05
+    pic(s, f'b_x_{t}.png', x, 5.05, 0.95, 0.95, True); lab(s, x - 0.05, 6.02, 1.05, f't = {t}', MUT, 9.5)
+tb(s, 0.8, 6.38, 6.3, 0.4, [[('Mỗi bước, U-Net nhìn ảnh hiện tại rồi chỉ ra phần nhiễu cần trừ.', 10.5, INK, False)]])
 box(s, 7.5, 4.5, 5.2, 2.4, LBL, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 tb(s, 7.7, 4.6, 4.8, 0.3, [[('Nhiễu ban đầu khác → ảnh khác', 14, BLU, True)]])
 for k in range(3):
