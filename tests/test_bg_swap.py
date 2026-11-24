@@ -41,4 +41,9 @@ eng.reset_identity()
 d = np.abs(cv2.cvtColor(ref, cv2.COLOR_RGB2BGR).astype(float) - ims[0]).mean()
 print("own background vs plain run, mean abs diff:", d)
 assert d < 2.0, d
+m2 = meta["m2_scores"]
+assert len(m2) == 3 and all(len(o["candidates"]) == 2 for o in m2), m2
+for o in m2:
+    c = o["candidates"][o["selected"]]
+    assert abs(c["total"] - o["selected_score"]) < 1e-3 and set(c) >= {"clip", "iou", "conf", "total"}, o
 print("OK")
