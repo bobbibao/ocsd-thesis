@@ -15,3 +15,5 @@ python omml.py raw.pptx OCSD_BaoVe_KLTN_24-11.pptx       # native PowerPoint equ
 ```
 Reverse-process figures use the ideal (posterior-mean) denoiser over 12 deck images instead of a
 trained U-Net, so they are real DDPM trajectories that end on one of those images (stated on the slides).
+
+Then `python patch_dataset_2411.py OCSD_BaoVe_KLTN_24-11.pptx out.pptx`: dataset slide (37) shows key numbers and what each set tests instead of code.
