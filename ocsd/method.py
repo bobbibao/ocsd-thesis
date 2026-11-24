@@ -291,6 +291,7 @@ def learn_identity(eng: Engine, scene: Scene, objs: List[ObjectResult], cfg: OCS
         log["m3_loss_last"] = float(np.mean(losses[-20:])) if losses else None
         log["m3_time"] = time.time() - t0
         log["m3_skipped_steps"] = skipped
+        log["m3_losses"] = [round(float(v), 5) for v in losses]
     return tokens
 
 
