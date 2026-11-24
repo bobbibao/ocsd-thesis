@@ -115,7 +115,7 @@ def object_branch(eng: Engine, vis, scene: Scene, cfg: OCSDConfig, seed: int = 0
         m_crop, _ = square_crop((o.mask * 255).astype(np.uint8), o.box, cfg.height, fill=0)
         m_crop = m_crop > 127
         phrase = o.phrase if cfg.use_user_phrase else o.cls
-        prompt = cfg.obj_prompt_tmpl.format(phrase=phrase)
+        prompt = cfg.obj_prompt_tmpl.format(phrase=phrase, bg=scene.bg)
         control = eng.control_tensor(sketch_to_control(sk_crop), cfg.K)
         seeds = [seed * 1000 + 17 * i + k for k in range(cfg.K)]
         imgs = sample(eng, [prompt] * cfg.K, seeds, cfg, control, cfg.obj_cn_scale, steps=cfg.obj_steps,
@@ -417,6 +417,145 @@ def anchor_masks(placed: Sequence[np.ndarray], shrink: float, steps: int, res: i
     return out
 
 
+# ---------------------------------------------------------------------------- M4 harmonised blending (2026-11-24)
+def erode_placed(placed: Sequence[np.ndarray], px: int) -> List[np.ndarray]:
+    """Erode every placed object mask by `px` pixels (drops the white SAM edge halo of the M2 crops). An object that
+    would vanish keeps its own mask."""
+    if px <= 0:
+        return [np.asarray(m, bool) for m in placed]
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * px + 1, 2 * px + 1))
+    out = []
+    for m in placed:
+        e = cv2.erode(np.asarray(m, np.uint8), k) > 0
+        out.append(e if e.sum() >= 16 else np.asarray(m, bool))
+    return out
+
+
+def fill_outside(img: np.ndarray, mask: np.ndarray, levels: int = 8) -> np.ndarray:
+    """Push-pull fill: pixels outside `mask` take colours extrapolated from the inside (a coarse-to-fine pyramid of
+    the masked image), so the VAE latent near an object border is not mixed with the white page. uint8 HxWx3."""
+    mask = np.asarray(mask, bool)
+    if not mask.any() or mask.all():
+        return img.copy()
+    f = img.astype(np.float32)
+    w = mask.astype(np.float32)
+    pyr = [(f * w[..., None], w)]
+    for _ in range(levels):
+        a, b = pyr[-1]
+        if min(b.shape) < 8:
+            break
+        pyr.append((cv2.pyrDown(a), cv2.pyrDown(b)))
+    a, b = pyr[-1]
+    mean = (f * w[..., None]).sum((0, 1)) / max(float(w.sum()), 1e-6)
+    out = np.where(b[..., None] > 1e-6, a / np.maximum(b, 1e-6)[..., None], mean[None, None])
+    for a, b in reversed(pyr[:-1]):
+        up = cv2.resize(out, (b.shape[1], b.shape[0]), interpolation=cv2.INTER_LINEAR)
+        own = a / np.maximum(b, 1e-6)[..., None]
+        trust = np.clip(b * 4.0, 0.0, 1.0)[..., None]
+        out = own * trust + up * (1 - trust)
+    res = f.copy()
+    res[~mask] = out[~mask]
+    return np.clip(np.rint(res), 0, 255).astype(np.uint8)
+
+
+def harmonized_masks(placed: Sequence[np.ndarray], shrink: float, feather_px: float, steps: int, res: int, device,
+                     dtype) -> List[torch.Tensor]:
+    """Anchor mask for each of the first `steps` steps: the union of the (eroded) objects, each shrunk from its
+    border by a growing fraction (0 -> `shrink`) of its inner radius, feathered with a Gaussian of `feather_px`
+    pixels and area-averaged to latent resolution (soft values in [0, 1])."""
+    dists = []
+    for m in placed:
+        if np.any(m):
+            d = cv2.distanceTransform(np.asarray(m, np.uint8), cv2.DIST_L2, 3)
+            dists.append(d / max(float(d.max()), 1e-6))
+    shape = placed[0].shape if len(placed) else (res * 8, res * 8)
+    cache, out = {}, []
+    for i in range(steps):
+        p = round(shrink * i / max(steps - 1, 1), 4)
+        if p not in cache:
+            u = np.zeros(shape, np.float32)
+            for d in dists:
+                u = np.maximum(u, (d > p).astype(np.float32))
+            if feather_px > 0:
+                u = np.clip(cv2.GaussianBlur(u, (0, 0), float(feather_px)), 0.0, 1.0)
+            t = torch.from_numpy(u)[None, None]
+            cache[p] = F.interpolate(t, size=(res, res), mode="area").to(device, dtype)
+        out.append(cache[p])
+    return out
+
+
+def anchor_weight(idx: int, k_hold: int, k_end: int) -> float:
+    """1 while idx < k_hold, then a cosine decay that is close to 0 at the last anchored step k_end - 1; 0 after."""
+    if idx >= k_end:
+        return 0.0
+    if idx < k_hold:
+        return 1.0
+    n = k_end - k_hold
+    return 0.5 * (1.0 + float(np.cos(np.pi * (idx - k_hold + 1) / (n + 1))))
+
+
+def _lowpass(x: torch.Tensor, sigma: float) -> torch.Tensor:
+    """Separable Gaussian blur of a latent (reflect padding)."""
+    r = max(1, int(round(3 * sigma)))
+    g = torch.exp(-(torch.arange(-r, r + 1, device=x.device, dtype=torch.float32) ** 2) / (2 * sigma ** 2))
+    g = (g / g.sum()).to(x.dtype)
+    c = x.shape[1]
+    y = F.pad(x, (r, r, 0, 0), mode="reflect")
+    y = F.conv2d(y, g.view(1, 1, 1, -1).repeat(c, 1, 1, 1), groups=c)
+    y = F.pad(y, (0, 0, r, r), mode="reflect")
+    return F.conv2d(y, g.view(1, 1, -1, 1).repeat(c, 1, 1, 1), groups=c)
+
+
+def harmonized_anchor(eng: Engine, cfg: OCSDConfig, fg, k: int, T: int, seed: int, z_init: torch.Tensor):
+    """(z0, noise, masks, k_hold) of the harmonised M4 anchor, or None when nothing is anchored."""
+    if k <= 0 or fg is None:
+        return None
+    H = cfg.height
+    lh = H // eng.vae_factor
+    placed = erode_placed(fg[1], cfg.m4_erode_px)
+    canvas = fill_outside(fg[0], np.any(placed, 0)) if cfg.m4_fill else fg[0]
+    z0 = eng.to_latent(canvas)
+    noise = z_init.clone() if cfg.m4_shared_noise else eng.randn(seed + 7919, 1, H, H)
+    masks = harmonized_masks(placed, cfg.anchor_shrink, cfg.m4_feather_px, k, lh, eng.device, eng.dtype)
+    k_hold = min(max(k - int(round(cfg.m4_release * T)), 0), k)
+    return z0, noise, masks, k_hold, canvas
+
+
+def _harmonized(eng: Engine, ctx: SceneCond, cfg: OCSDConfig, ts, k: int, seed: int, fg, lambda0: float,
+                use_id: bool, energy_E: List[float], trace: Optional[dict] = None) -> torch.Tensor:
+    """M4 harmonised blending (blend_mode "harmonized"): one trajectory with the scene prompt, the scene ControlNet
+    and M5(a)/(b) from the first step (as "joint"). While idx < k the M2 objects are re-imposed inside a soft mask
+    with weight w(idx): z <- z + w * m * (q(z0, t) - z); w = 1 until k_hold, then decays smoothly to 0, and during
+    the decay only the low frequencies of the difference are re-imposed (m4_lowpass), so colour and layout stay while
+    edges, texture, contact shadows and lighting are redrawn by the model on the last steps."""
+    T = len(ts)
+    z = eng.randn(seed, 1, cfg.height, cfg.height)
+    anc = harmonized_anchor(eng, cfg, fg, k, T, seed, z)
+    if trace is not None and anc is not None:
+        trace.update(k_hold=anc[3], k_end=k, weights=[anchor_weight(i, anc[3], k) for i in range(T)])
+    t_ref = float(ts[0])
+    for idx, t in enumerate(ts):
+        if anc is not None and idx < k:
+            z0, noise, masks, k_hold, _ = anc
+            w = anchor_weight(idx, k_hold, k)
+            if w > 0:
+                d = eng.q_sample(z0, noise, t) - z
+                if cfg.m4_lowpass and idx >= k_hold:
+                    d = _lowpass(d.float(), cfg.m4_lowpass_sigma).to(z.dtype)
+                z = z + (w * masks[idx]).to(z.dtype) * d
+        eng.lora(use_id and idx >= cfg.m4_lora_start * T)
+        eng.ctrl.bias_enabled = cfg.use_region_attn
+        eng.ctrl.lambda_t = lambda0 * (float(t) / t_ref) ** cfg.gamma
+        if cfg.use_energy and idx < cfg.tau and any(ctx.en_groups):
+            eta_j = cfg.eta * (1 - 0.5 * idx / max(cfg.tau, 1))
+            z, E = eng.energy_update(z, t, ctx.emb_g, ctx.en_groups, ctx.masks_lr, ctx.eot, cfg.beta, eta_j,
+                                     ctx.control, ctx.omega, reduce=cfg.energy_reduce, grad_norm=cfg.energy_grad_norm)
+            energy_E.append(E)
+        eps = eng.cfg_eps(z, t, ctx.emb_g, ctx.emb_u, cfg.guidance, ctx.control, ctx.omega)
+        z = eng.step(eps, t, z)
+    return z
+
+
 def _denoise(eng: Engine, ctx: SceneCond, cfg: OCSDConfig, ts, start: int, z: torch.Tensor, lambda0: float,
              anchors, use_id: bool, energy_log: List[float]) -> torch.Tensor:
     """Joint-mode denoising from step `start`: before each U-Net call, every anchor (z0, noise, mask(s), until)
@@ -485,6 +624,9 @@ def build_scene(eng: Engine, scene: Scene, objs: Optional[List[ObjectResult]], c
             z = _denoise(eng, ctx, cfg, ts, 0, eng.randn(seed, 1, H, H), lambda0, anchors, use_id, energy_E)
         elif cfg.blend_mode == "separate":
             z = _separate(eng, ctx, cfg, ts, k, seed, fg, lambda0, use_id, energy_E)
+        elif cfg.blend_mode == "harmonized":
+            z = _harmonized(eng, ctx, cfg, ts, k, seed, fg, lambda0, use_id, energy_E,
+                            trace=log.setdefault("m4", {}) if log is not None else None)
         else:
             raise ValueError(f"unknown blend_mode {cfg.blend_mode!r}")
     if log is not None:
@@ -738,7 +880,7 @@ def generate(eng: Engine, vis, scene: Scene, prep: Prepared, cfg: OCSDConfig, se
     log = log if log is not None else {}
     t0 = time.time()
     tries = []
-    if cfg.blend_mode == "joint" and cfg.repair:
+    if cfg.blend_mode in ("joint", "harmonized") and cfg.repair:
         best_img = build_scene(eng, scene, prep.objs, cfg, seed, prep.id_tokens, cfg.lambda0, prep.fg, log)
         if cfg.use_verify and vis is not None:
             classes = [o.cls for o in scene.objects]
