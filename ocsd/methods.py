@@ -84,6 +84,37 @@ for _a in PARETO["pv2"]:
 for _a in PARETO["pv1lite"]:
     VARIANT_OVERRIDES[f"pv1lite_a{_a:.1f}"] = dict(use_identity=False, alpha=_a, use_verify=False)
 
+# ---- OCSD with harmonised M4 (2026-11-24, docs/M4_STUDY_PROTOCOL.md): the thesis method (SD 1.5, M1-M5, M3 on) with
+# M4 rebuilt as one scene trajectory whose M2 anchor is halo-free, feathered and released smoothly, plus the M5 fixes
+# of OCSD-v2 (small-object masks, caption class masks, mean energy) and object-level M5(d) repair. alpha keeps its
+# thesis meaning: the last alpha*T steps are free of anchoring. The tuned M5 values (lora_scale, energy tokens, eta,
+# region attention) still come from the frozen paper_v2 tuning.
+M4H = dict(blend_mode="harmonized", use_identity=True, alpha=0.3, anchor_shrink=0.3, m4_fill=True, m4_erode_px=2,
+           m4_feather_px=4.0, m4_release=0.25, m4_lowpass=True, m4_shared_noise=True, repair=True,
+           region_min_cell=True, caption_class_masks=True, energy_reduce="mean")
+M4_ARMS = {                                             # development arms: the centre and one-factor variants
+    "ocsd_m4": {},
+    "ocsd_m4_a02": dict(alpha=0.2),                     # anchored for 80% of the steps
+    "ocsd_m4_a04": dict(alpha=0.4),                     # anchored for 60% of the steps
+    "ocsd_m4_rel40": dict(m4_release=0.4),              # longer, gentler release
+    "ocsd_m4_w06": dict(omega=0.6),                     # stronger scene ControlNet M5(c)
+    "ocsd_m4_lora_late": dict(m4_lora_start=0.45),    # M3 LoRA only once the objects start to be released
+    "ocsd_m4_ctx": dict(obj_prompt_tmpl="a photo of a {phrase} {bg}, natural light, high quality"),  # M2 in context
+    # the same trajectory with the hard anchor of OCSD-v2 (no fill, erosion, feather, shared noise or soft release)
+    "ocsd_m4_hard": dict(blend_mode="joint", m4_fill=False, m4_erode_px=0, m4_feather_px=0.0, m4_release=0.0,
+                         m4_lowpass=False, m4_shared_noise=False),
+}
+for _k, _o in M4_ARMS.items():
+    VARIANT_OVERRIDES[_k] = dict(M4H, **_o)
+
+
+def register_variant(name: str, overrides: dict) -> None:
+    """Add an OCSD variant at run time (the configuration frozen by the M4 study's selection step)."""
+    VARIANT_OVERRIDES[name] = dict(overrides)
+    OCSD_VARIANTS[name] = BASE.replace(**overrides)
+    LABELS.setdefault(name, "OCSD (M4 harmonised)")
+
+
 OCSD_VARIANTS: Dict[str, OCSDConfig] = {k: BASE.replace(**o) for k, o in VARIANT_OVERRIDES.items()}
 
 # ----------------------------------------------------------------------------- baselines (catalogue)
@@ -128,6 +159,14 @@ LABELS = {
     "ocsd_lite": "OCSD-lite (không học định danh)",
     "ocsd": "OCSD (đề xuất)",
     "ocsd_v2": "OCSD-v2 (joint trajectory, training-free)",
+    "ocsd_m4": "OCSD, harmonised M4 (centre)",
+    "ocsd_m4_a02": "OCSD, harmonised M4, alpha 0.2",
+    "ocsd_m4_a04": "OCSD, harmonised M4, alpha 0.4",
+    "ocsd_m4_rel40": "OCSD, harmonised M4, release 0.4",
+    "ocsd_m4_w06": "OCSD, harmonised M4, scene ControlNet 0.6",
+    "ocsd_m4_ctx": "OCSD, harmonised M4, M2 objects in scene context",
+    "ocsd_m4_lora_late": "OCSD, harmonised M4, M3 LoRA from 45% of the steps",
+    "ocsd_m4_hard": "OCSD, joint trajectory with hard anchor",
     "abl_no_blend": "- bỏ suy luận trộn tiềm ẩn (alpha = 1)",
     "abl_alpha0": "- trộn tiềm ẩn toàn bộ quá trình (alpha = 0)",
     "abl_no_region": "- bỏ chú ý giới hạn theo vùng M5(a)",

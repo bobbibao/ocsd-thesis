@@ -169,9 +169,23 @@ class OCSDConfig:
     obj_negative_prompt: Optional[str] = None   # negative prompt of the object branch (None: negative_prompt)
     obj_cn_end: float = 1.0                     # fraction of the M2 steps that use the scribble ControlNet
 
+    # M4 harmonised blending (blend_mode "harmonized", added 2026-11-24, docs/M4_STUDY_PROTOCOL.md). One joint
+    # trajectory as in "joint", plus: a halo-free foreground canvas, eroded and feathered anchor masks, the anchor drawn
+    # with the trajectory's own initial noise, and a smooth release of the anchor (cosine weight 1 -> 0 over the last
+    # `m4_release` fraction of the anchored steps, optionally only on low frequencies). Left out of to_dict() at their
+    # defaults, so every earlier settings digest stays the same.
+    m4_fill: bool = False             # outside the objects, extrapolate their colours (push-pull) instead of white
+    m4_erode_px: int = 0              # erode every placed object mask by this many pixels (drops SAM edge halo)
+    m4_feather_px: float = 0.0        # Gaussian feather (pixels) of the anchor mask
+    m4_release: float = 0.0           # fraction of T over which the anchor weight decays to 0, ending at (1 - alpha) T
+    m4_lowpass: bool = False          # during the release, re-impose only the low frequencies of the anchor
+    m4_lowpass_sigma: float = 2.0     # latent pixels
+    m4_shared_noise: bool = False     # anchor q(z0, t) uses the initial noise of the trajectory (no seam in the noise)
+    m4_lora_start: float = 0.0        # M3 LoRA acts from this fraction of the steps on (identity tokens always)
+
     def to_dict(self):
         d = asdict(self)
-        for k, v in (("obj_negative_prompt", None), ("obj_cn_end", 1.0)):
+        for k, v in (("obj_negative_prompt", None), ("obj_cn_end", 1.0)) + tuple(M4_DEFAULTS.items()):
             if d[k] == v:
                 d.pop(k)
         return d
@@ -180,6 +194,10 @@ class OCSDConfig:
         d = self.to_dict()
         d.update(kw)
         return OCSDConfig(**d)
+
+
+M4_DEFAULTS = dict(m4_fill=False, m4_erode_px=0, m4_feather_px=0.0, m4_release=0.0, m4_lowpass=False,
+                   m4_lowpass_sigma=2.0, m4_shared_noise=False, m4_lora_start=0.0)
 
 
 # Defaults before the final configuration was frozen into OCSDConfig (alpha 0.1, LoRA 0.5, energy on phrase tokens,
