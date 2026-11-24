@@ -238,7 +238,7 @@ class Recorder:
 
 # ---------------------------------------------------------------------------------------------- main
 def _x0(eng, z, eps, t):
-    ab = eng.scheduler.alphas_cumprod[int(t)].float()
+    ab = eng.scheduler.alphas_cumprod[int(t)].float().cpu()   # add_noise moves the table to the GPU; z and eps are on the CPU
     return (z - (1 - ab).sqrt() * eps) / ab.sqrt()
 
 
