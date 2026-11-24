@@ -23,6 +23,38 @@ from .trace_ocsd import DEFAULT_SID, PROTOCOL, _w, ocsd_config
 DEFAULT_BGS = ("on a city street", "on a snowy field", "on a sandy beach")
 
 
+class _M2Scores:
+    """Records the three M2 selection terms of every candidate (CLIP / mask IoU / Grounding DINO confidence) while
+    method.object_branch runs; the computation is unchanged (calls are passed through)."""
+
+    def __init__(self, vis):
+        self.vis, self.calls = vis, []
+
+    def __getattr__(self, k):
+        return getattr(self.vis, k)
+
+    def gdino(self, img, classes, thr=0.25):
+        d = self.vis.gdino(img, classes, thr=thr)
+        self.calls.append(("conf", max((x["score"] for x in d), default=0.0)))
+        if hasattr(self, "_cands"):
+            self._cands.append(img)
+        return d
+
+    @property
+    def clip(self):
+        outer = self
+
+        class _C:
+            def __getattr__(self, k):
+                return getattr(outer.vis.clip, k)
+
+            def score(self, imgs, texts):
+                r = outer.vis.clip.score(imgs, texts)
+                outer.calls.append(("clip", float(r[0]) / 100))
+                return r
+        return _C()
+
+
 def _slug(s: str) -> str:
     return "_".join(s.split())
 
@@ -61,7 +93,38 @@ def run(drive_root: str, sid: str = DEFAULT_SID, seed: int = 0, bgs=DEFAULT_BGS,
     meta = dict(sid=sid, seed=seed, method="OCSD (SD 1.5, M1-M5)", cfg=cfg.to_dict(), runs=[])
     t0 = time.time()
     try:
-        objs = method.object_branch(eng, vis, scene, cfg, seed=seed if cfg.m2_per_seed else 0)   # M2 (once)
+        rv = _M2Scores(vis)
+        rv._cands = []
+        _iou = method.mask_iou
+
+        def _rec_iou(a, b):
+            v = _iou(a, b)
+            rv.calls.append(("iou", float(v)))
+            return v
+        method.mask_iou = _rec_iou
+        try:
+            objs = method.object_branch(eng, rv, scene, cfg, seed=seed if cfg.m2_per_seed else 0)   # M2 (once)
+        finally:
+            method.mask_iou = _iou
+        # one record per candidate: conf, clip, iou (in the order object_branch computes them)
+        recs, cur = [], {}
+        for k, v in rv.calls:
+            if k == "conf" and cur:
+                recs.append(cur); cur = {}
+            cur[k] = round(v, 4)
+        if cur:
+            recs.append(cur)
+        m2 = []
+        for i, o in enumerate(scene.objects):
+            cs = recs[i * cfg.K:(i + 1) * cfg.K]
+            for j, c in enumerate(cs):
+                c["total"] = round(c.get("clip", 0) + c.get("iou", 0) + c.get("conf", 0), 4)
+                _w(out / "M2" / f"obj{i + 1}_{o.cls}_cand{j + 1}.jpg", rv._cands[i * cfg.K + j], None)
+            best = max(range(len(cs)), key=lambda j: cs[j]["total"]) if cs else -1
+            m2.append(dict(cls=o.cls, weights=list(cfg.select_weights), candidates=cs, selected=best,
+                           selected_score=round(objs[i].score, 4)))
+        meta["m2_scores"] = m2
+        log("[bgswap] M2 scores: " + json.dumps(m2))
         fg = method.compose_foreground(scene, objs, cfg)
         id_tokens = method.learn_identity(eng, scene, objs, cfg, seed=0, log={}) if cfg.use_identity else None  # M3
         prep = method.Prepared(objs, fg, id_tokens, {})
