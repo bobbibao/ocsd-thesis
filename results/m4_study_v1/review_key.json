@@ -1,0 +1,362 @@
+{
+  "qd_1_complex_003_s0": {
+    "A": "collage",
+    "B": "controlnet",
+    "C": "zhang2025",
+    "D": "ocsd_final",
+    "E": "t2i_adapter",
+    "F": "ocsd",
+    "G": "gligen",
+    "H": "ocsd_v2"
+  },
+  "qd_1_complex_004_s0": {
+    "A": "controlnet",
+    "B": "zhang2025",
+    "C": "gligen",
+    "D": "ocsd_final",
+    "E": "collage",
+    "F": "t2i_adapter",
+    "G": "ocsd",
+    "H": "ocsd_v2"
+  },
+  "qd_1_complex_005_s0": {
+    "A": "ocsd",
+    "B": "ocsd_v2",
+    "C": "zhang2025",
+    "D": "gligen",
+    "E": "collage",
+    "F": "ocsd_final",
+    "G": "controlnet",
+    "H": "t2i_adapter"
+  },
+  "qd_1_medium_003_s0": {
+    "A": "ocsd",
+    "B": "controlnet",
+    "C": "t2i_adapter",
+    "D": "ocsd_v2",
+    "E": "collage",
+    "F": "gligen",
+    "G": "ocsd_final",
+    "H": "zhang2025"
+  },
+  "qd_1_medium_004_s0": {
+    "A": "t2i_adapter",
+    "B": "ocsd_final",
+    "C": "collage",
+    "D": "ocsd",
+    "E": "controlnet",
+    "F": "gligen",
+    "G": "ocsd_v2",
+    "H": "zhang2025"
+  },
+  "qd_1_medium_005_s0": {
+    "A": "collage",
+    "B": "t2i_adapter",
+    "C": "controlnet",
+    "D": "gligen",
+    "E": "ocsd_final",
+    "F": "zhang2025",
+    "G": "ocsd_v2",
+    "H": "ocsd"
+  },
+  "qd_1_simple_003_s0": {
+    "A": "controlnet",
+    "B": "t2i_adapter",
+    "C": "ocsd_final",
+    "D": "ocsd",
+    "E": "ocsd_v2",
+    "F": "gligen",
+    "G": "collage",
+    "H": "zhang2025"
+  },
+  "qd_1_simple_004_s0": {
+    "A": "gligen",
+    "B": "ocsd",
+    "C": "controlnet",
+    "D": "ocsd_v2",
+    "E": "ocsd_final",
+    "F": "collage",
+    "G": "zhang2025",
+    "H": "t2i_adapter"
+  },
+  "qd_1_simple_005_s0": {
+    "A": "t2i_adapter",
+    "B": "collage",
+    "C": "zhang2025",
+    "D": "ocsd_final",
+    "E": "controlnet",
+    "F": "ocsd",
+    "G": "ocsd_v2",
+    "H": "gligen"
+  },
+  "qd_3_complex_003_s0": {
+    "A": "ocsd",
+    "B": "gligen",
+    "C": "ocsd_final",
+    "D": "t2i_adapter",
+    "E": "ocsd_v2",
+    "F": "zhang2025",
+    "G": "collage",
+    "H": "controlnet"
+  },
+  "qd_3_complex_004_s0": {
+    "A": "ocsd",
+    "B": "collage",
+    "C": "gligen",
+    "D": "ocsd_v2",
+    "E": "ocsd_final",
+    "F": "zhang2025",
+    "G": "controlnet",
+    "H": "t2i_adapter"
+  },
+  "qd_3_complex_005_s0": {
+    "A": "collage",
+    "B": "zhang2025",
+    "C": "controlnet",
+    "D": "gligen",
+    "E": "ocsd_v2",
+    "F": "t2i_adapter",
+    "G": "ocsd_final",
+    "H": "ocsd"
+  },
+  "qd_3_medium_003_s0": {
+    "A": "t2i_adapter",
+    "B": "zhang2025",
+    "C": "controlnet",
+    "D": "gligen",
+    "E": "ocsd_final",
+    "F": "ocsd_v2",
+    "G": "collage",
+    "H": "ocsd"
+  },
+  "qd_3_medium_004_s0": {
+    "A": "collage",
+    "B": "ocsd",
+    "C": "ocsd_final",
+    "D": "gligen",
+    "E": "zhang2025",
+    "F": "t2i_adapter",
+    "G": "controlnet",
+    "H": "ocsd_v2"
+  },
+  "qd_3_medium_005_s0": {
+    "A": "gligen",
+    "B": "ocsd_v2",
+    "C": "ocsd",
+    "D": "zhang2025",
+    "E": "t2i_adapter",
+    "F": "controlnet",
+    "G": "collage",
+    "H": "ocsd_final"
+  },
+  "qd_3_simple_003_s0": {
+    "A": "ocsd",
+    "B": "ocsd_v2",
+    "C": "ocsd_final",
+    "D": "gligen",
+    "E": "collage",
+    "F": "controlnet",
+    "G": "t2i_adapter",
+    "H": "zhang2025"
+  },
+  "qd_3_simple_004_s0": {
+    "A": "gligen",
+    "B": "t2i_adapter",
+    "C": "ocsd",
+    "D": "ocsd_final",
+    "E": "ocsd_v2",
+    "F": "collage",
+    "G": "zhang2025",
+    "H": "controlnet"
+  },
+  "qd_3_simple_005_s0": {
+    "A": "controlnet",
+    "B": "gligen",
+    "C": "ocsd_v2",
+    "D": "collage",
+    "E": "ocsd_final",
+    "F": "zhang2025",
+    "G": "t2i_adapter",
+    "H": "ocsd"
+  },
+  "qd_5_complex_003_s0": {
+    "A": "ocsd",
+    "B": "controlnet",
+    "C": "ocsd_v2",
+    "D": "zhang2025",
+    "E": "ocsd_final",
+    "F": "collage",
+    "G": "gligen",
+    "H": "t2i_adapter"
+  },
+  "qd_5_complex_004_s0": {
+    "A": "t2i_adapter",
+    "B": "gligen",
+    "C": "ocsd_final",
+    "D": "ocsd",
+    "E": "zhang2025",
+    "F": "collage",
+    "G": "controlnet",
+    "H": "ocsd_v2"
+  },
+  "qd_5_complex_005_s0": {
+    "A": "collage",
+    "B": "ocsd_v2",
+    "C": "gligen",
+    "D": "zhang2025",
+    "E": "ocsd",
+    "F": "ocsd_final",
+    "G": "controlnet",
+    "H": "t2i_adapter"
+  },
+  "qd_5_medium_003_s0": {
+    "A": "ocsd_v2",
+    "B": "zhang2025",
+    "C": "gligen",
+    "D": "ocsd_final",
+    "E": "collage",
+    "F": "t2i_adapter",
+    "G": "controlnet",
+    "H": "ocsd"
+  },
+  "qd_5_medium_004_s0": {
+    "A": "ocsd",
+    "B": "t2i_adapter",
+    "C": "ocsd_final",
+    "D": "gligen",
+    "E": "ocsd_v2",
+    "F": "zhang2025",
+    "G": "controlnet",
+    "H": "collage"
+  },
+  "qd_5_medium_005_s0": {
+    "A": "ocsd_v2",
+    "B": "ocsd_final",
+    "C": "collage",
+    "D": "zhang2025",
+    "E": "gligen",
+    "F": "t2i_adapter",
+    "G": "controlnet",
+    "H": "ocsd"
+  },
+  "qd_5_simple_003_s0": {
+    "A": "ocsd_v2",
+    "B": "collage",
+    "C": "controlnet",
+    "D": "zhang2025",
+    "E": "ocsd",
+    "F": "ocsd_final",
+    "G": "t2i_adapter",
+    "H": "gligen"
+  },
+  "qd_5_simple_004_s0": {
+    "A": "ocsd_v2",
+    "B": "ocsd",
+    "C": "t2i_adapter",
+    "D": "controlnet",
+    "E": "collage",
+    "F": "gligen",
+    "G": "ocsd_final",
+    "H": "zhang2025"
+  },
+  "qd_5_simple_005_s0": {
+    "A": "ocsd_final",
+    "B": "controlnet",
+    "C": "collage",
+    "D": "gligen",
+    "E": "ocsd_v2",
+    "F": "zhang2025",
+    "G": "t2i_adapter",
+    "H": "ocsd"
+  },
+  "qd_8p_complex_003_s0": {
+    "A": "zhang2025",
+    "B": "gligen",
+    "C": "controlnet",
+    "D": "ocsd_v2",
+    "E": "ocsd",
+    "F": "t2i_adapter",
+    "G": "collage",
+    "H": "ocsd_final"
+  },
+  "qd_8p_complex_004_s0": {
+    "A": "controlnet",
+    "B": "t2i_adapter",
+    "C": "ocsd_v2",
+    "D": "ocsd_final",
+    "E": "collage",
+    "F": "ocsd",
+    "G": "gligen",
+    "H": "zhang2025"
+  },
+  "qd_8p_complex_005_s0": {
+    "A": "zhang2025",
+    "B": "ocsd_final",
+    "C": "controlnet",
+    "D": "t2i_adapter",
+    "E": "collage",
+    "F": "gligen",
+    "G": "ocsd_v2",
+    "H": "ocsd"
+  },
+  "qd_8p_medium_003_s0": {
+    "A": "ocsd_final",
+    "B": "zhang2025",
+    "C": "ocsd_v2",
+    "D": "gligen",
+    "E": "t2i_adapter",
+    "F": "ocsd",
+    "G": "collage",
+    "H": "controlnet"
+  },
+  "qd_8p_medium_004_s0": {
+    "A": "ocsd_final",
+    "B": "zhang2025",
+    "C": "gligen",
+    "D": "t2i_adapter",
+    "E": "collage",
+    "F": "controlnet",
+    "G": "ocsd",
+    "H": "ocsd_v2"
+  },
+  "qd_8p_medium_005_s0": {
+    "A": "gligen",
+    "B": "ocsd",
+    "C": "ocsd_final",
+    "D": "zhang2025",
+    "E": "collage",
+    "F": "t2i_adapter",
+    "G": "ocsd_v2",
+    "H": "controlnet"
+  },
+  "qd_8p_simple_003_s0": {
+    "A": "collage",
+    "B": "ocsd_v2",
+    "C": "ocsd_final",
+    "D": "gligen",
+    "E": "t2i_adapter",
+    "F": "zhang2025",
+    "G": "controlnet",
+    "H": "ocsd"
+  },
+  "qd_8p_simple_004_s0": {
+    "A": "t2i_adapter",
+    "B": "ocsd_final",
+    "C": "gligen",
+    "D": "controlnet",
+    "E": "collage",
+    "F": "ocsd_v2",
+    "G": "ocsd",
+    "H": "zhang2025"
+  },
+  "qd_8p_simple_005_s0": {
+    "A": "ocsd",
+    "B": "t2i_adapter",
+    "C": "controlnet",
+    "D": "zhang2025",
+    "E": "gligen",
+    "F": "ocsd_final",
+    "G": "collage",
+    "H": "ocsd_v2"
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "chosen": "ocsd_m4_combo",
+  "overrides": {
+    "blend_mode": "harmonized",
+    "use_identity": true,
+    "alpha": 0.2,
+    "anchor_shrink": 0.3,
+    "m4_fill": true,
+    "m4_erode_px": 2,
+    "m4_feather_px": 4.0,
+    "m4_release": 0.4,
+    "m4_lowpass": true,
+    "m4_shared_noise": true,
+    "repair": true,
+    "region_min_cell": true,
+    "caption_class_masks": true,
+    "energy_reduce": "mean",
+    "omega": 0.6,
+    "m4_lora_start": 0.45
+  },
+  "config": {
+    "steps": 30,
+    "guidance": 7.5,
+    "height": 512,
+    "width": 512,
+    "negative_prompt": "lowres, blurry, deformed, bad anatomy, extra limbs, watermark, text",
+    "K": 2,
+    "obj_steps": 20,
+    "obj_cn_scale": 1.0,
+    "obj_prompt_tmpl": "a photo of a {phrase}, simple white background, high quality",
+    "use_user_phrase": true,
+    "select_weights": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "use_identity": true,
+    "S1": 100,
+    "S2": 100,
+    "lora_scale": 0.5,
+    "lr_emb1": 0.005,
+    "lr_emb2": 5e-05,
+    "lr_lora": 0.0001,
+    "lora_rank": 16,
+    "lambda_att": 0.01,
+    "use_att_sep": true,
+    "use_blend": true,
+    "alpha": 0.2,
+    "bg_prompt_tmpl": "a photo of {bg}, high quality",
+    "placement_search": true,
+    "use_caption": true,
+    "blend_mode": "harmonized",
+    "anchor_shrink": 0.3,
+    "m2_per_seed": false,
+    "collage_strength": 0.3,
+    "use_region_attn": true,
+    "lambda0": 8.0,
+    "gamma": 1.0,
+    "use_energy": true,
+    "beta": 1.0,
+    "eta": 20.0,
+    "tau": 10,
+    "energy_tokens": "phrase",
+    "use_scene_cn": true,
+    "omega": 0.6,
+    "use_verify": true,
+    "R": 2,
+    "lambda0_boost": 1.5,
+    "verify_thr": 0.35,
+    "repair": true,
+    "repair_strength": 0.5,
+    "region_min_cell": true,
+    "caption_class_masks": true,
+    "energy_reduce": "mean",
+    "energy_grad_norm": false,
+    "cn_scale": 1.0,
+    "adapter_scale": 1.0,
+    "gligen_beta": 0.3,
+    "bo_n": 8,
+    "prompt_mode": "both",
+    "m4_fill": true,
+    "m4_erode_px": 2,
+    "m4_feather_px": 4.0,
+    "m4_release": 0.4,
+    "m4_lowpass": true,
+    "m4_shared_noise": true,
+    "m4_lora_start": 0.45
+  },
+  "config_sha256": "45674144fd85a1fed85c2641d60651cdd2ec09f408285b21974f139eed1a9f74",
+  "fallback_rule_used": false,
+  "pickscore_missing": false,
+  "reference": "ocsd",
+  "reference_means": {
+    "opr": 0.72241512345679,
+    "miou": 0.5303231815939493,
+    "ra": 0.49088050034371,
+    "pickscore": 21.136521021525066,
+    "clip": 28.704480754004585,
+    "count_acc": 0.3611111111111111,
+    "sketch_chamfer": 0.052556475200888034,
+    "images": 72
+  },
+  "arms": {
+    "ocsd_m4": {
+      "means": {
+        "opr": 0.7028935185185184,
+        "miou": 0.4054150457074812,
+        "ra": 0.3765484758853939,
+        "pickscore": 21.847567399342854,
+        "clip": 29.181794855329727,
+        "count_acc": 0.25,
+        "sketch_chamfer": 0.06700031190012418,
+        "images": 72
+      },
+      "score": 0.5305046655946872,
+      "complete": true,
+      "not_less_natural": true,
+      "eligible": true
+    },
+    "ocsd_m4_a02": {
+      "means": {
+        "opr": 0.7075617283950617,
+        "miou": 0.39961414853246124,
+        "ra": 0.41274348880243605,
+        "pickscore": 21.784924507141113,
+        "clip": 29.13510168923272,
+        "count_acc": 0.25,
+        "sketch_chamfer": 0.06509732201068524,
+        "images": 72
+      },
+      "score": 0.5390599628574554,
+      "complete": true,
+      "not_less_natural": true,
+      "eligible": true
+    },
+    "ocsd_m4_a04": {
+      "means": {
+        "opr": 0.7070987654320987,
+        "miou": 0.4040959372638603,
+        "ra": 0.3682495043158082,
+        "pickscore": 21.931652122073704,
+        "clip": 29.154775460561115,
+        "count_acc": 0.2916666666666667,
+        "sketch_chamfer": 0.06456636749808681,
+        "images": 72
+      },
+      "score": 0.5329046240313543,
+      "complete": true,
+      "not_less_natural": true,
+      "eligible": true
+    },
+    "ocsd_m4_rel40": {
+      "means": {
+        "opr": 0.7286265432098766,
+        "miou": 0.41828122288903985,
+        "ra": 0.41005151257214484,
+        "pickscore": 21.91178059577942,
+        "clip": 29.273586140738594,
+        "count_acc": 0.2638888888888889,
+        "sketch_chamfer": 0.06490896624522619,
+        "images": 72
+      },
+      "score": 0.5577494049364047,
+      "complete": true,
+      "not_less_natural": true,
+      "eligible": true
+    },
+    "ocsd_m4_w06": {
+      "means": {
+        "opr": 0.7544367283950617,
+        "miou": 0.49175395484448736,
+        "ra": 0.4781910625893297,
+        "pickscore": 21.73773940404256,
+        "clip": 28.94942373699612,
+        "count_acc": 0.3472222222222222,
+        "sketch_chamfer": 0.05789845672420278,
+        "images": 72
+      },
+      "score": 0.6048548344021677,
+      "complete": true,
+      "not_less_natural": true,
+      "eligible": true
+    },
+    "ocsd_m4_lora_late": {
+      "means": {
+        "opr": 0.7275848765432099,
+        "miou": 0.42441033517005905,
+        "ra": 0.40522885957335397,
+        "pickscore": 21.844485759735107,
+        "clip": 29.03989574644301,
+        "count_acc": 0.2638888888888889,
+        "sketch_chamfer": 0.06737416209905751,
+        "images": 72
+      },
+      "score": 0.5544729273393764,
+      "complete": true,
+      "not_less_natural": true,
+      "eligible": true
+    },
+    "ocsd_m4_ctx": {
+      "means": {
+        "opr": 0.6885416666666666,
+        "miou": 0.3940782513945507,
+        "ra": 0.36274434022252966,
+        "pickscore": 21.887050761116875,
+        "clip": 29.273143529891968,
+        "count_acc": 0.2777777777777778,
+        "sketch_chamfer": 0.0668482160144629,
+        "images": 72
+      },
+      "score": 0.5193145730741727,
+      "complete": true,
+      "not_less_natural": true,
+      "eligible": true
+    },
+    "ocsd_m4_hard": {
+      "means": {
+        "opr": 0.7146990740740741,
+        "miou": 0.37686300807256656,
+        "ra": 0.3860123980573253,
+        "pickscore": 21.96392771932814,
+        "clip": 29.272910740640427,
+        "count_acc": 0.3055555555555556,
+        "sketch_chamfer": 0.06647310907700894,
+        "images": 72
+      },
+      "score": 0.5338951616248091,
+      "complete": true,
+      "not_less_natural": true,
+      "eligible": true
+    },
+    "ocsd_m4_combo": {
+      "means": {
+        "opr": 0.7816358024691358,
+        "miou": 0.5111826379482387,
+        "ra": 0.5314109647961801,
+        "pickscore": 21.73892370859782,
+        "clip": 29.174447562959458,
+        "count_acc": 0.4305555555555556,
+        "sketch_chamfer": 0.057037505719167894,
+        "images": 72
+      },
+      "score": 0.6381966027581559,
+      "complete": true,
+      "not_less_natural": true,
+      "eligible": true
+    }
+  },
+  "rule": {
+    "candidates": [
+      "ocsd_m4",
+      "ocsd_m4_a02",
+      "ocsd_m4_a04",
+      "ocsd_m4_rel40",
+      "ocsd_m4_w06",
+      "ocsd_m4_lora_late",
+      "ocsd_m4_ctx",
+      "ocsd_m4_hard"
+    ],
+    "text": "Per arm: means over the 36 development scenes (seeds averaged) of OPR, mIoU and RA (OWLv2) and PickScore. score = mean(OPR, mIoU, RA) + 0.05 x (PickScore - PickScore of the original OCSD). Eligible: at least 95% of the images exist and PickScore >= that of the original OCSD (not less natural by the proxy). The eligible arm with the highest score is frozen; ties go to the earlier arm in the candidate list. If no arm is eligible, the complete arm with the highest score is frozen and this is reported. If PickScore is unavailable, the score is the structure mean alone.",
+    "pickscore_weight": 0.05,
+    "min_pickscore_gain": 0.0,
+    "min_complete": 0.95
+  },
+  "combo": true,
+  "protocol_sha256": "d6ea38887a78d2d3bc3bec49054575a28aec8cc8a9a71bd56ffd9684ebfd145a",
+  "dev_images": 720,
+  "time": "2026-11-24 23:32:04"
+}
