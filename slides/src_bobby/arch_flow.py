@@ -41,7 +41,7 @@ for t, y in (('Phác thảo cảnh', 160), ('Câu mô tả', 700)): d.text((155 
 Y0, Y1 = 330, 620
 box((350, Y0, 610, Y1), GF, GL, ['M1', 'Phân rã', 'vật thể', '', 'mặt nạ, hộp,', 'tương quan,', 'cụm từ'], 24)
 arrow([(285, 325), (345, 410)]); arrow([(285, 620), (345, 545)])
-box((680, Y0, 940, Y1), OF, OL, ['M2', 'Sinh ảnh', 'từng vật thể', '', 'ControlNet', '+ Grounded-SAM,', 'chọn ứng viên'], 24)
+box((680, Y0, 940, Y1), OF, OL, ['M2', 'Tạo ảnh', 'từng vật thể', '', 'ControlNet', '+ Grounded-SAM,', 'chọn ứng viên'], 24)
 box((1010, Y0, 1270, Y1), OF, OL, ['M3', 'Học định danh', '', 'token ‹oᵢ›', '+ LoRA cho', 'từng vật thể'], 24)
 arrow([(612, 475), (676, 475)]); arrow([(942, 475), (1006, 475)])
 note(645, 432, 'nét', 20); note(975, 432, 'ảnh', 20)
@@ -85,7 +85,7 @@ new = s.shapes.add_picture('arch/arch_flow.png', I(0.6), I(1.55), wid, hei)
 old._element.addprevious(new._element); old._element.getparent().remove(old._element)
 s.notes_slide.notes_text_frame.text = (
     'Đây là kiến trúc OCSD theo đúng thứ tự chạy, gồm bước tiền xử lý và hai nhánh: nhánh xử lý vật thể và nhánh xử lý cảnh. Đầu vào là phác thảo và câu mô tả. '
-    'Tiền xử lý: M1 phân rã phác thảo thành từng vật thể, có mặt nạ, hộp, tương quan vị trí và cụm từ. Nhánh xử lý vật thể chạy một lần cho từng vật: M2 sinh ảnh riêng cho từng vật bằng ControlNet và tách vật bằng Grounded-SAM; '
+    'Tiền xử lý: M1 phân rã phác thảo thành từng vật thể, có mặt nạ, hộp, tương quan vị trí và cụm từ. Nhánh xử lý vật thể chạy một lần cho từng vật: M2 tạo ảnh riêng cho từng vật bằng ControlNet và tách vật bằng Grounded-SAM; '
     'M3 học token định danh và LoRA cho từng vật. Sau đó là nhánh xử lý cảnh, khử nhiễu 30 bước, trong đó M4 và M5 cùng chạy ở mỗi bước: '
     'M4 đặt vật của M2 khớp nét vẽ, neo vật ở bước 1 đến 12, nhả dần ở 13 đến 24, và để mô hình vẽ tự do ở 25 đến 30; '
     'M5 phần a, b, c tác động ở mọi bước: chú ý chéo theo vùng, dẫn hướng năng lượng khi vật bị quên hoặc tràn ra ngoài, và ControlNet phác thảo cả cảnh với lực 0,6. '
