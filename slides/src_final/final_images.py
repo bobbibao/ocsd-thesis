@@ -67,6 +67,9 @@ def notes(s, t): s.notes_slide.notes_text_frame.text = t
 # ================================================================ M4 slide
 s = find('M4-Tổng hợp cảnh')
 clear_body(s)
+for x in s.shapes:
+    if x.name == 'Text 1':
+        for r in x.text_frame.paragraphs[0].runs: r.text = r.text.replace('ghép đối tượng vào nền', 'đặt đối tượng vào nền')
 tb(s, 0.6, 1.42, 12.1, 0.3, [[('Ví dụ thật (OCSD cuối cùng): cùng cảnh 2 xe buýt + 1 ghế, 30 bước khử nhiễu.', 12.5, MUT, True)]])
 z = 1.6; y = 2.08
 tb(s, 0.6, y - 0.3, z, 0.26, [[('Đầu vào', 11, INK, True)]], align=PP_ALIGN.CENTER)
@@ -249,6 +252,20 @@ tf = s.notes_slide.notes_text_frame; tf.text = tf.text.replace('chỗ khoanh cam
 s = find('Kiến trúc OCSD')
 tf = s.notes_slide.notes_text_frame
 tf.text = tf.text.replace('M4 trộn tiềm ẩn rồi suy luận tùy biến', 'M4 dựng cảnh: giữ vật của M2 ở các bước đầu rồi nhả dần để vật hòa vào nền')
+
+# ================================================================ Bobby 2026-11-25: never translate the baseline name; write 'Collage'
+BAD = ('ghép ảnh', 'ghép đối tượng')
+for sl in p.slides:
+    for x in sl.shapes:
+        if x.has_text_frame:
+            for para in x.text_frame.paragraphs:
+                for r in para.runs:
+                    t = r.text.replace('Ghép ảnh (Collage)', 'Collage').replace('Ghép ảnh', 'Collage').replace('ghép ảnh', 'Collage')
+                    if t != r.text: r.text = t
+    if sl.has_notes_slide:
+        tf = sl.notes_slide.notes_text_frame
+        t = tf.text.replace('Ghép ảnh', 'Collage').replace('ghép ảnh', 'Collage')
+        if t != tf.text: tf.text = t
 
 # ================================================================ renumber
 n = len(p.slides)

@@ -87,9 +87,9 @@ s = find('Khi số đối tượng tăng')
 repic(s, sh(s, 'Picture 12'), 'charts/f_count.png')
 settext(sh(s, 'Text 4'), ['63% so với 39%'])
 settext(sh(s, 'Text 5'), ['Giữ đối tượng ở cảnh 8+ đối tượng: OCSD so với mô hình nền. Từ 1 lên 8+ đối tượng, OCSD giảm 38 điểm, mô hình nền giảm 58 điểm.'])
-card_text(sh(s, 'Text 7'), 'Chưa giải quyết xong', 'Ở 8+ đối tượng, Ghép ảnh (69%) vẫn giữ được nhiều hơn; GLIGEN 55%. Mọi phương pháp đều giảm mạnh. 18 cảnh 8+, phân tích thăm dò.')
+card_text(sh(s, 'Text 7'), 'Chưa giải quyết xong', 'Ở 8+ đối tượng, Collage (69%) vẫn giữ được nhiều hơn; GLIGEN 55%. Mọi phương pháp đều giảm mạnh. 18 cảnh 8+, phân tích thăm dò.')
 notes(s, 'Biểu đồ này cho thấy điều đề tài quan tâm nhất: khi số đối tượng tăng thì chuyện gì xảy ra. Mô hình nền, đường xám nét đứt, giữ 97 phần trăm đối tượng ở cảnh một đối tượng nhưng chỉ còn 39 phần trăm ở cảnh 8 đối tượng trở lên. '
-         'OCSD, đường cam đậm, giảm chậm hơn nhiều, còn 63 phần trăm; đường cam nhạt là OCSD với M4 cũ, còn 52 phần trăm. Ở mức 8+, cách ghép ảnh Collage vẫn giữ được nhiều hơn, 69 phần trăm; GLIGEN 55 phần trăm. '
+         'OCSD, đường cam đậm, giảm chậm hơn nhiều, còn 63 phần trăm; đường cam nhạt là OCSD với M4 cũ, còn 52 phần trăm. Ở mức 8+, Collage vẫn giữ được nhiều hơn, 69 phần trăm; GLIGEN 55 phần trăm. '
          'Mỗi mức chỉ có 18 cảnh nên đây là phân tích thăm dò. Cảnh rất đông vẫn là bài toán chưa giải xong.')
 
 # ---------------------------------------------------------------- comparison: 4 charts, 4 cards
@@ -97,20 +97,20 @@ s = find('OCSD so với các phương pháp khác')
 clear(s)
 for k, f in enumerate(['opr', 'miou', 'ra', 'pick']):
     s.shapes.add_picture(f'charts/f_{f}.png', I(0.45 + k * 3.12), I(1.45), I(3.05), I(3.05 * 2.75 / 3.1))
-cards = [('Giữ đối tượng', '79% so với 66% (nền), 62% (T2I-Adapter), 63% (Zhang và cs.): hơn rõ. Ngang GLIGEN 80% và Ghép ảnh 82%.'),
-         ('Vị trí, hình dạng', '0,48: ngang mô hình nền (0,49); thấp hơn GLIGEN (0,65) và Ghép ảnh (0,61), khác biệt có ý nghĩa.'),
-         ('Đúng tương quan', '51% so với 32% (nền), 28%, 34%: hơn rõ. Ghép ảnh (62%) và GLIGEN (56%) cao hơn, chưa có ý nghĩa.'),
-         ('Độ tự nhiên', '21,89: cao hơn GLIGEN (21,41) và Ghép ảnh (21,52), có ý nghĩa; hơn M4 cũ (21,16).')]
+cards = [('Giữ đối tượng', '79% so với 66% (nền), 62% (T2I-Adapter), 63% (Zhang và cs.): hơn rõ. Ngang GLIGEN 80% và Collage 82%.'),
+         ('Vị trí, hình dạng', '0,48: ngang mô hình nền (0,49); thấp hơn GLIGEN (0,65) và Collage (0,61), khác biệt có ý nghĩa.'),
+         ('Đúng tương quan', '51% so với 32% (nền), 28%, 34%: hơn rõ. Collage (62%) và GLIGEN (56%) cao hơn, chưa có ý nghĩa.'),
+         ('Độ tự nhiên', '21,89: cao hơn GLIGEN (21,41) và Collage (21,52), có ý nghĩa; hơn M4 cũ (21,16).')]
 for k, (h, b) in enumerate(cards):
     x = 0.6 + k * 3.05
     box(s, x, 4.3, 2.9, 2.05, PEA if k in (0, 3) else GRY)
     tb(s, x + 0.15, 4.4, 2.6, 1.9, [[(h, 13, ORG if k in (0, 3) else INK, True)], [(b, 10.5, INK, False)]], space=4)
 tb(s, 0.6, 6.5, 12.1, 0.45, [[(FOOT + ' “Hơn rõ”, “có ý nghĩa” = Holm p < 0,05; “ngang” = khác biệt không có ý nghĩa. Trả lời Q2.', 9.5, MUT, False, True)]])
 notes(s, 'Đây là kết quả chính trên 72 cảnh, mỗi cảnh chạy 2 hạt giống, chấm tự động bằng OWLv2, so với sáu phương pháp. Thanh cam đậm là OCSD cuối cùng, thanh cam nhạt là OCSD với M4 cũ. '
-         'Giữ đối tượng: OCSD 79 phần trăm, hơn rõ mô hình nền 66, T2I-Adapter 62 và Zhang 63; ngang GLIGEN 80 và Ghép ảnh 82, khác biệt không có ý nghĩa thống kê. '
-         'Vị trí, hình dạng: 0,48, ngang mô hình nền, nhưng thấp hơn GLIGEN và Ghép ảnh, khác biệt có ý nghĩa; đây là điểm yếu nhóm nói rõ. '
-         'Đúng tương quan: 51 phần trăm, hơn rõ mô hình nền 32; Ghép ảnh và GLIGEN cao hơn nhưng chưa có ý nghĩa. '
-         'Độ tự nhiên theo PickScore: OCSD cao nhất trong nhóm này, hơn GLIGEN và Ghép ảnh có ý nghĩa. Nhóm không nói OCSD tốt nhất mọi độ đo: OCSD giữ đối tượng ngang GLIGEN và Ghép ảnh, tự nhiên hơn, nhưng vị trí kém hơn.')
+         'Giữ đối tượng: OCSD 79 phần trăm, hơn rõ mô hình nền 66, T2I-Adapter 62 và Zhang 63; ngang GLIGEN 80 và Collage 82, khác biệt không có ý nghĩa thống kê. '
+         'Vị trí, hình dạng: 0,48, ngang mô hình nền, nhưng thấp hơn GLIGEN và Collage, khác biệt có ý nghĩa; đây là điểm yếu nhóm nói rõ. '
+         'Đúng tương quan: 51 phần trăm, hơn rõ mô hình nền 32; Collage và GLIGEN cao hơn nhưng chưa có ý nghĩa. '
+         'Độ tự nhiên theo PickScore: OCSD cao nhất trong nhóm này, hơn GLIGEN và Collage có ý nghĩa. Nhóm không nói OCSD tốt nhất mọi độ đo: OCSD giữ đối tượng ngang GLIGEN và Collage, tự nhiên hơn, nhưng vị trí kém hơn.')
 
 # ---------------------------------------------------------------- answers to Q1-Q3
 s = find('Trả lời ba câu hỏi nghiên cứu')
@@ -119,27 +119,27 @@ for nm, v in [('TextBox 10', '97%'), ('TextBox 13', '64%'), ('TextBox 16', '39%'
               ('TextBox 36', '51%'), ('TextBox 39', '1,36'), ('TextBox 42', '81%')]:
     settext(sh(s, nm), [v])
 settext(sh(s, 'TextBox 24'), ['giữ đối tượng', 'OCSD (nền 66%)'])
-settext(sh(s, 'TextBox 30'), ['giữ đối tượng', 'Ghép ảnh (M2)'])
+settext(sh(s, 'TextBox 30'), ['giữ đối tượng', 'Collage'])
 settext(sh(s, 'TextBox 37'), ['đúng tương quan', '(nền 32%)'])
 settext(sh(s, 'TextBox 40'), ['độ tự nhiên 0–2', '(M4 cũ: 0,44)'])
 settext(sh(s, 'TextBox 43'), ['giữ đối tượng khi', 'bỏ M5(b) (đủ: 68%)*'])
-settext(sh(s, 'TextBox 21'), ['Có: hơn rõ mô hình nền, giữ đối tượng ngang GLIGEN và Ghép ảnh; nhưng vị trí (mIoU) còn thấp hơn hai phương pháp này.'])
+settext(sh(s, 'TextBox 21'), ['Có: hơn rõ mô hình nền, giữ đối tượng ngang GLIGEN và Collage; nhưng vị trí (mIoU) còn thấp hơn hai phương pháp này.'])
 settext(sh(s, 'TextBox 34'), ['Đúng tương quan tăng rõ so với nền; M4 mới làm ảnh tự nhiên hơn hẳn. Nhưng bỏ riêng M5(a), M5(b) không làm kết quả giảm.'])
 settext(sh(s, 'TextBox 45'), [FOOT + ' Độ tự nhiên: chấm mù 0–2 trên 36 ảnh, một người chấm. *Cắt bỏ: 18 cảnh, lần chạy luận văn (M4 cũ), không thành phần nào khác biệt có ý nghĩa (Holm p ≥ 0,24).'])
 for para in sh(s, 'TextBox 45').text_frame.paragraphs:
     for r in para.runs: r.font.size = Pt(10)
 notes(s, 'Nhóm trả lời ba câu hỏi nghiên cứu. Q1: mô hình nền mất đối tượng rất nhanh khi số đối tượng tăng, từ 97 phần trăm ở cảnh một đối tượng xuống 39 phần trăm ở cảnh 8+; độ phức tạp nét vẽ ảnh hưởng ít hơn. '
-         'Q2: tách từng đối tượng rồi dựng cảnh giúp OCSD giữ 79 phần trăm đối tượng, hơn rõ mô hình nền 66, và ngang GLIGEN 80, Ghép ảnh 82, khác biệt không có ý nghĩa thống kê; nhưng vị trí theo mIoU còn thấp hơn hai phương pháp này. '
+         'Q2: tách từng đối tượng rồi dựng cảnh giúp OCSD giữ 79 phần trăm đối tượng, hơn rõ mô hình nền 66, và ngang GLIGEN 80, Collage 82, khác biệt không có ý nghĩa thống kê; nhưng vị trí theo mIoU còn thấp hơn hai phương pháp này. '
          'Q3: đúng tương quan tăng rõ so với mô hình nền, 51 so với 32 phần trăm; M4 mới làm ảnh tự nhiên hơn hẳn, điểm chấm mù 1,36 so với 0,44 của M4 cũ. Tuy nhiên trong nghiên cứu cắt bỏ ở lần chạy luận văn, bỏ riêng chú ý theo vùng hay dẫn hướng năng lượng không làm kết quả giảm. Nhóm báo cáo trung thực các kết quả âm này.')
 
 # ---------------------------------------------------------------- limitations
 s = find('Hạn chế và hướng phát triển')
 card_text(sh(s, 'Text 11'), 'Chậm hơn', 'M2 và M3 mất khoảng 70 giây mỗi cảnh, rồi khoảng 10 giây mỗi ảnh; mô hình nền khoảng 3 giây (GPU A100).')
-card_text(sh(s, 'Text 13'), 'Vị trí chưa bằng GLIGEN, Ghép ảnh', 'mIoU 0,48 so với 0,65 và 0,61; GLIGEN vẫn tự nhiên hơn khi chấm mù (1,81 so với 1,36).')
+card_text(sh(s, 'Text 13'), 'Vị trí chưa bằng GLIGEN, Collage', 'mIoU 0,48 so với 0,65 và 0,61; GLIGEN vẫn tự nhiên hơn khi chấm mù (1,81 so với 1,36).')
 card_text(sh(s, 'Text 15'), 'Phạm vi', 'Mới kiểm chứng trên QuickDraw-Scenes và SD 1.5; OCSD cuối chưa chạy lại trên ảnh thật COCO-Sketch.')
 card_text(sh(s, 'TextBox 25'), 'Giữ vị trí khi nhả vật', 'M4 nhả vật để hòa vào nền nên vật lệch nhẹ khỏi phác thảo; cần giữ chỗ chặt hơn.')
 card_text(sh(s, 'TextBox 27'), 'Dữ liệu, người chấm', 'Thêm ảnh thật, nhiều người chấm độc lập, khảo sát người dùng.')
 notes(s, 'Nhóm nêu rõ các hạn chế. Cảnh rất đông: 8+ đối tượng vẫn hay sai số lượng, sai màu, nhầm loài. OCSD chậm hơn: sinh đối tượng và học định danh mất khoảng 70 giây mỗi cảnh, sau đó khoảng 10 giây mỗi ảnh, mô hình nền khoảng 3 giây. '
-         'Vị trí theo mIoU của OCSD còn thấp hơn GLIGEN và Ghép ảnh, và khi chấm mù GLIGEN vẫn tự nhiên hơn. Nhóm mới kiểm chứng trên QuickDraw-Scenes với SD 1.5. '
+         'Vị trí theo mIoU của OCSD còn thấp hơn GLIGEN và Collage, và khi chấm mù GLIGEN vẫn tự nhiên hơn. Nhóm mới kiểm chứng trên QuickDraw-Scenes với SD 1.5. '
          'Hướng tiếp theo: xử lý cảnh rất đông, tăng tốc, giữ vị trí vật chặt hơn khi M4 nhả vật, và thêm ảnh thật cùng nhiều người chấm độc lập.')
 p.save(OUT); print('final results slides done')

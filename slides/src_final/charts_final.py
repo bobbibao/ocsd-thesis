@@ -9,7 +9,7 @@ def fmt(f, x):
     q = Decimal(str(x)).quantize(Decimal('1') if f == '{:.0f}%' else Decimal('0.01'), ROUND_HALF_UP)
     return (f.format(float(q))).replace('.', ',')
 G, O, LO, INK = '#9AA1AD', '#D9692B', '#F2B48C', '#1F2430'
-names = ['Mô hình nền\n(ControlNet)', 'T2I-\nAdapter', 'Zhang và cs.\n(2025)', 'GLIGEN', 'Ghép ảnh\n(Collage)', 'OCSD\n(M4 cũ)', 'OCSD']
+names = ['Mô hình nền\n(ControlNet)', 'T2I-\nAdapter', 'Zhang và cs.\n(2025)', 'GLIGEN', 'Collage', 'OCSD\n(M4 cũ)', 'OCSD']
 cols = [G, G, G, G, G, LO, O]
 data = {'opr': ([65.5, 62.4, 63.3, 80.1, 82.4, 71.1, 78.5], 'Giữ đủ đối tượng (OPR)', '{:.0f}%', 0),
         'miou': ([0.492, 0.437, 0.435, 0.653, 0.607, 0.529, 0.484], 'Đúng vị trí, hình dạng (mIoU)', '{:.2f}', 0),
@@ -29,7 +29,7 @@ for k, (v, t, f, lo) in data.items():
 # by object count (summary.md "By object count"), OPR %
 E1 = {'Mô hình nền (ControlNet)': ([97.2, 63.9, 61.7, 39.2], G, '--', 2),
       'GLIGEN': ([100.0, 89.8, 75.6, 55.2], '#6F8CC0', ':', 2),
-      'Ghép ảnh (Collage)': ([97.2, 83.3, 80.6, 68.6], '#3E9474', '-.', 2),
+      'Collage': ([97.2, 83.3, 80.6, 68.6], '#3E9474', '-.', 2),
       'OCSD (M4 cũ)': ([88.9, 79.6, 64.4, 51.5], LO, '-', 2),
       'OCSD': ([100.0, 81.5, 70.0, 62.5], O, '-', 3.5)}
 fig, ax = plt.subplots(figsize=(7.6, 4.93), dpi=220)
