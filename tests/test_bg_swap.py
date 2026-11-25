@@ -46,4 +46,14 @@ assert len(m2) == 3 and all(len(o["candidates"]) == 2 for o in m2), m2
 for o in m2:
     c = o["candidates"][o["selected"]]
     assert abs(c["total"] - o["selected_score"]) < 1e-3 and set(c) >= {"clip", "iou", "conf", "total"}, o
+# final OCSD (harmonised M4) with step recording
+fo = dict(bg_swap.final_overrides(ROOT), **tiny)
+m2 = bg_swap.run(W, sid="t", seed=0, bgs=("on a snowy field",), eng=eng, vis=vis, out_root=W, scene_dir=sdir,
+                 overrides=fo, size=S, tag="_final", record_steps=(0, 2, 5))
+assert m2["cfg"]["blend_mode"] == "harmonized", m2["cfg"]["blend_mode"]
+st = m2["steps"]
+assert [x["step"] for x in st["saved"]] == [1, 3, 6] and st["n_calls"][0] == 6, st
+assert all(os.path.exists(x["unet_input"]) and os.path.exists(x["x0"]) for x in st["saved"])
+assert st["m4"] and len(st["m4"]["weights"]) == 6, st["m4"]
+print("weights", st["m4"])
 print("OK")

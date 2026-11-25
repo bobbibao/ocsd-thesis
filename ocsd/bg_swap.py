@@ -17,6 +17,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 import cv2
 import numpy as np
+import torch
 
 from .trace_ocsd import DEFAULT_SID, PROTOCOL, _w, ocsd_config
 
@@ -59,9 +60,47 @@ def _slug(s: str) -> str:
     return "_".join(s.split())
 
 
+def final_overrides(root: str | None = None) -> dict:
+    """Settings of the final OCSD (harmonised M4, frozen in results/m4_study_v1/locked.json)."""
+    root = Path(root or Path(__file__).resolve().parent.parent)
+    return dict(json.loads((root / "results" / "m4_study_v1" / "locked.json").read_text())["overrides"])
+
+
+class _StepRec:
+    """Records every scene U-Net call (cfg_eps) of the first generation: the latent the U-Net sees and the predicted
+    clean latent x0. Only observes; returns what cfg_eps returns."""
+
+    def __init__(self, eng, keep):
+        self.eng, self.keep, self.runs, self.orig = eng, set(keep), [], eng.cfg_eps
+
+    def __enter__(self):
+        eng, orig = self.eng, self.orig
+
+        def wrapped(z, t, *a, **k):
+            eps = orig(z, t, *a, **k)
+            if not self.runs or float(t) > self.runs[-1][-1][0]:
+                self.runs.append([])
+            i = len(self.runs[-1])
+            rec = (float(t), None, None)
+            if i in self.keep:
+                ac = eng.scheduler.alphas_cumprod.to(z.device)[int(t)].to(torch.float32)
+                x0 = (z.float() - (1 - ac).sqrt() * eps.float()) / ac.sqrt()
+                im = lambda v: (lambda a: a[0] if a.ndim == 4 else a)(np.asarray(eng.to_image(v.to(eps.dtype))))
+                rec = (float(t), im(z), im(x0))
+            self.runs[-1].append(rec)
+            return eps
+        eng.cfg_eps = wrapped
+        return self
+
+    def __exit__(self, *exc):
+        self.eng.cfg_eps = self.orig
+
+
 def run(drive_root: str, sid: str = DEFAULT_SID, seed: int = 0, bgs=DEFAULT_BGS, eng=None, vis=None,
         out_root: str | None = None, log=print, scene_dir: str | None = None, overrides: dict | None = None,
-        size: int | None = None) -> dict:
+        size: int | None = None, tag: str = "", record_steps=()) -> dict:
+    """tag: suffix of the output folder (e.g. "_final"); record_steps: step indices (0-based) whose U-Net input and
+    predicted clean image are saved for the first background (first generation try)."""
     from . import method, xl_study
     from .data import load_scene
 
@@ -75,7 +114,7 @@ def run(drive_root: str, sid: str = DEFAULT_SID, seed: int = 0, bgs=DEFAULT_BGS,
         from .ocsd_xl import upscale_scene
         scene = upscale_scene(scene, size)
     cfg = ocsd_config(overrides)
-    out = Path(out_root or Path(drive_root) / "trace_ocsd") / f"bgswap_{sid}_s{seed}"
+    out = Path(out_root or Path(drive_root) / "trace_ocsd") / f"bgswap_{sid}_s{seed}{tag}"
     out.mkdir(parents=True, exist_ok=True)
     if eng is None:
         from .engine import Engine
@@ -132,11 +171,23 @@ def run(drive_root: str, sid: str = DEFAULT_SID, seed: int = 0, bgs=DEFAULT_BGS,
             scene.bg, scene.caption = bg, cap0.replace(bg0, bg)
             rl = {}
             t1 = time.time()
-            img = method.generate(eng, vis, scene, prep, cfg, seed, log=rl)
+            if i == 0 and record_steps:
+                with _StepRec(eng, record_steps) as sr:
+                    img = method.generate(eng, vis, scene, prep, cfg, seed, log=rl)
+                steps = []
+                for j, (t, zi, x0) in enumerate(sr.runs[0] if sr.runs else []):
+                    if zi is not None:
+                        steps.append(dict(step=j + 1, t=t, unet_input=_w(out / "steps" / f"step{j + 1:02d}_unet_input.jpg", zi, None),
+                                          x0=_w(out / "steps" / f"step{j + 1:02d}_x0.jpg", x0, None)))
+                meta["steps"] = dict(n_runs=len(sr.runs), n_calls=[len(r) for r in sr.runs], saved=steps,
+                                     m4=rl.get("m4"))
+            else:
+                img = method.generate(eng, vis, scene, prep, cfg, seed, log=rl)
             f = _w(out / f"{i}_{_slug(bg)}.png", img, None)
             meta["runs"].append(dict(bg=bg, caption=scene.caption, global_prompt=rl.get("global_prompt"), file=f,
                                      seconds=round(time.time() - t1, 1),
-                                     log={k: v for k, v in rl.items() if isinstance(v, (int, float, str, bool))}))
+                                     log={k: v for k, v in rl.items() if isinstance(v, (int, float, str, bool))},
+                                     m4=rl.get("m4")))
             log(f"[bgswap] {i + 1}/{len(all_bgs)} {bg}: {time.time() - t1:.0f} s")
     finally:
         scene.bg, scene.caption = bg0, cap0
@@ -153,7 +204,7 @@ def run(drive_root: str, sid: str = DEFAULT_SID, seed: int = 0, bgs=DEFAULT_BGS,
     sheet = np.concatenate([sk] + [cv2.resize(x, (h, h)) for x in ims], 1)
     _w(out / "SHEET.jpg", sheet, None)
     (out / "bgswap.json").write_text(json.dumps(meta, indent=1, default=str))
-    z = out.parent / f"bgswap_{sid}_s{seed}.zip"
+    z = out.parent / f"bgswap_{sid}_s{seed}{tag}.zip"
     with ZipFile(z, "w", ZIP_DEFLATED) as zf:
         for f in sorted(out.rglob("*")):
             if f.is_file():
