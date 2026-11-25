@@ -70,14 +70,39 @@ class _StepRec:
     """Records every scene U-Net call (cfg_eps) of the first generation: the latent the U-Net sees and the predicted
     clean latent x0. Only observes; returns what cfg_eps returns."""
 
-    def __init__(self, eng, keep):
-        self.eng, self.keep, self.runs, self.orig = eng, set(keep), [], eng.cfg_eps
+    def __init__(self, eng, keep, attn_keep=()):
+        self.eng, self.keep, self.attn_keep, self.runs, self.orig = eng, set(keep), set(attn_keep), [], eng.cfg_eps
+        self.ctx, self.attn = None, {}
 
     def __enter__(self):
         eng, orig = self.eng, self.orig
+        from . import method
+        self._sc = method.scene_cond
+
+        def scene_cond(*a, **k):
+            self.ctx = self._sc(*a, **k)
+            return self.ctx
+        method.scene_cond = scene_cond
 
         def wrapped(z, t, *a, **k):
-            eps = orig(z, t, *a, **k)
+            first_run = not self.runs or (len(self.runs) == 1 and float(t) <= self.runs[-1][-1][0])
+            i_next = len(self.runs[-1]) if self.runs and float(t) <= self.runs[-1][-1][0] else 0
+            want = first_run and i_next in self.attn_keep and self.ctx is not None
+            if want:
+                eng.ctrl.store, eng.ctrl.store_res = True, int(self.ctx.masks_lr.shape[-1] * self.ctx.masks_lr.shape[-2])
+                eng.ctrl.reset_maps()
+            try:
+                eps = orig(z, t, *a, **k)
+                if want:
+                    from .attention import token_maps
+                    A = eng.ctrl.aggregated_map(-1)
+                    if A is not None:
+                        n = len(self.ctx.region_masks)
+                        self.attn[i_next] = token_maps(A.float(), self.ctx.att_tokens[:n], self.ctx.eot).cpu().numpy()
+            finally:
+                if want:
+                    eng.ctrl.store = False
+                    eng.ctrl.reset_maps()
             if not self.runs or float(t) > self.runs[-1][-1][0]:
                 self.runs.append([])
             i = len(self.runs[-1])
@@ -93,12 +118,14 @@ class _StepRec:
         return self
 
     def __exit__(self, *exc):
+        from . import method
         self.eng.cfg_eps = self.orig
+        method.scene_cond = self._sc
 
 
 def run(drive_root: str, sid: str = DEFAULT_SID, seed: int = 0, bgs=DEFAULT_BGS, eng=None, vis=None,
         out_root: str | None = None, log=print, scene_dir: str | None = None, overrides: dict | None = None,
-        size: int | None = None, tag: str = "", record_steps=()) -> dict:
+        size: int | None = None, tag: str = "", record_steps=(), attn_steps=()) -> dict:
     """tag: suffix of the output folder (e.g. "_final"); record_steps: step indices (0-based) whose U-Net input and
     predicted clean image are saved for the first background (first generation try)."""
     from . import method, xl_study
@@ -172,15 +199,22 @@ def run(drive_root: str, sid: str = DEFAULT_SID, seed: int = 0, bgs=DEFAULT_BGS,
             rl = {}
             t1 = time.time()
             if i == 0 and record_steps:
-                with _StepRec(eng, record_steps) as sr:
+                with _StepRec(eng, record_steps, attn_steps) as sr:
                     img = method.generate(eng, vis, scene, prep, cfg, seed, log=rl)
                 steps = []
                 for j, (t, zi, x0) in enumerate(sr.runs[0] if sr.runs else []):
                     if zi is not None:
                         steps.append(dict(step=j + 1, t=t, unet_input=_w(out / "steps" / f"step{j + 1:02d}_unet_input.jpg", zi, None),
                                           x0=_w(out / "steps" / f"step{j + 1:02d}_x0.jpg", x0, None)))
+                from .trace_ocsd import _heat
+                att = {}
+                for j, maps in sorted(sr.attn.items()):
+                    att[j + 1] = [_w(out / "attention" / f"step{j + 1:02d}_obj{q + 1}_{scene.objects[q].cls}.jpg",
+                                     _heat(np.asarray(img), a), None) for q, a in enumerate(maps)]
+                    np.save(out / "attention" / f"step{j + 1:02d}_maps.npy", maps)
                 meta["steps"] = dict(n_runs=len(sr.runs), n_calls=[len(r) for r in sr.runs], saved=steps,
-                                     m4=rl.get("m4"))
+                                     m4=rl.get("m4"), attention=att,
+                                     region_masks_boxes=[[int(v) for v in o.box] for o in scene.objects])
             else:
                 img = method.generate(eng, vis, scene, prep, cfg, seed, log=rl)
             f = _w(out / f"{i}_{_slug(bg)}.png", img, None)
