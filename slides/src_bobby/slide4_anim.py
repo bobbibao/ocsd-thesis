@@ -43,33 +43,29 @@ def pic(path, x, y, z):
     q = s.shapes.add_picture(path, I(x), I(y), I(z), I(z)); q.line.color.rgb = C(0xD0,0xD4,0xDA); q.line.width = Pt(0.75); return q
 
 CAPTION = S['TextBox 14'].text_frame.text.strip()          # the deck's caption for this sketch, used in all 3 steps
-# caption banner: appears on click 1 and stays
-cap = [box(0.6, 3.1, 12.1, 0.52, C(0xFB,0xE9,0xDD))]
-cap.append(tb(0.8, 3.1, 11.7, 0.52, ['Câu mô tả:  ', CAPTION], 18, INK, False, PP_ALIGN.CENTER))
-r0 = cap[-1].text_frame.paragraphs[0].runs; r0[0].font.color.rgb = ORG; r0[0].font.bold = True; r0[0].font.italic = False; r0[0].font.size = Pt(15)
-r0[1].font.bold = True; r0[1].font.italic = True
-Z, Y, HY = 2.3, 4.1, 3.74      # image size, image top, header top
+def cap_style(box_, pt=13):    # caption a bit more prominent than the sketch labels: bigger, bold italic, dark
+    for para in box_.text_frame.paragraphs:
+        for r in para.runs: f = r.font; f.size = Pt(pt); f.bold = True; f.italic = True; f.color.rgb = INK
+cap = []
+Z, Y, HY = 2.6, 3.5, 3.16      # image size, image top, header top (same band as the failure row)
 # step 1: caption only -> SD 1.5 text-only image (left half)
 st1 = [tb(0.6, HY, 5.6, 0.3, 'Chỉ dùng câu mô tả (SD 1.5)', 12.5, INK, True)]
-st1.append(pic(IMG_T, 0.6 + (5.6 - Z) / 2, Y, Z))
-st1.append(tb(0.6, Y + Z + 0.07, 5.6, 0.42, 'Vị trí, kích thước vật thể do mô hình tự chọn, không theo ý người dùng', 11, RED, True))
+st1.append(box(0.6, Y + 0.6, 2.25, 1.4, C(0xFB,0xE9,0xDD)))
+st1.append(tb(0.7, Y + 0.6, 2.05, 1.4, CAPTION, 14, INK, True, italic=True))
+st1.append(arrow(2.93, Y + Z / 2 - 0.18, 0.46))
+st1.append(pic(IMG_T, 3.47, Y, Z))
+st1.append(tb(0.6, Y + Z + 0.08, 5.6, 0.42, 'Vị trí, kích thước vật thể do mô hình tự chọn, không theo ý người dùng', 11, RED, True))
 # step 2: sketch + caption -> SD 1.5 + ControlNet image (right half)
-X2 = 6.8 + (5.9 - (2 * Z + 0.6)) / 2
+X2 = 6.85
 st2 = [tb(6.8, HY, 5.9, 0.3, 'Phác thảo + câu mô tả (SD 1.5 + ControlNet)', 12.5, INK, True)]
 st2.append(pic(IMG_SK, X2, Y, Z))
+st2.append(tb(X2 - 0.15, Y + Z + 0.06, Z + 0.3, 0.5, CAPTION, 13, INK, True, italic=True))
 st2.append(arrow(X2 + Z + 0.07, Y + Z / 2 - 0.18, 0.46))
 st2.append(pic(IMG_ST, X2 + Z + 0.6, Y, Z))
-st2.append(tb(6.8, Y + Z + 0.07, 5.9, 0.42, 'Vật thể nằm đúng vị trí, đúng cỡ như nét vẽ', 11, GRN, True))
-# step 3: the existing failure row, same sketch and caption, resized under the banner; caption under the sketch dropped
-S['TextBox 14']._element.getparent().remove(S['TextBox 14']._element)
-gap = (12.1 - 4 * Z) / 3
-for k in range(4):
-    x = 0.6 + k * (Z + gap)
-    for nm, (yy, hh) in ((f'TextBox {6 + k}', (HY, 0.3)), (f'Picture {10 + k}', (Y, Z))):
-        sh = S[nm]; sh.left, sh.top, sh.width, sh.height = I(x), I(yy), I(Z), I(hh)
-    if k:
-        sh = S[f'TextBox {14 + k}']; sh.left, sh.top, sh.width, sh.height = I(x - 0.2), I(Y + Z + 0.07), I(Z + 0.4), I(0.42)
-st3 = [S[f'TextBox {k}'] for k in range(6, 10)] + [S[f'Picture {k}'] for k in range(10, 14)] + [S[f'TextBox {k}'] for k in range(15, 18)]
+st2.append(tb(X2 + Z + 0.5, Y + Z + 0.08, Z + 0.2, 0.42, 'Vật thể nằm đúng vị trí, đúng cỡ như nét vẽ', 11, GRN, True))
+# step 3: the existing failure row (same sketch and caption); caption under the sketch made more prominent
+cap_style(S['TextBox 14'])
+st3 = [S[f'TextBox {k}'] for k in range(6, 10)] + [S[f'Picture {k}'] for k in range(10, 14)] + [S[f'TextBox {k}'] for k in range(14, 18)]
 for x in cap + st1 + st2: x.name = 'ANIM4 ' + x.name
 
 if state:   # static copy for the PDF: drop what is not visible after click `state`
