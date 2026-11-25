@@ -51,15 +51,16 @@ dashed((660, 235, 1290, 690), OL)
 T1 = 'Tiền xử lý'; d.text((480 - d.textlength(T1, font=f(25, SB)) / 2, 290), T1, font=f(25, SB), fill=GL)
 # denoising block: M4 with M5(a,b,c) inside
 BX0, BY0, BX1, BY1 = 1350, 150, 2150, 820
-d.rounded_rectangle((BX0, BY0, BX1, BY1), 14, fill=(242, 246, 252)); dashed((BX0, BY0, BX1, BY1), BL)
-T = 'Nhánh xử lý cảnh: khử nhiễu 30 bước'; F = f(27, SB); d.text(((BX0 + BX1) / 2 - d.textlength(T, font=F) / 2, BY0 + 18), T, font=F, fill=BL)
+OX1 = 2465   # the scene branch also holds M5(d)
+d.rounded_rectangle((BX0, BY0, OX1, BY1), 14, fill=(242, 246, 252)); dashed((BX0, BY0, OX1, BY1), BL)
+T = 'Nhánh xử lý cảnh: khử nhiễu 30 bước'; F = f(27, SB); d.text(((BX0 + OX1) / 2 - d.textlength(T, font=F) / 2, BY0 + 18), T, font=F, fill=BL)
 arrow([(1272, 475), (1346, 475)])
 note(1310, 432, 'token', 20)
 sw = (BX1 - BX0 - 80) / 3; sy0, sy1 = 300, 520
 for k, (a, b_, c_) in enumerate((('M4  Neo vật', 'bước 1–12', 'giữ chặt vật M2'), ('M4  Nhả dần', 'bước 13–24', 'giảm dần lực giữ'), ('M4  Tự do', 'bước 25–30', 'vật hòa vào nền'))):
     x0 = BX0 + 20 + k * (sw + 20); box((x0, sy0, x0 + sw, sy1), BF, BL, [a, b_, c_], 24)
     if k < 2: arrow([(x0 + sw + 2, (sy0 + sy1) / 2), (x0 + sw + 18, (sy0 + sy1) / 2)], BL, w=4, head=12)
-note((BX0 + BX1) / 2, 245, 'M4 và M5 cùng chạy ở mỗi bước, một quỹ đạo chung cho vật và nền', 22, BL)
+note((BX0 + OX1) / 2, 245, 'M4 và M5(a, b, c) cùng chạy ở mỗi bước; M5(d) kiểm tra ảnh cuối', 22, BL)
 box((BX0 + 20, 580, BX1 - 20, 790), PF, PL, ['M5  Điều kiện hóa nhận biết vật thể (mọi bước 1–30)', '(a) chú ý chéo theo vùng của từng vật', '(b) dẫn hướng năng lượng: vật bị quên / tràn → sửa ngay',
     '(c) ControlNet phác thảo cả cảnh, lực 0,6'], 23)
 for k in range(3):
@@ -68,10 +69,10 @@ for k in range(3):
 DX0, DX1 = 2230, 2450
 box((DX0, 380, DX1, 570), PF, PL, ['M5(d)', 'Kiểm tra:', 'đếm lại vật', '(Grounding DINO)'], 23)
 arrow([(BX1 + 2, 475), (DX0 - 4, 475)], GRY)
-out = src.crop((1798, 78, 2163, 443)).resize((210, 210)); im.paste(out, (2470, 120))
-d.rectangle((2470, 120, 2680, 330), outline=(90, 90, 90), width=2)
-d.text((2575 - d.textlength('Ảnh cảnh', font=f(24, SB)) / 2, 80), 'Ảnh cảnh', font=f(24, SB), fill=INK)
-arrow([(2400, 378), (2470, 335)], (46, 125, 50), w=5); note(2470, 360, 'đạt', 22, (46, 125, 50), centre=False)
+out = src.crop((1798, 78, 2163, 443)).resize((210, 210)); im.paste(out, (2480, 120))
+d.rectangle((2480, 120, 2690, 330), outline=(90, 90, 90), width=2)
+d.text((2585 - d.textlength('Ảnh cảnh', font=f(24, SB)) / 2, 80), 'Ảnh cảnh', font=f(24, SB), fill=INK)
+arrow([(2420, 378), (2490, 335)], (46, 125, 50), w=5); note(2480, 372, 'đạt', 22, (46, 125, 50), centre=False)
 # loop back: missing / wrong -> redraw the faulty region
 LP = (200, 40, 40)
 arrow([(2340, 572), (2340, 900), ((BX0 + BX1) / 2, 900), ((BX0 + BX1) / 2, 824)], LP, w=5, head=18)
