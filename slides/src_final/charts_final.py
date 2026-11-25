@@ -11,7 +11,7 @@ def fmt(f, x):
 G, O, LO, INK = '#9AA1AD', '#D9692B', '#F2B48C', '#1F2430'
 names = ['Mô hình nền\n(ControlNet)', 'T2I-\nAdapter', 'Zhang và cs.\n(2025)', 'GLIGEN', 'Collage', 'OCSD\n(M4 cũ)', 'OCSD']
 cols = [G, G, G, G, G, LO, O]
-data = {'opr': ([65.5, 62.4, 63.3, 80.1, 82.4, 71.1, 78.5], 'Giữ đủ đối tượng (OPR)', '{:.0f}%', 0),
+data = {'opr': ([65.5, 62.4, 63.3, 80.1, 82.4, 71.1, 78.5], 'Giữ đủ vật thể (OPR)', '{:.0f}%', 0),
         'miou': ([0.492, 0.437, 0.435, 0.653, 0.607, 0.529, 0.484], 'Đúng vị trí, hình dạng (mIoU)', '{:.2f}', 0),
         'ra': ([32.1, 28.2, 33.7, 56.3, 61.6, 44.5, 50.8], 'Đúng tương quan (RA)', '{:.0f}%', 0),
         'pick': ([21.67, 21.53, 20.73, 21.41, 21.52, 21.16, 21.89], 'Độ tự nhiên (PickScore)', '{:.2f}', 20.3)}
@@ -36,7 +36,7 @@ fig, ax = plt.subplots(figsize=(7.6, 4.93), dpi=220)
 for lab, (y, c, ls, lw) in E1.items():
     ax.plot(range(4), y, ls, color=c, lw=lw, marker='o', ms=6, label=lab)
 ax.set_xticks(range(4)); ax.set_xticklabels(['1', '3', '5', '8+'], fontsize=12); ax.tick_params(axis='y', labelsize=12)
-ax.set_xlabel('Số đối tượng trong phác thảo', fontsize=13); ax.set_ylabel('Giữ đủ đối tượng (%)', fontsize=13)
+ax.set_xlabel('Số vật thể trong phác thảo', fontsize=13); ax.set_ylabel('Giữ đủ vật thể (%)', fontsize=13)
 ax.set_ylim(30, 103); ax.grid(axis='y', color='#E5E7EB'); [ax.spines[s].set_visible(False) for s in ['top', 'right']]
 ax.legend(fontsize=10.5, frameon=False, loc='lower left')
 fig.tight_layout(); fig.savefig('f_count.png'); plt.close()
