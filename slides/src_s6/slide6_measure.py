@@ -49,19 +49,18 @@ def dot(l, t_, n, col):
     tb(0, 0, 0, 0, [[(str(n), True, RGBColor(0xFF, 0xFF, 0xFF), 14)]], PP_ALIGN.CENTER, MSO_ANCHOR.MIDDLE, shape=o); return o
 sub = tb(0.6, 1.45, 12.1, 0.35, [[('72 cảnh QuickDraw-Scenes · đếm vật trong ảnh bằng OWLv2', False, GREY, 13)]])
 chart = s.shapes.add_picture(IMG, I(0.6), I(1.95), I(6.7), I(6.7 * 4.6 / 6.2))
-c1 = card(7.6, 1.95, 5.13, 1.55, 'FBE9DD')
-tb(0, 0, 0, 0, [[('97% → 39%', True, OR, 34)], [('vật thể còn giữ được, khi 1 → 8+ vật', False, INK, 13)]], PP_ALIGN.LEFT, MSO_ANCHOR.MIDDLE, shape=c1)
-c2 = card(7.6, 3.65, 5.13, 1.55, 'F2F4F7')
-tb(0, 0, 0, 0, [[('70% → 62%', True, GREY, 28)], [('khi nét vẽ đơn giản → phức tạp: chỉ −8 điểm', False, INK, 13)]], PP_ALIGN.LEFT, MSO_ANCHOR.MIDDLE, shape=c2)
-c3 = card(7.6, 5.35, 5.13, 1.45, 'FFFFFF', 'D9692B')
-tb(0, 0, 0, 0, [[('→ Số lượng vật thể', True, OR, 16), (' là nguyên nhân chính: mất vật, sai số lượng.', True, INK, 14)]], PP_ALIGN.LEFT, MSO_ANCHOR.MIDDLE, shape=c3)
-for c in (c1, c2, c3): c.text_frame.margin_left = I(0.3)
-steps = [[chart], [c1], [c2], [c3]]
+c1 = card(7.6, 1.95, 5.13, 2.55, 'FBE9DD')
+tb(0, 0, 0, 0, [[('97% → 39%', True, OR, 40)], [('vật thể còn giữ được, khi 1 → 8+ vật', False, INK, 15)]], PP_ALIGN.LEFT, MSO_ANCHOR.MIDDLE, shape=c1)
+c3 = card(7.6, 4.7, 5.13, 2.1, 'FFFFFF', 'D9692B')
+tb(0, 0, 0, 0, [[('→ Số lượng vật thể', True, OR, 17), (' là nguyên nhân chính: mất vật, sai số lượng.', True, INK, 15)]], PP_ALIGN.LEFT, MSO_ANCHOR.MIDDLE, shape=c3)
+for c in (c1, c3): c.text_frame.margin_left = I(0.3)
+steps = [[chart], [c1], [c3]]
+# 3rd pass (Bobby 13:13): the 70% -> 62% box removed
 s.notes_slide.notes_text_frame.text = (
     'Trước khi đề xuất phương pháp, nhóm đo xem mô hình nền hỏng ở đâu. Một, mô hình được đo là SD 1.5 cộng ControlNet nhận nét vẽ, cách làm phổ biến nhất. '
     'Hai, dữ liệu là bộ QuickDraw-Scenes nhóm tự xây, 72 cảnh, trong đó số vật thể và độ phức tạp nét vẽ được thay đổi riêng rẽ. '
     'Ba, cách đo: dùng OWLv2, một máy phát hiện vật độc lập mà không phương pháp nào dùng bên trong, tìm từng vật trong câu mô tả; tỉ lệ vật tìm thấy là tỉ lệ vật thể còn giữ được. '
-    'Kết quả: với một vật thể, 97 phần trăm được giữ; với 8 vật trở lên chỉ còn 39 phần trăm. Trong khi đó, đổi nét vẽ từ đơn giản sang phức tạp chỉ làm giảm 8 điểm, từ 70 xuống 62. '
+    'Kết quả: với một vật thể, 97 phần trăm được giữ; với 8 vật trở lên chỉ còn 39 phần trăm. '
     'Vậy số lượng vật thể mới là nguyên nhân chính; lỗi chủ yếu là mất vật và sai số lượng, sai số mỗi loại tăng từ 0,19 lên 5,97.')
 if state:
     for st in steps[state:]:
