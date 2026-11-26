@@ -14,7 +14,7 @@ G, O, LO, INK = '#9AA1AD', '#D9692B', '#F2B48C', '#1F2430'
 def fmt(f, x):
     q = Decimal(str(x)).quantize(Decimal('1') if f == '%' else Decimal('0.01'), ROUND_HALF_UP)
     return (f'{float(q):.0f}%' if f == '%' else f'{float(q):.2f}').replace('.', ',')
-N6 = ['Mô hình nền\n(ControlNet)', 'T2I-\nAdapter', 'Zhang và\ncs. (2025)', 'GLIGEN', 'Collage', 'OCSD']
+N6 = ['Mô hình\nnền', 'T2I-\nAdapter', 'Zhang\n(2025)', 'GLIGEN', 'Collage', 'OCSD']
 charts = [
     ('opr', 'Giữ đủ vật thể (OPR)', N6, [65.5, 62.4, 63.3, 80.1, 82.4, 78.5], [G] * 5 + [O], '%', 0),
     ('oce', 'Đúng số lượng (OCE, thấp = tốt)', N6, [2.514, 2.674, 2.410, 2.062, 1.500, 2.174], [G] * 5 + [O], '2', 0),
@@ -22,17 +22,17 @@ charts = [
      [0.492, 0.437, 0.435, 0.653, 0.607, 0.529, 0.484], [G] * 5 + [LO, O], '2', 0),
     ('ra', 'Đúng tương quan (RA)', N6, [32.1, 28.2, 33.7, 56.3, 61.6, 50.8], [G] * 5 + [O], '%', 0),
     ('pick', 'Độ tự nhiên (PickScore)', N6, [21.67, 21.53, 20.73, 21.41, 21.52, 21.89], [G] * 5 + [O], '2', 20.3)]
-CW, CH, X0, GAP = 2.38, 2.6, 0.45, 0.06
+CW, CH, X0, GAP = 2.38, 3.3, 0.45, 0.06
 def chart(t, names, v, cols, f, lo):
     fig, ax = plt.subplots(figsize=(CW, CH), dpi=300)
-    n = len(v); ax.bar(range(n), [x - lo for x in v], bottom=lo, color=cols, width=0.68)
+    n = len(v); ax.bar(range(n), [x - lo for x in v], bottom=lo, color=cols, width=0.72)
     top = max(v)
     for i, x in enumerate(v):
-        ax.text(i, x + (top - lo) * 0.02, fmt(f, x), ha='center', va='bottom', fontsize=5.6 if n > 6 else 6.2,
+        ax.text(i, x + (top - lo) * 0.02, fmt(f, x), ha='center', va='bottom', fontsize=7.4 if n > 6 else 8.2,
                 fontweight='bold', color=O if cols[i] in (O, LO) else INK)
-    ax.set_xticks(range(n)); ax.set_xticklabels(names, fontsize=4.3 if n > 6 else 4.7, color=INK)
+    ax.set_xticks(range(n)); ax.set_xticklabels(names, fontsize=5.6 if n > 6 else 6.4, color=INK)
     ax.set_yticks([]); [ax.spines[s].set_visible(False) for s in ['top', 'right', 'left']]
-    ax.set_ylim(lo, lo + (top - lo) * 1.2); ax.set_title(t, fontsize=7.6, color=INK, pad=4)
+    ax.set_ylim(lo, lo + (top - lo) * 1.2); ax.set_title(t, fontsize=9.2, color=INK, pad=4)
     fig.tight_layout(pad=0.3); b = io.BytesIO(); fig.savefig(b, format='png'); plt.close(); b.seek(0); return b
 p = Presentation(sys.argv[1]); s = p.slides[33]
 sh = {x.name: x for x in s.shapes}
@@ -57,13 +57,15 @@ cards = [('Rounded Rectangle 9', 'TextBox 10'), ('Rounded Rectangle OCE', 'TextB
 for i, (pn, (cn, tn), c) in enumerate(zip(pics, cards, charts)):
     x = X0 + i * (CW + GAP)
     pic = sh[pn]; _, rid = pic.part.get_or_add_image_part(chart(*c[1:])); pic._element.blipFill.blip.rEmbed = rid
-    pic.left, pic.top, pic.width, pic.height = I(x), I(1.45), I(CW), I(CH)
+    pic.left, pic.top, pic.width, pic.height = I(x), I(1.42), I(CW), I(CH)
     card, txt = sh[cn], sh[tn]
-    card.left, card.top, card.width, card.height = I(x + 0.04), I(4.2), I(CW - 0.08), I(2.2)
-    txt.left, txt.top, txt.width, txt.height = I(x + 0.12), I(4.28), I(CW - 0.24), I(2.05)
+    card.left, card.top, card.width, card.height = I(x + 0.04), I(4.85), I(CW - 0.08), I(1.62)
+    txt.left, txt.top, txt.width, txt.height = I(x + 0.12), I(4.9), I(CW - 0.24), I(1.52)
     txt.text_frame.word_wrap = True
     for k, para in enumerate(txt.text_frame.paragraphs):
-        for r in para.runs: r.font.size = Pt(12.5 if k == 0 else 9.5)
+        for r in para.runs: r.font.size = Pt(13 if k == 0 else 10)
+fr = sh['TextBox 17'].text_frame.paragraphs[0].runs[-1]
+fr.text = fr.text.replace('72 cảnh', 'Mô hình nền = ControlNet. 72 cảnh', 1) if 'Mô hình nền =' not in fr.text else fr.text
 nt = s.notes_slide.notes_text_frame; t = nt.text; a = 'Đúng tương quan: 51 phần trăm'
 assert a in t
 nt.text = t.replace(a, 'Đúng số lượng, OCE theo lớp, càng thấp càng tốt: OCSD 2,17, ít lỗi đếm hơn mô hình nền 2,51, T2I-Adapter 2,67 và Zhang 2,41, nhưng nhiều hơn GLIGEN 2,06 và Collage 1,50; tỉ lệ ảnh đếm đúng của OCSD là 33 phần trăm, khác GLIGEN và Collage chưa có ý nghĩa thống kê. ' + a)
