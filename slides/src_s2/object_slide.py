@@ -71,8 +71,8 @@ tf = bx.text_frame; tf.word_wrap = True; tf.vertical_anchor = MSO_ANCHOR.MIDDLE
 tf.margin_left = tf.margin_right = I(0.25)
 for k, runs in enumerate([[('Vật thể (object)', True, 'D9692B', 20)],
                           [('Mỗi thứ riêng lẻ được vẽ trong phác thảo.', False, '1F2430', 16)],
-                          [('OCSD phải tạo ', False, '1F2430', 16), ('đủ', True, '1F2430', 16), (' và ', False, '1F2430', 16),
-                           ('đúng chỗ', True, '1F2430', 16), (' từng vật thể trong ảnh.', False, '1F2430', 16)]]):
+                          [('Ảnh tạo ra cần có ', False, '1F2430', 16), ('đủ', True, '1F2430', 16), (' và ', False, '1F2430', 16),
+                           ('đúng chỗ', True, '1F2430', 16), (' từng vật thể.', False, '1F2430', 16)]]):
     pa = tf.paragraphs[0] if k == 0 else tf.add_paragraph(); pa.space_after = Pt(8)
     for t_, b_, c_, z_ in runs:
         rr = pa.add_run(); rr.text = t_; rr.font.bold = b_; rr.font.size = Pt(z_); rr.font.name = 'Arial'
