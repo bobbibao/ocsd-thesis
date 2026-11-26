@@ -64,6 +64,20 @@ st2.append(arrow(X2 + Z + 0.07, Y + Z / 2 - 0.18, 0.46))
 st2.append(pic(IMG_ST, X2 + Z + 0.6, Y, Z))
 st2.append(tb(X2 + Z + 0.5, Y + Z + 0.08, Z + 0.2, 0.42, 'Vật thể nằm đúng vị trí, đúng cỡ như nét vẽ', 11, GRN, True))
 # step 3: the existing failure row (same sketch and caption); caption under the sketch made more prominent
+# Bobby 2026-11-26: click 3 = a sketch with MORE objects (farm scene qd_5_medium_005, 5 objects, seed 0, real m4-study outputs);
+# the same scene is the deck's example for background, M1-M5 and the metric slide
+FARM = ('img4/farm_sketch.png', 'img4/farm_controlnet.jpg', 'img4/farm_t2i_adapter.png', 'img4/farm_gligen.jpg')
+FARM_TXT = ('“three small cows, a tall tree and a red truck on a farm”', 'Cây thành đống đất; bò dưới thành xe tải đỏ',
+            'Như tranh cắt giấy; bò dưới thành xe tải', 'Đủ vật nhưng thành bóng đen, sai bối cảnh')
+for k in range(4):
+    old_ = S[f'Picture {10 + k}']
+    q = s.shapes.add_picture(FARM[k], old_.left, old_.top, old_.width, old_.height)
+    if k == 0: q.line.color.rgb = C(0xD0,0xD4,0xDA); q.line.width = Pt(0.75)
+    old_._element.addprevious(q._element); old_._element.getparent().remove(old_._element)
+    S[f'Picture {10 + k}'] = q
+    para = S[f'TextBox {14 + k}'].text_frame.paragraphs[0]
+    para.runs[0].text = FARM_TXT[k]
+    for r in para.runs[1:]: r.text = ''
 cap_style(S['TextBox 14'])
 st3 = [S[f'TextBox {k}'] for k in range(6, 10)] + [S[f'Picture {k}'] for k in range(10, 14)] + [S[f'TextBox {k}'] for k in range(14, 18)]
 for x in cap + st1 + st2: x.name = 'ANIM4 ' + x.name
