@@ -54,7 +54,7 @@ st1.append(box(0.6, Y + 0.6, 2.25, 1.4, C(0xFB,0xE9,0xDD)))
 st1.append(tb(0.7, Y + 0.6, 2.05, 1.4, CAPTION, 14, INK, True, italic=True))
 st1.append(arrow(2.93, Y + Z / 2 - 0.18, 0.46))
 st1.append(pic(IMG_T, 3.47, Y, Z))
-st1.append(tb(0.6, Y + Z + 0.08, 5.6, 0.42, 'Vị trí, kích thước vật thể do mô hình tự chọn, không theo ý người dùng', 11, RED, True))
+st1.append(tb(0.6, Y + Z + 0.08, 5.6, 0.42, 'Thiếu bò, nhà nằm xa trong góc: bố cục do mô hình tự chọn, không theo ý người dùng', 11, RED, True))
 # step 2: sketch + caption -> SD 1.5 + ControlNet image (right half)
 X2 = 6.85
 st2 = [tb(6.8, HY, 5.9, 0.3, 'Phác thảo + câu mô tả (SD 1.5 + ControlNet)', 12.5, INK, True)]
