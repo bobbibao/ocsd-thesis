@@ -1,6 +1,7 @@
 """Bobby 2026-11-26: slide 38 'Trả lời ba câu hỏi nghiên cứu' had too much text, no visuals, no separation between
 questions. Rebuild as 3 columns (Q1 | Q2 | Q3) split by vertical rules; each column = short question, one native bar
 visual, one short answer box. One click per column. Numbers unchanged (m4_study_v1 + Q1 controlled test).
+v37 (Bobby): no objective titles; one clear question (shared with slide 9 via rq_text.py) and a plain answer.
 Usage: slide38_rq_visual.py IN OUT"""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src_bobby'))
@@ -10,6 +11,7 @@ from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE, MSO_CONNECTOR
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from anim_lib import add_clicks
+import rq_text
 
 BLUE, OR, PEACH, DARK = '2E5A9C', 'D9692B', 'FBE9DD', '1F2430'
 GRAY, LGRAY, GREEN, RED, RULE = '6B7280', 'C9CED6', '2E8B57', 'C0392B', 'D5D9E0'
@@ -50,31 +52,28 @@ cols = []
 for c in range(3):
     if c: ln = s.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, I(COLX[c] - 0.15), I(TOP), I(COLX[c] - 0.15), I(6.85)); \
           ln.line.color.rgb = RGBColor.from_string(RULE); ln.line.width = Pt(1.5)
-HEAD = [('Q1', 'Xác định nguyên nhân suy giảm', 'Số lượng vật thể hay độ phức tạp phác thảo khiến mô hình nền vi phạm R1–R4?'),
-        ('Q2', 'Đề xuất phương pháp và so sánh', 'Tách cảnh thành từng vật thể có định danh riêng có giúp đạt R1, R2, R4 tốt hơn? Đánh đổi gì?'),
-        ('Q3', 'Hợp thành cảnh hài hòa', 'Hợp thành cảnh hài hòa có giữ nhiều vật thể hơn và tự nhiên hơn cách trộn cứng?')]
-ANS = ['Chủ yếu do số lượng vật thể; nét vẽ phức tạp chỉ giảm 8 điểm. Lỗi chính: mất vật, sai số lượng.',
-       'Có, so với phương pháp chỉ dùng nét vẽ. Ngang GLIGEN, Collage về giữ vật; đổi độ chính xác vị trí lấy độ tự nhiên.',
-       'Có, cả hai giả thuyết đăng ký trước đều đúng; mIoU và RA không giảm có ý nghĩa.']
-for c, (q, title, ques) in enumerate(HEAD):
+QS = rq_text.QS
+ANS = ['Số lượng vật thể là nguyên nhân chính; nét vẽ trừu tượng hơn chỉ ảnh hưởng nhẹ. Lỗi chính: mất vật, sai số lượng.',
+       'Có. Giữ vật tốt hơn các cách chỉ dùng nét vẽ, ngang GLIGEN và Collage; kém hơn về vị trí nhưng ảnh tự nhiên hơn.',
+       'Có. Giữ vật tăng 71% → 79%, ảnh tự nhiên hơn rõ rệt; vị trí và tương quan không giảm.']
+for c, ques in enumerate(QS):
     x = COLX[c]; g = []
     o = box(x, TOP, 0.62, 0.62, BLUE, MSO_SHAPE.OVAL); g.append(o)
-    text(0, 0, 0, 0, [[(q, True, 'FFFFFF', 16)]], align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, shape=o)
-    g.append(text(x + 0.72, TOP, COLW - 0.72, 0.62, [[(title, True, OR, 14.5)]], anchor=MSO_ANCHOR.MIDDLE))
-    g.append(text(x, TOP + 0.72, COLW, 0.62, [[(ques, False, GRAY, 11.5)]]))
+    text(0, 0, 0, 0, [[('Q%d' % (c + 1), True, 'FFFFFF', 16)]], align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, shape=o)
+    g.append(text(x + 0.72, TOP - 0.05, COLW - 0.72, 1.4, [[(ques, True, DARK, 12.5)]]))
     vis = box(x, 2.95, COLW, 2.6, 'F4F5F7', MSO_SHAPE.ROUNDED_RECTANGLE, 0.06); g.append(vis)
     a = box(x, 5.7, COLW, 1.15, PEACH, MSO_SHAPE.ROUNDED_RECTANGLE, 0.1); g.append(a)
     g.append(box(x, 5.7, 0.07, 1.15, OR))
-    g.append(text(x + 0.18, 5.7, COLW - 0.28, 1.15, [[(ANS[c], True, DARK, 13)]], anchor=MSO_ANCHOR.MIDDLE))
+    g.append(text(x + 0.18, 5.7, COLW - 0.28, 1.15, [[(ANS[c], True, DARK, 12.5)]], anchor=MSO_ANCHOR.MIDDLE))
     cols.append(g)
 
 # Q1 visual: object count vs sketch complexity, base model OPR
 x = COLX[0] + 0.15; g = cols[0]; W = 1.75
 g.append(text(x, 3.03, 3.6, 0.3, [[('Giữ vật thể của mô hình nền (OPR)', True, DARK, 11.5)]]))
-g.append(text(x, 3.35, 3.6, 0.25, [[('Tăng số vật thể', False, GRAY, 10.5)]]))
+g.append(text(x, 3.35, 3.6, 0.25, [[('Nhiều vật thể hơn', False, GRAY, 10.5)]]))
 g += bar(x, 3.62, '1 vật', 97, 100, W, GRAY, '97%') + bar(x, 3.93, '8+ vật', 39, 100, W, RED, '39%  ▼58')
-g.append(text(x, 4.3, 3.6, 0.25, [[('Tăng độ phức tạp nét vẽ', False, GRAY, 10.5)]]))
-g += bar(x, 4.57, 'đơn giản', 70, 100, W, GRAY, '70%') + bar(x, 4.88, 'phức tạp', 62, 100, W, LGRAY, '62%  ▼8')
+g.append(text(x, 4.3, 3.6, 0.25, [[('Nét vẽ trừu tượng hơn', False, GRAY, 10.5)]]))
+g += bar(x, 4.57, 'ít trừu tượng', 70, 100, W, GRAY, '70%') + bar(x, 4.88, 'trừu tượng', 62, 100, W, LGRAY, '62%  ▼8')
 g.append(text(x, 5.2, 3.6, 0.3, [[('Sai số lượng mỗi loại: 0,19 → ', False, DARK, 11), ('5,97', True, RED, 11)]]))
 
 # Q2 visual: OPR vs baselines + trade-off chips
