@@ -59,28 +59,39 @@ def arrow(x1, y1, x2, y2, col):
 objs = []
 # (word, colour, chip side, target px)
 for word, col, side, (px, py) in [('ngôi nhà', 'C62828', 'L', (85, 330)), ('xe đạp', '2E5A9C', 'L', (123, 560)),
-                                  ('cái cây', '558B2F', 'R', (420, 250)), ('con chó', 'C99700', 'R', (575, 420))]:
+                                  ('mặt trời', '7B1FA2', 'R', (622, 135)), ('cái cây', '558B2F', 'R', (420, 250)), ('con chó', 'C99700', 'R', (575, 420))]:
     tx, ty = P(px, py)
     if side == 'L': c = chip(0.7, ty - 0.25, 1.75, word, col); a = arrow(2.45, ty, tx - 0.03, ty, col)
-    else: c = chip(6.75, ty - 0.25, 1.75, word, col); a = arrow(6.75, ty, tx + 0.03, ty, col)
+    else:
+        cy = ty - 0.2 if word == 'mặt trời' else ty   # lift the sun chip so it does not touch the tree chip
+        c = chip(6.75, cy - 0.25, 1.75, word, col); a = arrow(6.75, cy, tx + 0.03, ty, col)
     objs += [c, a]
-bx = s.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, I(8.95), I(2.3), I(3.8), I(2.9))
-bx.fill.solid(); bx.fill.fore_color.rgb = RGBColor.from_string('FBE9DD'); bx.line.fill.background(); bx.shadow.inherit = False
-bx.adjustments[0] = 0.08
-tf = bx.text_frame; tf.word_wrap = True; tf.vertical_anchor = MSO_ANCHOR.MIDDLE
-tf.margin_left = tf.margin_right = I(0.25)
-for k, runs in enumerate([[('Vật thể (object)', True, 'D9692B', 20)],
-                          [('Mỗi thứ riêng lẻ được vẽ trong phác thảo.', False, '1F2430', 16)],
-                          [('Ảnh tạo ra cần có ', False, '1F2430', 16), ('đủ', True, '1F2430', 16), (' và ', False, '1F2430', 16),
-                           ('đúng chỗ', True, '1F2430', 16), (' từng vật thể.', False, '1F2430', 16)]]):
-    pa = tf.paragraphs[0] if k == 0 else tf.add_paragraph(); pa.space_after = Pt(8)
-    for t_, b_, c_, z_ in runs:
-        rr = pa.add_run(); rr.text = t_; rr.font.bold = b_; rr.font.size = Pt(z_); rr.font.name = 'Arial'
-        rr.font.color.rgb = RGBColor.from_string(c_)
-add_clicks(s, [[(x, 'fade') for x in objs], [(bx, 'fade')]])
+def card(y, h, fill, paras):
+    bx = s.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, I(8.95), I(y), I(3.8), I(h))
+    bx.fill.solid(); bx.fill.fore_color.rgb = RGBColor.from_string(fill); bx.line.fill.background(); bx.shadow.inherit = False
+    bx.adjustments[0] = 0.08
+    tf = bx.text_frame; tf.word_wrap = True; tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+    tf.margin_left = tf.margin_right = I(0.22)
+    for k, runs in enumerate(paras):
+        pa = tf.paragraphs[0] if k == 0 else tf.add_paragraph(); pa.space_after = Pt(6)
+        for t_, b_, c_, z_ in runs:
+            rr = pa.add_run(); rr.text = t_; rr.font.bold = b_; rr.font.size = Pt(z_); rr.font.name = 'Arial'
+            rr.font.color.rgb = RGBColor.from_string(c_)
+    return bx
+DK = '1F2430'
+bx = card(1.75, 2.35, 'FBE9DD', [[('Vật thể (object)', True, 'D9692B', 19)],
+                                 [('Mỗi thứ riêng lẻ được vẽ trong phác thảo.', False, DK, 15)],
+                                 [('Ảnh tạo ra cần có ', False, DK, 15), ('đủ', True, DK, 15), (' và ', False, DK, 15),
+                                  ('đúng chỗ', True, DK, 15), (' từng vật thể.', False, DK, 15)]])
+bx2 = card(4.3, 2.35, 'E6EEFA', [[('Thuộc tính (attribute)', True, '2E5A9C', 19)],
+                                 [('Đặc điểm của vật thể, như màu sắc hay chất liệu, lấy từ câu mô tả:', False, DK, 14)],
+                                 [('brown dog', True, 'C99700', 14), (' → chó màu nâu, ', False, DK, 14),
+                                  ('red bicycle', True, '2E5A9C', 14), (' → xe đạp màu đỏ.', False, DK, 14)]])
+add_clicks(s, [[(x, 'fade') for x in objs], [(bx, 'fade')], [(bx2, 'fade')]])
 set_transition(s, 'fade')
 s.notes_slide.notes_text_frame.text = ('Trước khi vào bài, nhóm giải thích một thuật ngữ dùng xuyên suốt: vật thể, tiếng Anh là object. '
-    'Vật thể là mỗi thứ riêng lẻ được vẽ trong phác thảo, ở ví dụ này là ngôi nhà, xe đạp, cái cây và con chó. '
+    'Vật thể là mỗi thứ riêng lẻ được vẽ trong phác thảo, ở ví dụ này là ngôi nhà, xe đạp, cái cây, con chó và mặt trời. '
+    'Thuộc tính, tiếng Anh là attribute, là đặc điểm của vật thể như màu sắc hay chất liệu, lấy từ câu mô tả, ví dụ brown dog là chó màu nâu, red bicycle là xe đạp màu đỏ. '
     'Nhất quán vật thể nghĩa là ảnh tạo ra có đủ các vật thể đó, đúng số lượng, đúng vị trí và đúng tương quan như trong phác thảo.')
 # move new slide to position 3
 lst = p.slides._sldIdLst; el = lst[-1]; lst.remove(el); lst.insert(2, el)
