@@ -94,5 +94,16 @@ g.append(text(x, 4.3, 3.6, 0.25, [[('Chấm mù độ tự nhiên (thang 0–2)'
 g += bar(x, 4.57, 'trộn cứng', 0.44, 2, W, GRAY, '0,44') + bar(x, 4.88, 'hài hòa', 1.36, 2, W, OR, '1,36  ▲')
 g.append(text(x, 5.2, 3.6, 0.3, [[('PickScore ', False, DARK, 11), ('+0,73', True, GREEN, 11), (' (p < 0,0001), OPR p = 0,011', False, DARK, 10.5)]]))
 
+# v39 (Bobby: gap under the questions looked empty): pull visuals up 0.5 in, answer box grows by 0.5 in
+UP = I(0.5)
+for g in cols:
+    for sh in g:
+        if sh.top >= I(5.6): sh.top -= UP; sh.height += UP
+        elif sh.top >= I(2.9): sh.top -= UP
+for g in cols:
+    for sh in g:
+        if sh.has_text_frame and sh.top >= I(5.0) and sh.width > I(3) and sh.height > I(1.4):
+            for pa in sh.text_frame.paragraphs:
+                for r in pa.runs: r.font.size = Pt(14)
 add_clicks(s, [[(sh, 'fade') for sh in g] for g in cols])
 p.save(sys.argv[2]); print('ok')
